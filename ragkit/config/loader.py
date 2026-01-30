@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-import yaml  # type: ignore[import-untyped]
+import yaml
 
 from ragkit.config.schema import RAGKitConfig
 from ragkit.config.validators import validate_config
