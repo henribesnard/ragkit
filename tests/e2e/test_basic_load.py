@@ -60,6 +60,17 @@ class InMemoryVectorStore(BaseVectorStore):
     async def clear(self) -> None:
         self._chunks = []
 
+    async def count(self) -> int:
+        return len(self._chunks)
+
+    async def stats(self):
+        from ragkit.vectorstore.base import VectorStoreStats
+
+        return VectorStoreStats(provider="memory", collection_name="memory", vector_count=len(self._chunks))
+
+    async def list_documents(self) -> list[str]:
+        return sorted({chunk.document_id for chunk in self._chunks})
+
 
 @pytest.mark.asyncio
 @pytest.mark.e2e

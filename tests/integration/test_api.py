@@ -2,16 +2,8 @@ from fastapi.testclient import TestClient
 
 from ragkit.api.app import create_app
 from ragkit.config.schema import APIConfig, APICorsConfig, APIDocsConfig, APIServerConfig
-from ragkit.models import Chunk, GeneratedResponse, QueryAnalysis, RetrievalResult
 
-
-class DummyOrchestrator:
-    async def process(self, query, history=None):
-        analysis = QueryAnalysis(intent="question", needs_retrieval=True)
-        chunk = Chunk(id="1", document_id="doc", content="Hello", metadata={"source": "doc"})
-        context = [RetrievalResult(chunk=chunk, score=0.9, retrieval_type="semantic")]
-        response = GeneratedResponse(content="Answer", sources=["doc"], metadata={})
-        return type("RAGResponse", (), {"response": response, "analysis": analysis, "context": context})()
+from tests.helpers import DummyOrchestrator
 
 
 class DummyConfig:

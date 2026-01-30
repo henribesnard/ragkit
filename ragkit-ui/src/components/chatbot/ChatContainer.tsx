@@ -1,0 +1,32 @@
+﻿import { ChatInput } from './ChatInput';
+import { ChatMessage } from './ChatMessage';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  sources?: string[];
+}
+
+interface ChatContainerProps {
+  messages: Message[];
+  onSend: (message: string) => void;
+  isLoading?: boolean;
+}
+
+export function ChatContainer({ messages, onSend, isLoading }: ChatContainerProps) {
+  return (
+    <div className="flex h-full flex-col gap-6">
+      <div className="flex-1 space-y-4 overflow-y-auto rounded-3xl bg-white/50 p-6">
+        {messages.length === 0 ? (
+          <p className="text-sm text-muted">Start a conversation to test your RAG.</p>
+        ) : (
+          messages.map((message) => (
+            <ChatMessage key={message.id} {...message} />
+          ))
+        )}
+      </div>
+      <ChatInput onSend={onSend} isLoading={isLoading} />
+    </div>
+  );
+}

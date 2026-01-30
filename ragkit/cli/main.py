@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from pathlib import Path
 import shutil
+import subprocess
 
 import typer
 
@@ -17,6 +18,8 @@ from ragkit.llm import LLMRouter
 from ragkit.agents import AgentOrchestrator
 
 app = typer.Typer(name="ragkit", help="RAGKIT - Configuration-First RAG Framework")
+ui_app = typer.Typer(help="UI commands")
+app.add_typer(ui_app, name="ui")
 
 
 @app.command()
@@ -75,11 +78,17 @@ def query(
     loader = ConfigLoader()
     cfg = loader.load_with_env(config)
 
-    embedder = create_embedder(cfg.embedding.query_model)
+    embedder_query = create_embedder(cfg.embedding.query_model)
+    embedder_doc = create_embedder(cfg.embedding.document_model)
     vector_store = create_vector_store(cfg.vector_store)
-    retrieval = RetrievalEngine(cfg.retrieval, vector_store, embedder)
+    retrieval = RetrievalEngine(cfg.retrieval, vector_store, embedder_query)
     llm_router = LLMRouter(cfg.llm)
-    orchestrator = AgentOrchestrator(cfg.agents, retrieval, llm_router)
+    orchestrator = AgentOrchestrator(
+        cfg.agents,
+        retrieval,
+        llm_router,
+        metrics_enabled=cfg.observability.metrics.enabled,
+    )
 
     result = asyncio.run(orchestrator.process(question))
     typer.echo(result.response.content)
@@ -90,6 +99,7 @@ def serve(
     config: Path = typer.Option("ragkit.yaml", "--config", "-c", help="Config file path"),
     api_only: bool = typer.Option(False, help="Serve API only"),
     chatbot_only: bool = typer.Option(False, help="Serve chatbot only"),
+    with_ui: bool = typer.Option(False, help="Serve the Web UI if built"),
 ) -> None:
     """Start the RAGKIT server."""
     if api_only and chatbot_only:
@@ -102,12 +112,29 @@ def serve(
     vector_store = create_vector_store(cfg.vector_store)
     retrieval = RetrievalEngine(cfg.retrieval, vector_store, embedder)
     llm_router = LLMRouter(cfg.llm)
-    orchestrator = AgentOrchestrator(cfg.agents, retrieval, llm_router)
+    orchestrator = AgentOrchestrator(
+        cfg.agents,
+        retrieval,
+        llm_router,
+        metrics_enabled=cfg.observability.metrics.enabled,
+    )
 
     if not chatbot_only:
         from ragkit.api.app import create_app
 
-        app_instance = create_app(cfg, orchestrator)
+        if with_ui:
+            ui_dist = Path(__file__).resolve().parent.parent / "ui" / "dist"
+            if not ui_dist.exists():
+                typer.echo("UI build not found. Run `ragkit ui build` first.")
+
+        app_instance = create_app(
+            cfg,
+            orchestrator,
+            config_path=config,
+            vector_store=vector_store,
+            embedder=embedder,
+            llm_router=llm_router,
+        )
         import uvicorn
 
         if api_only:
@@ -117,7 +144,7 @@ def serve(
 
             thread = threading.Thread(
                 target=uvicorn.run,
-                kwargs={\"app\": app_instance, \"host\": cfg.api.server.host, \"port\": cfg.api.server.port},
+                kwargs={"app": app_instance, "host": cfg.api.server.host, "port": cfg.api.server.port},
                 daemon=True,
             )
             thread.start()
@@ -130,4 +157,36 @@ def serve(
             server_name=cfg.chatbot.server.host,
             server_port=cfg.chatbot.server.port,
             share=cfg.chatbot.server.share,
+            theme=cfg.chatbot.ui.theme,
+            title=cfg.chatbot.ui.title,
         )
+
+
+@ui_app.command("build")
+def build_ui() -> None:
+    """Build the RAGKIT Web UI and copy assets into the Python package."""
+    root = Path(__file__).resolve().parent.parent.parent
+    ui_path = root / "ragkit-ui"
+    if not ui_path.exists():
+        raise typer.BadParameter("ragkit-ui directory not found")
+
+    subprocess.run(["npm", "install"], cwd=ui_path, check=True)
+    subprocess.run(["npm", "run", "build"], cwd=ui_path, check=True)
+
+    target = root / "ragkit" / "ui" / "dist"
+    if target.exists():
+        shutil.rmtree(target)
+    shutil.copytree(ui_path / "dist", target)
+    typer.echo(f"UI build copied to {target}")
+
+
+@ui_app.command("dev")
+def dev_ui() -> None:
+    """Run the UI dev server (Vite)."""
+    root = Path(__file__).resolve().parent.parent.parent
+    ui_path = root / "ragkit-ui"
+    if not ui_path.exists():
+        raise typer.BadParameter("ragkit-ui directory not found")
+
+    subprocess.run(["npm", "install"], cwd=ui_path, check=True)
+    subprocess.run(["npm", "run", "dev"], cwd=ui_path, check=True)

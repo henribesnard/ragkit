@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from ragkit.config.schema import VectorStoreConfig
-from ragkit.vectorstore.base import BaseVectorStore
+from ragkit.vectorstore.base import BaseVectorStore, VectorStoreStats
 from ragkit.vectorstore.providers.chroma import ChromaVectorStore
 from ragkit.vectorstore.providers.qdrant import QdrantVectorStore
 
@@ -16,4 +16,10 @@ def create_vector_store(config: VectorStoreConfig) -> BaseVectorStore:
     raise ValueError(f"Unknown vector store provider: {config.provider}")
 
 
-__all__ = ["BaseVectorStore", "QdrantVectorStore", "ChromaVectorStore", "create_vector_store"]
+__all__ = [
+    "BaseVectorStore",
+    "VectorStoreStats",
+    "QdrantVectorStore",
+    "ChromaVectorStore",
+    "create_vector_store",
+]

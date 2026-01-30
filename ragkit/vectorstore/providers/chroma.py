@@ -7,7 +7,7 @@ from typing import Any
 from ragkit.config.schema import ChromaConfig
 from ragkit.exceptions import RetrievalError
 from ragkit.models import Chunk
-from ragkit.vectorstore.base import BaseVectorStore, SearchResult
+from ragkit.vectorstore.base import BaseVectorStore, SearchResult, VectorStoreStats
 
 
 class ChromaVectorStore(BaseVectorStore):
@@ -59,6 +59,37 @@ class ChromaVectorStore(BaseVectorStore):
     async def clear(self) -> None:
         self.client.delete_collection(self.collection_name)
         self.collection = self.client.get_or_create_collection(self.collection_name)
+
+    async def count(self) -> int:
+        return int(self.collection.count())
+
+    async def stats(self) -> VectorStoreStats:
+        count = await self.count()
+        details = {
+            "mode": self.config.mode,
+        }
+        return VectorStoreStats(
+            provider="chroma",
+            collection_name=self.collection_name,
+            vector_count=count,
+            details=details,
+        )
+
+    async def list_documents(self) -> list[str]:
+        total = await self.count()
+        document_ids: set[str] = set()
+        offset = 0
+        batch_size = 1000
+        while offset < total:
+            result = self.collection.get(limit=batch_size, offset=offset, include=["metadatas"])
+            metadatas = result.get("metadatas", []) if isinstance(result, dict) else []
+            if not metadatas:
+                break
+            for metadata in metadatas:
+                if metadata and "document_id" in metadata:
+                    document_ids.add(str(metadata["document_id"]))
+            offset += len(metadatas)
+        return sorted(document_ids)
 
 
 def _metadata_payload(chunk: Chunk) -> dict[str, Any]:

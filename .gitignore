@@ -20,6 +20,7 @@ ENV/
 
 # pytest
 .pytest_cache/
+.ragkit/
 
 # Coverage
 .coverage
@@ -35,6 +36,11 @@ htmlcov/
 # IDEs
 .vscode/
 .idea/
+
+# Frontend
+ragkit-ui/node_modules/
+ragkit-ui/dist/
+/.claude/
 
 # OS files
 .DS_Store

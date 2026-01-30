@@ -51,7 +51,7 @@ def create_chatbot(config: ChatbotConfig, orchestrator: AgentOrchestrator) -> gr
 
     handler = respond_stream if config.features.streaming else respond
 
-    with gr.Blocks(theme=config.ui.theme, title=config.ui.title) as demo:
+    with gr.Blocks() as demo:
         gr.Markdown(f"# {config.ui.title}")
         gr.Markdown(config.ui.description)
 

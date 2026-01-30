@@ -25,10 +25,15 @@ class QueryAnalyzerAgent:
                 reasoning="Always retrieve mode enabled",
             )
 
-        messages = [
+        messages: list[dict[str, str]] = [
             {"role": "system", "content": self.system_prompt},
-            {"role": "user", "content": f"Analyze this query: {query}"},
         ]
+        if history:
+            for msg in history[-6:]:
+                role = msg.get("role", "user")
+                if role in ("user", "assistant"):
+                    messages.append({"role": role, "content": msg.get("content", "")})
+        messages.append({"role": "user", "content": f"Analyze this query: {query}"})
 
         result = await self.llm.complete_json(messages, self.output_schema)
         analysis = QueryAnalysis(**result)

@@ -14,31 +14,7 @@ from ragkit.config.schema import (
 )
 from ragkit.models import Chunk, QueryAnalysis, RetrievalResult
 
-
-class DummyLLM:
-    def __init__(self, json_response=None, text_response="ok"):
-        self.json_response = json_response or {}
-        self.text_response = text_response
-
-    async def complete(self, messages):
-        return self.text_response
-
-    async def complete_json(self, messages, schema):
-        return self.json_response
-
-
-class DummyRetrieval:
-    async def retrieve(self, query: str):
-        chunk = Chunk(id="1", document_id="doc1", content="Paris is capital", metadata={"source": "geo.pdf"})
-        return [RetrievalResult(chunk=chunk, score=0.9, retrieval_type="semantic")]
-
-
-class DummyRouter:
-    def __init__(self, llm):
-        self.llm = llm
-
-    def get(self, model_ref: str):
-        return self.llm
+from tests.helpers import DummyLLM, DummyRetrieval, DummyRouter
 
 
 @pytest.mark.asyncio

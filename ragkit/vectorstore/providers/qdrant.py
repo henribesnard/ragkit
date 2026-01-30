@@ -9,7 +9,7 @@ import uuid
 from ragkit.config.schema import QdrantConfig
 from ragkit.exceptions import RetrievalError
 from ragkit.models import Chunk
-from ragkit.vectorstore.base import BaseVectorStore, SearchResult
+from ragkit.vectorstore.base import BaseVectorStore, SearchResult, VectorStoreStats
 
 
 def _distance(metric: str):
@@ -120,6 +120,45 @@ class QdrantVectorStore(BaseVectorStore):
             self.client.delete_collection(self.collection_name)
         self._vector_size = None
 
+    async def count(self) -> int:
+        result = self.client.count(collection_name=self.collection_name, exact=True)
+        count = getattr(result, "count", None)
+        return int(count or 0)
+
+    async def stats(self) -> VectorStoreStats:
+        count = await self.count()
+        details = {
+            "mode": self.config.mode,
+            "distance_metric": self.config.distance_metric,
+        }
+        return VectorStoreStats(
+            provider="qdrant",
+            collection_name=self.collection_name,
+            vector_count=count,
+            details=details,
+        )
+
+    async def list_documents(self) -> list[str]:
+        document_ids: set[str] = set()
+        next_offset: Any = None
+        while True:
+            response = self.client.scroll(
+                collection_name=self.collection_name,
+                limit=256,
+                offset=next_offset,
+                with_payload=True,
+                with_vectors=False,
+            )
+            points, next_offset = _extract_scroll(response)
+            for point in points:
+                payload = getattr(point, "payload", None) or {}
+                doc_id = payload.get("document_id")
+                if doc_id is not None:
+                    document_ids.add(str(doc_id))
+            if not next_offset:
+                break
+        return sorted(document_ids)
+
     async def _ensure_collection(self, vector_size: int) -> None:
         if self.client.collection_exists(self.collection_name):
             return
@@ -157,6 +196,16 @@ def _extract_points(response: Any) -> list[Any]:
     if isinstance(response, list):
         return response
     return []
+
+
+def _extract_scroll(response: Any) -> tuple[list[Any], Any]:
+    if isinstance(response, tuple) and len(response) == 2:
+        return list(response[0]), response[1]
+    points = getattr(response, "points", None)
+    next_offset = getattr(response, "next_page_offset", None)
+    if points is None:
+        points = []
+    return list(points), next_offset
 
 
 def _normalize_id(raw_id: str | int) -> str | int:

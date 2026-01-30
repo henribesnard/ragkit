@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from collections.abc import AsyncIterator
 from typing import Any
 
 from ragkit.config.schema import LLMConfig, LLMModelConfig
@@ -36,6 +37,26 @@ class LLMProvider:
         if not isinstance(parsed, dict):
             raise LLMError("Expected JSON object in LLM response")
         return parsed
+
+    async def complete_stream(self, messages: list[dict[str, str]]) -> AsyncIterator[str]:
+        """Stream completion tokens as they arrive."""
+        try:
+            import litellm  # type: ignore
+        except Exception as exc:  # noqa: BLE001
+            raise LLMError("litellm is required for LLM calls") from exc
+
+        kwargs = dict(self.params)
+        response = await litellm.acompletion(
+            model=self.model,
+            messages=messages,
+            api_key=self.config.api_key,
+            stream=True,
+            **kwargs,
+        )
+        async for chunk in response:
+            delta = chunk.choices[0].delta if chunk.choices else None
+            if delta and delta.content:
+                yield delta.content
 
     async def _call(
         self,

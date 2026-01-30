@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import time
 from pathlib import Path
-from typing import Protocol
+from typing import Any, Protocol
 
 import structlog
 from pydantic import BaseModel
@@ -52,6 +52,7 @@ class IngestionPipeline:
         logger: structlog.BoundLogger | None = None,
         max_retries: int = 2,
         retry_delay: float = 0.5,
+        metrics_collector: Any | None = None,
     ) -> None:
         self.config = config
         self.embedder = embedder
@@ -59,6 +60,7 @@ class IngestionPipeline:
         self.logger = logger or structlog.get_logger()
         self.max_retries = max_retries
         self.retry_delay = retry_delay
+        self.metrics = metrics_collector
 
         self.parser = create_parser(config.parsing)
         self.chunker = create_chunker(config.chunking, embedder=embedder)
@@ -123,6 +125,11 @@ class IngestionPipeline:
             stats.duration_seconds = time.perf_counter() - start
             if incremental:
                 self._save_state(state_file, state)
+            if self.metrics is not None:
+                try:
+                    self.metrics.record_ingestion(stats)
+                except Exception:  # noqa: BLE001
+                    pass
 
         return stats
 

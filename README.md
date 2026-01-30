@@ -8,11 +8,13 @@ RAGKIT is a configuration-first agentic RAG framework. It lets you run an end-to
 - Modular ingestion, retrieval, and agents
 - Multiple providers (LLM, embeddings, vector stores)
 - Built-in API and chatbot UI
+- Web UI dashboard + setup wizard
 - Optional response streaming (API SSE and chatbot)
 
 ## Requirements
 
 - Python 3.10+
+- Node.js 18+ (only for `ragkit ui build` / `ragkit ui dev`)
 
 ## Install
 
@@ -48,6 +50,19 @@ Start both:
 ragkit serve
 ```
 
+Build the Web UI and serve it from FastAPI:
+
+```bash
+ragkit ui build
+ragkit serve --with-ui
+```
+
+UI dev server (hot reload):
+
+```bash
+ragkit ui dev
+```
+
 ## Configuration
 
 Main config file: `ragkit.yaml` (see `templates/`).
@@ -62,6 +77,7 @@ Streaming flags:
 - `POST /api/v1/query` for normal responses
 - `POST /api/v1/query/stream` for SSE streaming (when enabled)
 - `GET /health`
+- Admin endpoints under `/api/v1/admin/*` (config, ingestion, metrics, health)
 
 ## Tests
 

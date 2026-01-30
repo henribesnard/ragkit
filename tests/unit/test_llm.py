@@ -6,15 +6,7 @@ import pytest
 from ragkit.config.schema import LLMConfig, LLMModelConfig, LLMParams
 from ragkit.llm.litellm_provider import LLMProvider, LLMRouter
 
-
-class DummyChoice:
-    def __init__(self, content: str):
-        self.message = types.SimpleNamespace(content=content)
-
-
-class DummyResponse:
-    def __init__(self, content: str):
-        self.choices = [DummyChoice(content)]
+from tests.helpers import DummyChoice, DummyResponse
 
 
 @pytest.mark.asyncio
