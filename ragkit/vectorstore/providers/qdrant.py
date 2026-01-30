@@ -73,15 +73,29 @@ class QdrantVectorStore(BaseVectorStore):
         filters: dict | None = None,
     ) -> list[SearchResult]:
         qdrant_filter = _build_filter(filters)
-        results = self.client.search(
-            collection_name=self.collection_name,
-            query_vector=query_embedding,
-            limit=top_k,
-            query_filter=qdrant_filter,
-        )
+        if hasattr(self.client, "query_points"):
+            response = self.client.query_points(
+                collection_name=self.collection_name,
+                query=query_embedding,
+                limit=top_k,
+                query_filter=qdrant_filter,
+                with_payload=True,
+            )
+            points = _extract_points(response)
+        elif hasattr(self.client, "search"):
+            results = self.client.search(
+                collection_name=self.collection_name,
+                query_vector=query_embedding,
+                limit=top_k,
+                query_filter=qdrant_filter,
+                with_payload=True,
+            )
+            points = results
+        else:
+            raise RetrievalError("Qdrant client does not support search APIs")
 
         matches: list[SearchResult] = []
-        for result in results:
+        for result in points:
             payload = result.payload or {}
             metadata = payload.get("metadata", {})
             payload_id = payload.get("original_id")
@@ -124,6 +138,25 @@ def _build_filter(filters: dict | None):
 
     conditions = [FieldCondition(key=key, match=MatchValue(value=value)) for key, value in filters.items()]
     return Filter(must=conditions)
+
+
+def _extract_points(response: Any) -> list[Any]:
+    if response is None:
+        return []
+    points = getattr(response, "points", None)
+    if points is not None:
+        return list(points)
+    result = getattr(response, "result", None)
+    if result is not None:
+        return list(result)
+    if isinstance(response, dict):
+        if "points" in response:
+            return list(response["points"])
+        if "result" in response:
+            return list(response["result"])
+    if isinstance(response, list):
+        return response
+    return []
 
 
 def _normalize_id(raw_id: str | int) -> str | int:
