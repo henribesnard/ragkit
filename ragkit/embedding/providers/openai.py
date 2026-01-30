@@ -26,7 +26,7 @@ class OpenAIEmbedder(BaseEmbedder):
 
 async def _embed_with_litellm(config: EmbeddingModelConfig, texts: list[str]) -> list[list[float]]:
     try:
-        import litellm  # type: ignore
+        import litellm
     except Exception as exc:  # noqa: BLE001
         raise EmbeddingError("litellm is required for embeddings") from exc
 

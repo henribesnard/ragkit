@@ -102,6 +102,8 @@ class StateStore:
                 """,
                 (started_at.isoformat(), completed_payload, stats_payload, status),
             )
+            if cursor.lastrowid is None:
+                raise RuntimeError("Failed to insert ingestion history row.")
             return int(cursor.lastrowid)
 
 

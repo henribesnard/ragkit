@@ -18,7 +18,7 @@ class RawDocument(BaseModel):
 
 class BaseSourceLoader(ABC):
     @abstractmethod
-    async def load(self) -> AsyncIterator[RawDocument]:
+    def load(self) -> AsyncIterator[RawDocument]:
         """Load documents from the source."""
 
     @abstractmethod

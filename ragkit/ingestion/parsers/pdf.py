@@ -11,7 +11,7 @@ from ragkit.ingestion.sources.base import RawDocument
 
 def _extract_with_unstructured(raw_bytes: bytes) -> str | None:
     try:
-        from unstructured.partition.pdf import partition_pdf  # type: ignore
+        from unstructured.partition.pdf import partition_pdf
     except Exception:
         return None
 
@@ -28,7 +28,7 @@ def _extract_with_unstructured(raw_bytes: bytes) -> str | None:
 
 def _extract_with_pypdf(raw_bytes: bytes) -> str | None:
     try:
-        from pypdf import PdfReader  # type: ignore
+        from pypdf import PdfReader
     except Exception:
         return None
 

@@ -11,7 +11,7 @@ from ragkit.ingestion.sources.base import RawDocument
 
 def _extract_with_unstructured(raw_bytes: bytes) -> str | None:
     try:
-        from unstructured.partition.docx import partition_docx  # type: ignore
+        from unstructured.partition.docx import partition_docx
     except Exception:
         return None
 
@@ -28,7 +28,7 @@ def _extract_with_unstructured(raw_bytes: bytes) -> str | None:
 
 def _extract_with_python_docx(raw_bytes: bytes) -> str | None:
     try:
-        import docx  # type: ignore
+        import docx
     except Exception:
         return None
 

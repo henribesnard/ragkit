@@ -14,6 +14,7 @@ from ragkit.config.schema import IngestionConfig
 from ragkit.exceptions import IngestionError
 from ragkit.ingestion.chunkers import create_chunker
 from ragkit.ingestion.parsers import create_parser
+from ragkit.ingestion.parsers.base import ParsedDocument
 from ragkit.ingestion.sources import create_source_loader
 from ragkit.ingestion.sources.base import RawDocument
 from ragkit.models import Chunk
@@ -88,8 +89,11 @@ class IngestionPipeline:
                         continue
 
                     try:
+                        async def _parse(raw: RawDocument = raw_doc) -> ParsedDocument:
+                            return await self.parser.parse(raw)
+
                         parsed = await retry_async(
-                            lambda raw_doc=raw_doc: self.parser.parse(raw_doc),
+                            _parse,
                             max_retries=self.max_retries,
                             delay=self.retry_delay,
                         )
@@ -99,10 +103,19 @@ class IngestionPipeline:
                         stats.chunks_created += len(chunks)
 
                         if self.embedder:
+                            embedder = self.embedder
+                            assert embedder is not None
+
+                            async def _embed(
+                                current_chunks: list[Chunk] = chunks,
+                                current_embedder: EmbedderProtocol = embedder,
+                            ) -> list[list[float]]:
+                                return await current_embedder.embed(
+                                    [c.content for c in current_chunks]
+                                )
+
                             embeddings = await retry_async(
-                                lambda chunks=chunks: self.embedder.embed(
-                                    [c.content for c in chunks]
-                                ),
+                                _embed,
                                 max_retries=self.max_retries,
                                 delay=self.retry_delay,
                             )
@@ -111,8 +124,17 @@ class IngestionPipeline:
                             stats.chunks_embedded += len(chunks)
 
                         if self.vector_store:
+                            vector_store = self.vector_store
+                            assert vector_store is not None
+
+                            async def _add(
+                                current_chunks: list[Chunk] = chunks,
+                                current_store: VectorStoreProtocol = vector_store,
+                            ) -> None:
+                                await current_store.add(current_chunks)
+
                             await retry_async(
-                                lambda chunks=chunks: self.vector_store.add(chunks),
+                                _add,
                                 max_retries=self.max_retries,
                                 delay=self.retry_delay,
                             )

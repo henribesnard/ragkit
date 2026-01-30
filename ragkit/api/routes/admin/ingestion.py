@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import asyncio
 import json
-from collections.abc import Iterable
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -12,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from ragkit.api.routes.admin.websocket import broadcast_event
+from ragkit.config.schema import RAGKitConfig
 from ragkit.ingestion import IngestionPipeline
 from ragkit.state import StateStore
 
@@ -148,7 +148,7 @@ async def get_ingestion_history(request: Request, limit: int = 10) -> list[dict]
     return state.get_ingestion_history(limit)
 
 
-def _count_pending_documents(config, state_file: Path) -> int:
+def _count_pending_documents(config: RAGKitConfig, state_file: Path) -> int:
     state = _load_state(state_file)
     pending = 0
     for source in config.ingestion.sources:
@@ -164,16 +164,18 @@ def _count_pending_documents(config, state_file: Path) -> int:
     return pending
 
 
-def _iter_source_files(base: Path, patterns: list[str], recursive: bool) -> Iterable[Path]:
+def _iter_source_files(base: Path, patterns: list[str], recursive: bool) -> list[Path]:
     if not base.exists():
         return []
     if not patterns:
         patterns = ["*"]
+    files: list[Path] = []
     for pattern in patterns:
         if recursive:
-            yield from base.rglob(pattern)
+            files.extend(base.rglob(pattern))
         else:
-            yield from base.glob(pattern)
+            files.extend(base.glob(pattern))
+    return files
 
 
 def _load_state(path: Path) -> dict[str, float]:

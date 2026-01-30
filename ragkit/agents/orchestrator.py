@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import time
+from collections.abc import Awaitable
+from typing import TypeVar
 
 from ragkit.agents.query_analyzer import QueryAnalyzerAgent
 from ragkit.agents.response_generator import ResponseGeneratorAgent
@@ -12,6 +14,8 @@ from ragkit.metrics import MetricsCollector
 from ragkit.metrics import metrics as default_metrics
 from ragkit.models import QueryAnalysis, RAGResponse, RetrievalResult
 from ragkit.retrieval.engine import RetrievalEngine
+
+T = TypeVar("T")
 
 
 class AgentOrchestrator:
@@ -84,7 +88,12 @@ class AgentOrchestrator:
                 )
 
 
-async def _timed_component(metrics: MetricsCollector, enabled: bool, name: str, coro):
+async def _timed_component(
+    metrics: MetricsCollector,
+    enabled: bool,
+    name: str,
+    coro: Awaitable[T],
+) -> T:
     if not enabled:
         return await coro
     start = time.perf_counter()

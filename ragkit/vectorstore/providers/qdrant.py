@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Any
+from typing import Any, cast
 
 from ragkit.config.schema import QdrantConfig
 from ragkit.exceptions import RetrievalError
@@ -11,7 +11,7 @@ from ragkit.models import Chunk
 from ragkit.vectorstore.base import BaseVectorStore, SearchResult, VectorStoreStats
 
 
-def _distance(metric: str):
+def _distance(metric: str) -> Any:
     from qdrant_client.models import Distance
 
     return {
@@ -50,19 +50,23 @@ class QdrantVectorStore(BaseVectorStore):
 
         from qdrant_client.models import PointStruct
 
-        points = [
-            PointStruct(
-                id=_normalize_id(chunk.id),
-                vector=chunk.embedding,
-                payload={
-                    "content": chunk.content,
-                    "metadata": chunk.metadata,
-                    "document_id": chunk.document_id,
-                    "original_id": chunk.id,
-                },
+        points = []
+        for chunk in chunks:
+            embedding = chunk.embedding
+            if embedding is None:
+                raise RetrievalError("All chunks must have embeddings before adding")
+            points.append(
+                PointStruct(
+                    id=_normalize_id(chunk.id),
+                    vector=embedding,
+                    payload={
+                        "content": chunk.content,
+                        "metadata": chunk.metadata,
+                        "document_id": chunk.document_id,
+                        "original_id": chunk.id,
+                    },
+                )
             )
-            for chunk in chunks
-        ]
         self.client.upsert(collection_name=self.collection_name, points=points)
 
     async def search(
@@ -112,7 +116,9 @@ class QdrantVectorStore(BaseVectorStore):
         if not ids:
             return
         normalized = [_normalize_id(item) for item in ids]
-        self.client.delete(collection_name=self.collection_name, points_selector=normalized)
+        self.client.delete(
+            collection_name=self.collection_name, points_selector=cast(list[Any], normalized)
+        )
 
     async def clear(self) -> None:
         if self.client.collection_exists(self.collection_name):
@@ -171,7 +177,7 @@ class QdrantVectorStore(BaseVectorStore):
         )
 
 
-def _build_filter(filters: dict | None):
+def _build_filter(filters: dict[str, Any] | None) -> Any:
     if not filters:
         return None
     from qdrant_client.models import FieldCondition, Filter, MatchValue
@@ -179,7 +185,7 @@ def _build_filter(filters: dict | None):
     conditions = [
         FieldCondition(key=key, match=MatchValue(value=value)) for key, value in filters.items()
     ]
-    return Filter(must=conditions)
+    return Filter(must=cast(list[Any], conditions))
 
 
 def _extract_points(response: Any) -> list[Any]:

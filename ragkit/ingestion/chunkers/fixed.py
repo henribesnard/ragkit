@@ -14,7 +14,7 @@ _TOKEN_RE = re.compile(r"\S+")
 
 def _tokenize(text: str) -> tuple[list[int] | list[str], object | None]:
     try:
-        import tiktoken  # type: ignore
+        import tiktoken
     except Exception:
         return _TOKEN_RE.findall(text), None
 

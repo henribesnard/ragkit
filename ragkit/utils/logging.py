@@ -14,6 +14,7 @@ def _build_handlers(config: ObservabilityConfig) -> list[logging.Handler]:
     handlers: list[logging.Handler] = [logging.StreamHandler()]
     file_cfg = config.logging.file
     if file_cfg.enabled and file_cfg.path:
+        handler: logging.Handler
         if file_cfg.rotation == "daily":
             handler = TimedRotatingFileHandler(
                 file_cfg.path,

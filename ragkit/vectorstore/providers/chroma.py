@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from ragkit.config.schema import ChromaConfig
 from ragkit.exceptions import RetrievalError
@@ -13,17 +13,19 @@ from ragkit.vectorstore.base import BaseVectorStore, SearchResult, VectorStoreSt
 class ChromaVectorStore(BaseVectorStore):
     def __init__(self, config: ChromaConfig):
         try:
-            import chromadb  # type: ignore
+            import chromadb
         except Exception as exc:  # noqa: BLE001
             raise RetrievalError("chromadb is required") from exc
 
         self.config = config
         if config.mode == "persistent":
-            self.client = chromadb.PersistentClient(path=config.path)
+            if not config.path:
+                raise RetrievalError("Chroma persistent mode requires a path.")
+            self.client: Any = chromadb.PersistentClient(path=config.path)
         else:
             self.client = chromadb.Client()
         self.collection_name = config.collection_name
-        self.collection = self.client.get_or_create_collection(self.collection_name)
+        self.collection: Any = self.client.get_or_create_collection(self.collection_name)
 
     async def add(self, chunks: list[Chunk]) -> None:
         if not chunks:
@@ -31,11 +33,17 @@ class ChromaVectorStore(BaseVectorStore):
         if any(chunk.embedding is None for chunk in chunks):
             raise RetrievalError("All chunks must have embeddings before adding")
 
+        embeddings: list[list[float]] = []
+        for chunk in chunks:
+            if chunk.embedding is None:
+                raise RetrievalError("All chunks must have embeddings before adding")
+            embeddings.append(chunk.embedding)
+
         self.collection.add(
             ids=[chunk.id for chunk in chunks],
             documents=[chunk.content for chunk in chunks],
             metadatas=[_metadata_payload(chunk) for chunk in chunks],
-            embeddings=[chunk.embedding for chunk in chunks],
+            embeddings=cast(Any, embeddings),
         )
 
     async def search(
@@ -45,7 +53,7 @@ class ChromaVectorStore(BaseVectorStore):
         filters: dict | None = None,
     ) -> list[SearchResult]:
         results = self.collection.query(
-            query_embeddings=[query_embedding],
+            query_embeddings=cast(Any, [query_embedding]),
             n_results=top_k,
             where=filters,
         )
@@ -98,7 +106,7 @@ def _metadata_payload(chunk: Chunk) -> dict[str, Any]:
     return payload
 
 
-def _to_search_results(results: dict) -> list[SearchResult]:
+def _to_search_results(results: Any) -> list[SearchResult]:
     ids = results.get("ids", [[]])[0]
     documents = results.get("documents", [[]])[0]
     metadatas = results.get("metadatas", [[]])[0]

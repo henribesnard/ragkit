@@ -2,9 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Any, Literal
+from collections.abc import Callable
+from typing import Any, Literal, TypeVar, cast
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+T = TypeVar("T", bound=BaseModel)
+
+
+def _model_factory(model: type[T]) -> Callable[[], T]:
+    return cast(Callable[[], T], model)
 
 
 class ProjectConfig(BaseModel):
@@ -40,7 +47,7 @@ class ParsingConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     engine: Literal["auto", "unstructured", "docling", "pypdf"] = "auto"
-    ocr: OCRConfig = Field(default_factory=OCRConfig)
+    ocr: OCRConfig = Field(default_factory=_model_factory(OCRConfig))
 
 
 class FixedChunkingConfig(BaseModel):
@@ -63,8 +70,8 @@ class ChunkingConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     strategy: Literal["fixed", "semantic"] = "fixed"
-    fixed: FixedChunkingConfig = Field(default_factory=FixedChunkingConfig)
-    semantic: SemanticChunkingConfig = Field(default_factory=SemanticChunkingConfig)
+    fixed: FixedChunkingConfig = Field(default_factory=_model_factory(FixedChunkingConfig))
+    semantic: SemanticChunkingConfig = Field(default_factory=_model_factory(SemanticChunkingConfig))
 
 
 class MetadataConfig(BaseModel):
@@ -78,9 +85,9 @@ class IngestionConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     sources: list[SourceConfig]
-    parsing: ParsingConfig = Field(default_factory=ParsingConfig)
-    chunking: ChunkingConfig = Field(default_factory=ChunkingConfig)
-    metadata: MetadataConfig = Field(default_factory=MetadataConfig)
+    parsing: ParsingConfig = Field(default_factory=_model_factory(ParsingConfig))
+    chunking: ChunkingConfig = Field(default_factory=_model_factory(ChunkingConfig))
+    metadata: MetadataConfig = Field(default_factory=_model_factory(MetadataConfig))
 
 
 class EmbeddingParams(BaseModel):
@@ -104,8 +111,8 @@ class EmbeddingModelConfig(BaseModel):
     model: str
     api_key: str | None = None
     api_key_env: str | None = None
-    params: EmbeddingParams = Field(default_factory=EmbeddingParams)
-    cache: EmbeddingCacheConfig = Field(default_factory=EmbeddingCacheConfig)
+    params: EmbeddingParams = Field(default_factory=_model_factory(EmbeddingParams))
+    cache: EmbeddingCacheConfig = Field(default_factory=_model_factory(EmbeddingCacheConfig))
 
 
 class EmbeddingConfig(BaseModel):
@@ -140,8 +147,8 @@ class VectorStoreConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     provider: Literal["qdrant", "chroma"] = "qdrant"
-    qdrant: QdrantConfig = Field(default_factory=QdrantConfig)
-    chroma: ChromaConfig = Field(default_factory=ChromaConfig)
+    qdrant: QdrantConfig = Field(default_factory=_model_factory(QdrantConfig))
+    chroma: ChromaConfig = Field(default_factory=_model_factory(ChromaConfig))
 
 
 class SemanticRetrievalConfig(BaseModel):
@@ -176,8 +183,10 @@ class LexicalRetrievalConfig(BaseModel):
     weight: float = Field(0.5, ge=0.0, le=1.0)
     top_k: int = Field(20, ge=1)
     algorithm: Literal["bm25", "bm25+"] = "bm25"
-    params: LexicalParamsConfig = Field(default_factory=LexicalParamsConfig)
-    preprocessing: LexicalPreprocessingConfig = Field(default_factory=LexicalPreprocessingConfig)
+    params: LexicalParamsConfig = Field(default_factory=_model_factory(LexicalParamsConfig))
+    preprocessing: LexicalPreprocessingConfig = Field(
+        default_factory=_model_factory(LexicalPreprocessingConfig)
+    )
 
 
 class RerankConfig(BaseModel):
@@ -213,18 +222,20 @@ class ContextConfig(BaseModel):
 
     max_chunks: int = Field(5, ge=1)
     max_tokens: int = Field(4000, ge=1)
-    deduplication: DeduplicationConfig = Field(default_factory=DeduplicationConfig)
+    deduplication: DeduplicationConfig = Field(default_factory=_model_factory(DeduplicationConfig))
 
 
 class RetrievalConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     architecture: Literal["semantic", "lexical", "hybrid", "hybrid_rerank"] = "semantic"
-    semantic: SemanticRetrievalConfig = Field(default_factory=SemanticRetrievalConfig)
-    lexical: LexicalRetrievalConfig = Field(default_factory=LexicalRetrievalConfig)
-    rerank: RerankConfig = Field(default_factory=RerankConfig)
-    fusion: FusionConfig = Field(default_factory=FusionConfig)
-    context: ContextConfig = Field(default_factory=ContextConfig)
+    semantic: SemanticRetrievalConfig = Field(
+        default_factory=_model_factory(SemanticRetrievalConfig)
+    )
+    lexical: LexicalRetrievalConfig = Field(default_factory=_model_factory(LexicalRetrievalConfig))
+    rerank: RerankConfig = Field(default_factory=_model_factory(RerankConfig))
+    fusion: FusionConfig = Field(default_factory=_model_factory(FusionConfig))
+    context: ContextConfig = Field(default_factory=_model_factory(ContextConfig))
 
     @model_validator(mode="after")
     def _validate_architecture(self) -> RetrievalConfig:
@@ -255,7 +266,7 @@ class LLMModelConfig(BaseModel):
     model: str
     api_key: str | None = None
     api_key_env: str | None = None
-    params: LLMParams = Field(default_factory=LLMParams)
+    params: LLMParams = Field(default_factory=_model_factory(LLMParams))
     timeout: int | None = Field(default=None, ge=1)
     max_retries: int | None = Field(default=None, ge=0)
 
@@ -280,14 +291,18 @@ class QueryAnalyzerBehaviorConfig(BaseModel):
 
     always_retrieve: bool = False
     detect_intents: list[str] = Field(default_factory=list)
-    query_rewriting: QueryRewritingConfig = Field(default_factory=QueryRewritingConfig)
+    query_rewriting: QueryRewritingConfig = Field(
+        default_factory=_model_factory(QueryRewritingConfig)
+    )
 
 
 class QueryAnalyzerConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     llm: str
-    behavior: QueryAnalyzerBehaviorConfig = Field(default_factory=QueryAnalyzerBehaviorConfig)
+    behavior: QueryAnalyzerBehaviorConfig = Field(
+        default_factory=_model_factory(QueryAnalyzerBehaviorConfig)
+    )
     system_prompt: str
     output_schema: dict[str, Any] = Field(default_factory=dict)
 
@@ -307,7 +322,9 @@ class ResponseGeneratorConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     llm: str
-    behavior: ResponseBehaviorConfig = Field(default_factory=ResponseBehaviorConfig)
+    behavior: ResponseBehaviorConfig = Field(
+        default_factory=_model_factory(ResponseBehaviorConfig)
+    )
     system_prompt: str
     no_retrieval_prompt: str
     out_of_scope_prompt: str
@@ -328,7 +345,9 @@ class AgentsConfig(BaseModel):
     mode: Literal["default", "custom"] = "default"
     query_analyzer: QueryAnalyzerConfig
     response_generator: ResponseGeneratorConfig
-    global_config: AgentsGlobalConfig = Field(default_factory=AgentsGlobalConfig, alias="global")
+    global_config: AgentsGlobalConfig = Field(
+        default_factory=_model_factory(AgentsGlobalConfig), alias="global"
+    )
 
     @field_validator("mode")
     @classmethod
@@ -355,9 +374,11 @@ class ConversationPersistenceConfig(BaseModel):
 class ConversationConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    memory: ConversationMemoryConfig = Field(default_factory=ConversationMemoryConfig)
+    memory: ConversationMemoryConfig = Field(
+        default_factory=_model_factory(ConversationMemoryConfig)
+    )
     persistence: ConversationPersistenceConfig = Field(
-        default_factory=ConversationPersistenceConfig
+        default_factory=_model_factory(ConversationPersistenceConfig)
     )
 
 
@@ -394,9 +415,9 @@ class ChatbotConfig(BaseModel):
 
     enabled: bool = True
     type: Literal["gradio"] = "gradio"
-    server: ChatbotServerConfig = Field(default_factory=ChatbotServerConfig)
-    ui: ChatbotUIConfig = Field(default_factory=ChatbotUIConfig)
-    features: ChatbotFeaturesConfig = Field(default_factory=ChatbotFeaturesConfig)
+    server: ChatbotServerConfig = Field(default_factory=_model_factory(ChatbotServerConfig))
+    ui: ChatbotUIConfig = Field(default_factory=_model_factory(ChatbotUIConfig))
+    features: ChatbotFeaturesConfig = Field(default_factory=_model_factory(ChatbotFeaturesConfig))
 
 
 class APIServerConfig(BaseModel):
@@ -431,10 +452,10 @@ class APIConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     enabled: bool = True
-    server: APIServerConfig = Field(default_factory=APIServerConfig)
-    cors: APICorsConfig = Field(default_factory=APICorsConfig)
-    docs: APIDocsConfig = Field(default_factory=APIDocsConfig)
-    streaming: APIStreamingConfig = Field(default_factory=APIStreamingConfig)
+    server: APIServerConfig = Field(default_factory=_model_factory(APIServerConfig))
+    cors: APICorsConfig = Field(default_factory=_model_factory(APICorsConfig))
+    docs: APIDocsConfig = Field(default_factory=_model_factory(APIDocsConfig))
+    streaming: APIStreamingConfig = Field(default_factory=_model_factory(APIStreamingConfig))
 
 
 class LoggingFileConfig(BaseModel):
@@ -451,7 +472,7 @@ class LoggingConfig(BaseModel):
 
     level: Literal["DEBUG", "INFO", "WARNING", "ERROR"] = "INFO"
     format: Literal["text", "json"] = "text"
-    file: LoggingFileConfig = Field(default_factory=LoggingFileConfig)
+    file: LoggingFileConfig = Field(default_factory=_model_factory(LoggingFileConfig))
 
 
 class MetricsConfig(BaseModel):
@@ -464,8 +485,8 @@ class MetricsConfig(BaseModel):
 class ObservabilityConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    logging: LoggingConfig = Field(default_factory=LoggingConfig)
-    metrics: MetricsConfig = Field(default_factory=MetricsConfig)
+    logging: LoggingConfig = Field(default_factory=_model_factory(LoggingConfig))
+    metrics: MetricsConfig = Field(default_factory=_model_factory(MetricsConfig))
 
 
 class RAGKitConfig(BaseModel):

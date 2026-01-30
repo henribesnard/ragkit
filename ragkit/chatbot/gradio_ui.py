@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import AsyncIterator
 
 import gradio as gr
 
@@ -12,7 +13,7 @@ from ragkit.config.schema import ChatbotConfig
 
 
 def create_chatbot(config: ChatbotConfig, orchestrator: AgentOrchestrator) -> gr.Blocks:
-    async def respond(message: str, history: list):
+    async def respond(message: str, history: list) -> str:
         start = time.perf_counter()
         result = await orchestrator.process(message, history)
         response = result.response.content
@@ -28,7 +29,7 @@ def create_chatbot(config: ChatbotConfig, orchestrator: AgentOrchestrator) -> gr
 
         return response
 
-    async def respond_stream(message: str, history: list):
+    async def respond_stream(message: str, history: list) -> AsyncIterator[str]:
         start = time.perf_counter()
         result = await orchestrator.process(message, history)
         response = result.response.content

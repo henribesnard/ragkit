@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import threading
-from collections.abc import Iterable
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -26,7 +26,7 @@ class MetricsCollector:
     _instance: MetricsCollector | None = None
     _lock = threading.Lock()
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, *args: Any, **kwargs: Any) -> MetricsCollector:
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
@@ -334,7 +334,7 @@ class MetricsCollector:
 
 
 @contextmanager
-def record_component(metrics: MetricsCollector, name: str) -> Iterable[None]:
+def record_component(metrics: MetricsCollector, name: str) -> Iterator[None]:
     start = datetime.now(timezone.utc)
     error: str | None = None
     try:

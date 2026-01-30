@@ -34,9 +34,9 @@ class NoOpReranker(BaseReranker):
 
 
 class CohereReranker(BaseReranker):
-    def __init__(self, config: RerankConfig):
+    def __init__(self, config: RerankConfig) -> None:
         try:
-            import cohere  # type: ignore
+            import cohere
         except Exception as exc:  # noqa: BLE001
             raise RetrievalError("cohere is required for reranking") from exc
 

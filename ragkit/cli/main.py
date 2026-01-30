@@ -6,6 +6,7 @@ import asyncio
 import shutil
 import subprocess
 from pathlib import Path
+from typing import Any
 
 import typer
 
@@ -156,13 +157,14 @@ def serve(
         from ragkit.chatbot.gradio_ui import create_chatbot
 
         ui = create_chatbot(cfg.chatbot, orchestrator)
-        ui.launch(
-            server_name=cfg.chatbot.server.host,
-            server_port=cfg.chatbot.server.port,
-            share=cfg.chatbot.server.share,
-            theme=cfg.chatbot.ui.theme,
-            title=cfg.chatbot.ui.title,
-        )
+        launch_kwargs: dict[str, Any] = {
+            "server_name": cfg.chatbot.server.host,
+            "server_port": cfg.chatbot.server.port,
+            "share": cfg.chatbot.server.share,
+            "theme": cfg.chatbot.ui.theme,
+            "title": cfg.chatbot.ui.title,
+        }
+        ui.launch(**launch_kwargs)
 
 
 @ui_app.command("build")

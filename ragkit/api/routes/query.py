@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import time
+from collections.abc import AsyncIterator
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
@@ -68,7 +69,7 @@ async def query_stream(
     if not config.api.streaming.enabled:
         raise HTTPException(status_code=404, detail="Streaming disabled")
 
-    async def event_stream():
+    async def event_stream() -> AsyncIterator[str]:
         result = await orchestrator.process(request.query, request.history)
         response_text = result.response.content
         if result.response.sources:

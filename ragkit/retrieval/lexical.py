@@ -3,15 +3,16 @@
 from __future__ import annotations
 
 import re
+from typing import Any
 
-from rank_bm25 import BM25Okapi, BM25Plus  # type: ignore
+from rank_bm25 import BM25Okapi, BM25Plus
 
-from ragkit.config.schema import LexicalRetrievalConfig
+from ragkit.config.schema import LexicalPreprocessingConfig, LexicalRetrievalConfig
 from ragkit.models import Chunk, RetrievalResult
 
 
 class TextPreprocessor:
-    def __init__(self, config) -> None:
+    def __init__(self, config: LexicalPreprocessingConfig) -> None:
         self.config = config
         self.stopwords = _get_stopwords(config.stopwords_lang)
 
@@ -31,7 +32,7 @@ class LexicalRetriever:
         self.config = config
         self.preprocessor = TextPreprocessor(config.preprocessing)
         self.chunks: list[Chunk] = []
-        self.bm25 = None
+        self.bm25: Any | None = None
 
     def index(self, chunks: list[Chunk]) -> None:
         self.chunks = chunks

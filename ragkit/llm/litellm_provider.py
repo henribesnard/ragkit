@@ -43,7 +43,7 @@ class LLMProvider:
     async def complete_stream(self, messages: list[dict[str, str]]) -> AsyncIterator[str]:
         """Stream completion tokens as they arrive."""
         try:
-            import litellm  # type: ignore
+            import litellm
         except Exception as exc:  # noqa: BLE001
             raise LLMError("litellm is required for LLM calls") from exc
 
@@ -66,11 +66,11 @@ class LLMProvider:
         response_format: dict[str, Any] | None = None,
     ) -> Any:
         try:
-            import litellm  # type: ignore
+            import litellm
         except Exception as exc:  # noqa: BLE001
             raise LLMError("litellm is required for LLM calls") from exc
 
-        async def _invoke():
+        async def _invoke() -> Any:
             kwargs = dict(self.params)
             if response_format is not None:
                 kwargs["response_format"] = response_format
@@ -81,7 +81,7 @@ class LLMProvider:
                 **kwargs,
             )
 
-        async def _run():
+        async def _run() -> Any:
             result = await retry_async(_invoke, max_retries=self.max_retries + 1, delay=1)
             return result
 
