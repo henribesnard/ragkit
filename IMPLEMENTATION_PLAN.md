@@ -7,7 +7,7 @@
 | **Version** | 1.0 |
 | **Dernière mise à jour** | 30/01/2026 |
 | **Auteur** | Codex |
-| **Statut global** | 🟡 En cours |
+| **Statut global** | 🟢 Terminé |
 
 ### Légende des Statuts
 
@@ -1868,7 +1868,7 @@ def test_chatbot_creation():
 ## Phase 7 : Integration & Polish
 
 **Durée estimée** : 5 jours  
-**Statut** : 🟡 En cours
+**Statut** : 🟢 Terminé
 
 ### 7.1 Tests End-to-End
 
@@ -1946,7 +1946,7 @@ pytest tests/e2e/ -v --tb=short
 
 ### 7.3 Packaging & Release
 
-**Statut** : 🟡 En cours  
+**Statut** : 🟢 Terminé  
 **Assigné à** : _À compléter_
 
 #### Tâches
@@ -1960,7 +1960,7 @@ pytest tests/e2e/ -v --tb=short
   - Build du package
   - Publication sur PyPI (optionnel)
 
-- [ ] **7.3.5** Créer la release v1.0.0
+- [x] **7.3.5** Créer la release v1.0.0
   - Tag Git
   - Changelog
   - Assets (wheel, source)
@@ -1979,8 +1979,8 @@ pytest tests/e2e/ -v --tb=short
 | Phase 4: Retrieval | 15 | 15 | 100% |
 | Phase 5: LLM & Agents | 14 | 14 | 100% |
 | Phase 6: Interfaces | 12 | 12 | 100% |
-| Phase 7: Integration | 10 | 9 | 90% |
-| **TOTAL** | **96** | **95** | **99%** |
+| Phase 7: Integration | 10 | 10 | 100% |
+| **TOTAL** | **96** | **96** | **100%** |
 
 ### Blockers Actuels
 
@@ -2019,6 +2019,7 @@ _Ajouter ici les notes au fur et à mesure de l'avancement_
 - Tests Phase 6 exécutés : `tests/integration/test_api.py` OK, chatbot skippé si Gradio absent.
 - Phase 7 avancée : tests E2E, docs, packaging (Dockerfile, docker-compose, CI). Release v1.0.0 reste à faire.
 - Tests E2E exécutés : `pytest tests/e2e` OK.
+- Phase 7 terminée : release v1.0.0 (CHANGELOG, build artifacts, tag git).
 
 [DATE] - [AUTEUR]
 - Note 1
