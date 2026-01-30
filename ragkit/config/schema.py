@@ -322,9 +322,7 @@ class ResponseGeneratorConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     llm: str
-    behavior: ResponseBehaviorConfig = Field(
-        default_factory=_model_factory(ResponseBehaviorConfig)
-    )
+    behavior: ResponseBehaviorConfig = Field(default_factory=_model_factory(ResponseBehaviorConfig))
     system_prompt: str
     no_retrieval_prompt: str
     out_of_scope_prompt: str

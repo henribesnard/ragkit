@@ -14,7 +14,9 @@ async def get_metrics_summary(
     request: Request, period: str = Query("24h", pattern="^\\d+[hdm]$")
 ) -> dict[str, Any]:
     metrics_collector = getattr(request.app.state, "metrics", None)
-    return metrics_collector.get_summary(period) if metrics_collector else {}
+    if not metrics_collector:
+        return {}
+    return metrics_collector.get_summary(period).model_dump()
 
 
 @router.get("/timeseries/{metric}")

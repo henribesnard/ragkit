@@ -89,6 +89,7 @@ class IngestionPipeline:
                         continue
 
                     try:
+
                         async def _parse(raw: RawDocument = raw_doc) -> ParsedDocument:
                             return await self.parser.parse(raw)
 
