@@ -41,6 +41,8 @@ htmlcov/
 ragkit-ui/node_modules/
 ragkit-ui/dist/
 /.claude/
+!ragkit/ui/dist/
+!ragkit/ui/dist/**
 
 # OS files
 .DS_Store
