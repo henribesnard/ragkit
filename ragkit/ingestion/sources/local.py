@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import AsyncIterator
+from collections.abc import AsyncIterator, Iterable
 from pathlib import Path
-from typing import Iterable
 
 from ragkit.config.schema import LocalSourceConfig
 from ragkit.ingestion.sources.base import BaseSourceLoader, RawDocument

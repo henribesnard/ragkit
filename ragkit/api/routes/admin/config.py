@@ -1,14 +1,14 @@
-﻿"""Admin configuration endpoints."""
+"""Admin configuration endpoints."""
 
 from __future__ import annotations
 
 from datetime import datetime, timezone
 from pathlib import Path
 
+import yaml
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import Response
 from pydantic import BaseModel
-import yaml
 
 from ragkit.config.schema import RAGKitConfig
 from ragkit.config.validators import validate_config as validate_custom
@@ -36,7 +36,9 @@ class ValidationResult(BaseModel):
 @router.get("", response_model=ConfigResponse)
 async def get_config(request: Request) -> ConfigResponse:
     config = request.app.state.config
-    loaded_at = getattr(request.app.state, "config_loaded_at", datetime.now(timezone.utc)).isoformat()
+    loaded_at = getattr(
+        request.app.state, "config_loaded_at", datetime.now(timezone.utc)
+    ).isoformat()
     return ConfigResponse(config=config.model_dump(), loaded_at=loaded_at, source="file")
 
 

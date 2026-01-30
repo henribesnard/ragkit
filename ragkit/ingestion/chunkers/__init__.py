@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ragkit.config.schema import ChunkingConfig, SemanticChunkingConfig
+from ragkit.config.schema import ChunkingConfig
 from ragkit.ingestion.chunkers.base import BaseChunker
 from ragkit.ingestion.chunkers.fixed import FixedChunker
 from ragkit.ingestion.chunkers.semantic import SemanticChunker

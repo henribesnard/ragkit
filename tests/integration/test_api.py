@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 
 from ragkit.api.app import create_app
 from ragkit.config.schema import APIConfig, APICorsConfig, APIDocsConfig, APIServerConfig
-
 from tests.helpers import DummyOrchestrator
 
 

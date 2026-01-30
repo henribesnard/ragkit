@@ -1,12 +1,12 @@
-﻿"""Metrics collection entrypoints."""
+"""Metrics collection entrypoints."""
 
 from ragkit.metrics.collector import MetricsCollector
 from ragkit.metrics.models import (
     ComponentMetrics,
     IngestionMetrics,
     MetricPoint,
-    MetricType,
     MetricsSummary,
+    MetricType,
     QueryMetrics,
 )
 

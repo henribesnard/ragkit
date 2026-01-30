@@ -1,4 +1,4 @@
-﻿"""Admin API routes."""
+"""Admin API routes."""
 
 from fastapi import APIRouter
 

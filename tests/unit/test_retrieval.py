@@ -13,7 +13,6 @@ from ragkit.retrieval.fusion import ScoreFusion
 from ragkit.retrieval.lexical import LexicalRetriever
 from ragkit.retrieval.semantic import SemanticRetriever
 from ragkit.vectorstore.base import SearchResult
-
 from tests.helpers import DummyEmbedder, DummyVectorStore
 
 
@@ -46,7 +45,9 @@ def test_lexical_retrieval():
     retriever = LexicalRetriever(config)
 
     chunks = [
-        Chunk(id="1", document_id="doc1", content="Python programming language tutorial", metadata={}),
+        Chunk(
+            id="1", document_id="doc1", content="Python programming language tutorial", metadata={}
+        ),
         Chunk(id="2", document_id="doc2", content="Java development best practices", metadata={}),
         Chunk(id="3", document_id="doc3", content="Python machine learning guide", metadata={}),
     ]

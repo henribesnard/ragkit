@@ -1,18 +1,18 @@
-﻿"""Admin ingestion endpoints."""
+"""Admin ingestion endpoints."""
 
 from __future__ import annotations
 
 import asyncio
-from datetime import datetime, timezone
 import json
+from collections.abc import Iterable
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Iterable
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
-from ragkit.ingestion import IngestionPipeline
 from ragkit.api.routes.admin.websocket import broadcast_event
+from ragkit.ingestion import IngestionPipeline
 from ragkit.state import StateStore
 
 router = APIRouter(prefix="/ingestion")
@@ -74,7 +74,9 @@ async def run_ingestion(payload: IngestionRunRequest, request: Request) -> Inges
         state.set("ingestion_running", True)
         start_time = datetime.now(timezone.utc)
         try:
-            await broadcast_event("ingestion_started", {"job_id": job_id, "started_at": start_time.isoformat()})
+            await broadcast_event(
+                "ingestion_started", {"job_id": job_id, "started_at": start_time.isoformat()}
+            )
             pipeline = IngestionPipeline(
                 request.app.state.config.ingestion,
                 embedder=request.app.state.embedder,
@@ -99,7 +101,11 @@ async def run_ingestion(payload: IngestionRunRequest, request: Request) -> Inges
             _ingestion_jobs[job_id] = {"status": "completed", "stats": stats.model_dump()}
             await broadcast_event(
                 "ingestion_completed",
-                {"job_id": job_id, "stats": stats.model_dump(), "completed_at": datetime.now(timezone.utc).isoformat()},
+                {
+                    "job_id": job_id,
+                    "stats": stats.model_dump(),
+                    "completed_at": datetime.now(timezone.utc).isoformat(),
+                },
             )
         except Exception as exc:  # noqa: BLE001
             _ingestion_jobs[job_id] = {"status": "failed", "error": str(exc)}
@@ -111,7 +117,11 @@ async def run_ingestion(payload: IngestionRunRequest, request: Request) -> Inges
             )
             await broadcast_event(
                 "ingestion_failed",
-                {"job_id": job_id, "error": str(exc), "completed_at": datetime.now(timezone.utc).isoformat()},
+                {
+                    "job_id": job_id,
+                    "error": str(exc),
+                    "completed_at": datetime.now(timezone.utc).isoformat(),
+                },
             )
         finally:
             state.set("ingestion_running", False)

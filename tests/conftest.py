@@ -3,7 +3,6 @@
 import pytest
 
 from ragkit.vectorstore.base import SearchResult
-
 from tests.helpers import (
     DummyEmbedder,
     DummyLLM,
@@ -35,7 +34,9 @@ def dummy_retrieval():
 
 @pytest.fixture
 def sample_chunk():
-    return make_chunk(id="1", document_id="doc1", content="Paris is capital", metadata={"source": "geo.pdf"})
+    return make_chunk(
+        id="1", document_id="doc1", content="Paris is capital", metadata={"source": "geo.pdf"}
+    )
 
 
 @pytest.fixture

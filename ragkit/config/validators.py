@@ -43,10 +43,16 @@ def validate_config(config: RAGKitConfig) -> list[str]:
 
     # Embedding / LLM key hints (non-fatal, but we flag missing keys for hosted providers)
     if config.embedding.document_model.provider in {"openai", "cohere"}:
-        if not config.embedding.document_model.api_key and not config.embedding.document_model.api_key_env:
+        if (
+            not config.embedding.document_model.api_key
+            and not config.embedding.document_model.api_key_env
+        ):
             errors.append("embedding.document_model.api_key or api_key_env is required")
     if config.embedding.query_model.provider in {"openai", "cohere"}:
-        if not config.embedding.query_model.api_key and not config.embedding.query_model.api_key_env:
+        if (
+            not config.embedding.query_model.api_key
+            and not config.embedding.query_model.api_key_env
+        ):
             errors.append("embedding.query_model.api_key or api_key_env is required")
 
     if config.llm.primary.provider in {"openai", "anthropic"}:

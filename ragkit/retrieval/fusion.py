@@ -29,7 +29,10 @@ class ScoreFusion:
                 if normalize and max_score > 0:
                     score = score / max_score
                 combined_scores[result.chunk.id] += score * weight
-                if result.chunk.id not in chunk_map or result.score > chunk_map[result.chunk.id].score:
+                if (
+                    result.chunk.id not in chunk_map
+                    or result.score > chunk_map[result.chunk.id].score
+                ):
                     chunk_map[result.chunk.id] = result
 
         fused: list[RetrievalResult] = []
@@ -60,7 +63,10 @@ class ScoreFusion:
             ordered = sorted(results, key=lambda item: item.score, reverse=True)
             for rank, result in enumerate(ordered, start=1):
                 combined_scores[result.chunk.id] += 1.0 / (k + rank)
-                if result.chunk.id not in chunk_map or result.score > chunk_map[result.chunk.id].score:
+                if (
+                    result.chunk.id not in chunk_map
+                    or result.score > chunk_map[result.chunk.id].score
+                ):
                     chunk_map[result.chunk.id] = result
 
         fused: list[RetrievalResult] = []
@@ -84,7 +90,9 @@ class ScoreFusion:
         weights: dict[str, float],
     ) -> list[RetrievalResult]:
         if config.method == "weighted_sum":
-            return ScoreFusion.weighted_sum(results_by_type, weights, normalize=config.normalize_scores)
+            return ScoreFusion.weighted_sum(
+                results_by_type, weights, normalize=config.normalize_scores
+            )
         if config.method == "reciprocal_rank_fusion":
             return ScoreFusion.reciprocal_rank_fusion(results_by_type, k=config.rrf_k)
         raise ValueError(f"Unknown fusion method: {config.method}")

@@ -9,10 +9,10 @@ from ragkit.embedding.base import BaseEmbedder
 from ragkit.models import Chunk, GeneratedResponse, QueryAnalysis, RetrievalResult
 from ragkit.vectorstore.base import BaseVectorStore, SearchResult, VectorStoreStats
 
-
 # ---------------------------------------------------------------------------
 # LLM test doubles
 # ---------------------------------------------------------------------------
+
 
 class DummyLLM:
     """Fake LLM provider that returns canned responses."""
@@ -26,7 +26,9 @@ class DummyLLM:
         self.call_count += 1
         return self.text_response
 
-    async def complete_json(self, messages: list[dict[str, str]], schema: dict[str, Any]) -> dict[str, Any]:
+    async def complete_json(
+        self, messages: list[dict[str, str]], schema: dict[str, Any]
+    ) -> dict[str, Any]:
         self.call_count += 1
         return self.json_response
 
@@ -44,6 +46,7 @@ class DummyResponse:
 # ---------------------------------------------------------------------------
 # Embedding test doubles
 # ---------------------------------------------------------------------------
+
 
 class DummyEmbedder(BaseEmbedder):
     """Fake embedder returning fixed vectors."""
@@ -67,6 +70,7 @@ class DummyEmbedder(BaseEmbedder):
 # ---------------------------------------------------------------------------
 # Vector store test doubles
 # ---------------------------------------------------------------------------
+
 
 class DummyVectorStore(BaseVectorStore):
     """In-memory vector store that returns preconfigured results."""
@@ -95,7 +99,9 @@ class DummyVectorStore(BaseVectorStore):
         return len(self._results)
 
     async def stats(self) -> VectorStoreStats:
-        return VectorStoreStats(provider="dummy", collection_name="dummy", vector_count=len(self._results))
+        return VectorStoreStats(
+            provider="dummy", collection_name="dummy", vector_count=len(self._results)
+        )
 
     async def list_documents(self) -> list[str]:
         return []
@@ -105,11 +111,14 @@ class DummyVectorStore(BaseVectorStore):
 # Retrieval / orchestrator test doubles
 # ---------------------------------------------------------------------------
 
+
 class DummyRetrieval:
     """Fake retrieval engine returning a single result."""
 
     async def retrieve(self, query: str) -> list[RetrievalResult]:
-        chunk = Chunk(id="1", document_id="doc1", content="Paris is capital", metadata={"source": "geo.pdf"})
+        chunk = Chunk(
+            id="1", document_id="doc1", content="Paris is capital", metadata={"source": "geo.pdf"}
+        )
         return [RetrievalResult(chunk=chunk, score=0.9, retrieval_type="semantic")]
 
 
@@ -137,6 +146,7 @@ class DummyOrchestrator:
 # ---------------------------------------------------------------------------
 # Common test data factories
 # ---------------------------------------------------------------------------
+
 
 def make_chunk(
     id: str = "1",

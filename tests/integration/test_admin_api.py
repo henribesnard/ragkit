@@ -11,7 +11,6 @@ from ragkit.api.app import create_app
 from ragkit.config import ConfigLoader
 from ragkit.metrics.collector import MetricsCollector
 from ragkit.state.store import StateStore
-
 from tests.helpers import DummyOrchestrator
 
 

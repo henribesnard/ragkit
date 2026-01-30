@@ -6,13 +6,13 @@ from ragkit.config.schema import (
     ChunkingConfig,
     FixedChunkingConfig,
     IngestionConfig,
+    LexicalPreprocessingConfig,
+    LexicalRetrievalConfig,
+    MetadataConfig,
     ParsingConfig,
     RetrievalConfig,
     SemanticRetrievalConfig,
     SourceConfig,
-    MetadataConfig,
-    LexicalRetrievalConfig,
-    LexicalPreprocessingConfig,
 )
 from ragkit.embedding.base import BaseEmbedder
 from ragkit.ingestion import IngestionPipeline
@@ -66,7 +66,9 @@ class InMemoryVectorStore(BaseVectorStore):
     async def stats(self):
         from ragkit.vectorstore.base import VectorStoreStats
 
-        return VectorStoreStats(provider="memory", collection_name="memory", vector_count=len(self._chunks))
+        return VectorStoreStats(
+            provider="memory", collection_name="memory", vector_count=len(self._chunks)
+        )
 
     async def list_documents(self) -> list[str]:
         return sorted({chunk.document_id for chunk in self._chunks})
@@ -76,9 +78,15 @@ class InMemoryVectorStore(BaseVectorStore):
 @pytest.mark.e2e
 async def test_basic_load(sample_docs):
     ingestion_config = IngestionConfig(
-        sources=[SourceConfig(type="local", path=str(sample_docs), patterns=["*.md", "*.txt"], recursive=True)],
+        sources=[
+            SourceConfig(
+                type="local", path=str(sample_docs), patterns=["*.md", "*.txt"], recursive=True
+            )
+        ],
         parsing=ParsingConfig(),
-        chunking=ChunkingConfig(strategy="fixed", fixed=FixedChunkingConfig(chunk_size=50, chunk_overlap=10)),
+        chunking=ChunkingConfig(
+            strategy="fixed", fixed=FixedChunkingConfig(chunk_size=50, chunk_overlap=10)
+        ),
         metadata=MetadataConfig(extract=["source_path"], custom={}),
     )
 
@@ -89,7 +97,9 @@ async def test_basic_load(sample_docs):
 
     retrieval_config = RetrievalConfig(
         architecture="semantic",
-        semantic=SemanticRetrievalConfig(enabled=True, top_k=5, similarity_threshold=0.0, weight=1.0),
+        semantic=SemanticRetrievalConfig(
+            enabled=True, top_k=5, similarity_threshold=0.0, weight=1.0
+        ),
         lexical=LexicalRetrievalConfig(
             enabled=False,
             top_k=5,
@@ -105,7 +115,7 @@ async def test_basic_load(sample_docs):
 
 
 def _cosine(vec_a: list[float], vec_b: list[float]) -> float:
-    dot = sum(a * b for a, b in zip(vec_a, vec_b))
+    dot = sum(a * b for a, b in zip(vec_a, vec_b, strict=False))
     norm_a = math.sqrt(sum(a * a for a in vec_a))
     norm_b = math.sqrt(sum(b * b for b in vec_b))
     if norm_a == 0 or norm_b == 0:

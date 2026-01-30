@@ -25,7 +25,9 @@ class LLMProvider:
         response = await self._call(messages)
         return _extract_content(response)
 
-    async def complete_json(self, messages: list[dict[str, str]], schema: dict[str, Any]) -> dict[str, Any]:
+    async def complete_json(
+        self, messages: list[dict[str, str]], schema: dict[str, Any]
+    ) -> dict[str, Any]:
         system = {
             "role": "system",
             "content": "Return only valid JSON that matches the given schema.",

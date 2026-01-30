@@ -13,18 +13,19 @@ from ragkit.config.schema import (
     ResponseGeneratorConfig,
 )
 from ragkit.models import Chunk, QueryAnalysis, RetrievalResult
-
 from tests.helpers import DummyLLM, DummyRetrieval, DummyRouter
 
 
 @pytest.mark.asyncio
 async def test_query_analyzer_greeting():
-    llm = DummyLLM(json_response={
-        "intent": "greeting",
-        "needs_retrieval": False,
-        "rewritten_query": None,
-        "reasoning": "hi",
-    })
+    llm = DummyLLM(
+        json_response={
+            "intent": "greeting",
+            "needs_retrieval": False,
+            "rewritten_query": None,
+            "reasoning": "hi",
+        }
+    )
     config = QueryAnalyzerConfig(
         llm="fast",
         behavior=QueryAnalyzerBehaviorConfig(
@@ -75,7 +76,9 @@ async def test_response_generator_with_context():
     agent = ResponseGeneratorAgent(config, llm)
 
     analysis = QueryAnalysis(intent="question", needs_retrieval=True)
-    chunk = Chunk(id="1", document_id="doc1", content="Paris is capital", metadata={"source": "geo.pdf"})
+    chunk = Chunk(
+        id="1", document_id="doc1", content="Paris is capital", metadata={"source": "geo.pdf"}
+    )
     context = [RetrievalResult(chunk=chunk, score=0.9, retrieval_type="semantic")]
 
     result = await agent.generate("What is capital?", context, analysis)
@@ -86,12 +89,15 @@ async def test_response_generator_with_context():
 
 @pytest.mark.asyncio
 async def test_agent_orchestrator_flow():
-    llm = DummyLLM(json_response={
-        "intent": "question",
-        "needs_retrieval": True,
-        "rewritten_query": "capital france",
-        "reasoning": "test",
-    }, text_response="Paris")
+    llm = DummyLLM(
+        json_response={
+            "intent": "question",
+            "needs_retrieval": True,
+            "rewritten_query": "capital france",
+            "reasoning": "test",
+        },
+        text_response="Paris",
+    )
 
     config = AgentsConfig(
         mode="default",

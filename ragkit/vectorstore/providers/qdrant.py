@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 import uuid
+from typing import Any
 
 from ragkit.config.schema import QdrantConfig
 from ragkit.exceptions import RetrievalError
@@ -166,7 +165,9 @@ class QdrantVectorStore(BaseVectorStore):
 
         self.client.create_collection(
             collection_name=self.collection_name,
-            vectors_config=VectorParams(size=vector_size, distance=_distance(self.config.distance_metric)),
+            vectors_config=VectorParams(
+                size=vector_size, distance=_distance(self.config.distance_metric)
+            ),
         )
 
 
@@ -175,7 +176,9 @@ def _build_filter(filters: dict | None):
         return None
     from qdrant_client.models import FieldCondition, Filter, MatchValue
 
-    conditions = [FieldCondition(key=key, match=MatchValue(value=value)) for key, value in filters.items()]
+    conditions = [
+        FieldCondition(key=key, match=MatchValue(value=value)) for key, value in filters.items()
+    ]
     return Filter(must=conditions)
 
 

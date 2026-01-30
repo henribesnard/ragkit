@@ -1,4 +1,4 @@
-﻿"""Metrics models for RAGKIT."""
+"""Metrics models for RAGKIT."""
 
 from __future__ import annotations
 

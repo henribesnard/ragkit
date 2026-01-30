@@ -1,9 +1,11 @@
 import pytest
 
-gradio = pytest.importorskip("gradio")
-
-from ragkit.chatbot.gradio_ui import create_chatbot
-from ragkit.config.schema import ChatbotConfig, ChatbotFeaturesConfig, ChatbotServerConfig, ChatbotUIConfig
+from ragkit.config.schema import (
+    ChatbotConfig,
+    ChatbotFeaturesConfig,
+    ChatbotServerConfig,
+    ChatbotUIConfig,
+)
 
 
 class DummyOrchestrator:
@@ -16,11 +18,16 @@ class DummyOrchestrator:
 
 
 def test_chatbot_creation():
+    pytest.importorskip("gradio")
+    from ragkit.chatbot.gradio_ui import create_chatbot
+
     config = ChatbotConfig(
         enabled=True,
         type="gradio",
         server=ChatbotServerConfig(host="0.0.0.0", port=8080, share=False),
-        ui=ChatbotUIConfig(title="RAGKIT", description="Desc", theme="soft", placeholder="Ask", examples=[]),
+        ui=ChatbotUIConfig(
+            title="RAGKIT", description="Desc", theme="soft", placeholder="Ask", examples=[]
+        ),
         features=ChatbotFeaturesConfig(show_sources=True, show_latency=True),
     )
     demo = create_chatbot(config, DummyOrchestrator())

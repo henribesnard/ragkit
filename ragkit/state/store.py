@@ -1,13 +1,12 @@
-﻿"""Persistent state storage using SQLite."""
+"""Persistent state storage using SQLite."""
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import json
+import sqlite3
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
-
-import sqlite3
 
 
 class StateStore:
@@ -58,7 +57,12 @@ class StateStore:
     def get_ingestion_history(self, limit: int = 10) -> list[dict]:
         with sqlite3.connect(self.db_path) as conn:
             rows = conn.execute(
-                "SELECT id, started_at, completed_at, stats, status FROM ingestion_history ORDER BY id DESC LIMIT ?",
+                """
+                SELECT id, started_at, completed_at, stats, status
+                FROM ingestion_history
+                ORDER BY id DESC
+                LIMIT ?
+                """,
                 (limit,),
             ).fetchall()
         history: list[dict] = []
@@ -92,7 +96,10 @@ class StateStore:
         completed_payload = completed_at.isoformat() if completed_at else None
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(
-                "INSERT INTO ingestion_history (started_at, completed_at, stats, status) VALUES (?, ?, ?, ?)",
+                """
+                INSERT INTO ingestion_history (started_at, completed_at, stats, status)
+                VALUES (?, ?, ?, ?)
+                """,
                 (started_at.isoformat(), completed_payload, stats_payload, status),
             )
             return int(cursor.lastrowid)

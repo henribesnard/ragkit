@@ -2,12 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Any
-
-import time
-
 import asyncio
 import json
+import time
+from typing import Any
+
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -34,7 +33,9 @@ def get_orchestrator(request: Request) -> AgentOrchestrator:
 
 
 @router.post("/query", response_model=QueryResponse)
-async def query(request: QueryRequest, orchestrator: AgentOrchestrator = Depends(get_orchestrator)) -> QueryResponse:
+async def query(
+    request: QueryRequest, orchestrator: AgentOrchestrator = Depends(get_orchestrator)
+) -> QueryResponse:
     start = time.perf_counter()
     result = await orchestrator.process(request.query, request.history)
     latency_ms = (time.perf_counter() - start) * 1000

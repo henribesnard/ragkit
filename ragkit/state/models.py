@@ -1,4 +1,4 @@
-﻿"""State models for RAGKIT runtime."""
+"""State models for RAGKIT runtime."""
 
 from __future__ import annotations
 

@@ -1,11 +1,10 @@
-﻿"""Tests for ragkit CLI commands."""
+"""Tests for ragkit CLI commands."""
 
 from __future__ import annotations
 
-from pathlib import Path
 import types
+from pathlib import Path
 
-import pytest
 from typer.testing import CliRunner
 
 from ragkit.cli import main as cli
@@ -43,7 +42,9 @@ class DummyOrchestrator:
 def _stub_config():
     return types.SimpleNamespace(
         ingestion=types.SimpleNamespace(),
-        embedding=types.SimpleNamespace(document_model=types.SimpleNamespace(), query_model=types.SimpleNamespace()),
+        embedding=types.SimpleNamespace(
+            document_model=types.SimpleNamespace(), query_model=types.SimpleNamespace()
+        ),
         vector_store=types.SimpleNamespace(),
         retrieval=types.SimpleNamespace(),
         llm=types.SimpleNamespace(),
@@ -57,7 +58,9 @@ def _stub_config():
         ),
         chatbot=types.SimpleNamespace(
             server=types.SimpleNamespace(host="0.0.0.0", port=8080, share=False),
-            ui=types.SimpleNamespace(theme="soft", title="RAGKIT", description="", placeholder="", examples=[]),
+            ui=types.SimpleNamespace(
+                theme="soft", title="RAGKIT", description="", placeholder="", examples=[]
+            ),
             features=types.SimpleNamespace(streaming=False, show_sources=True, show_latency=True),
         ),
         observability=types.SimpleNamespace(metrics=types.SimpleNamespace(enabled=True)),
@@ -124,6 +127,7 @@ def test_query_outputs_response(monkeypatch):
 
 def test_serve_creates_app(monkeypatch):
     import uvicorn
+
     import ragkit.api.app as api_app
 
     dummy_config = _stub_config()
@@ -147,7 +151,7 @@ def test_ui_build_missing_directory(tmp_path, monkeypatch):
 
     result = runner.invoke(cli.app, ["ui", "build"])
     assert result.exit_code != 0
-    assert "ragkit-ui" in result.stdout
+    assert "ragkit-ui" in result.output
 
 
 def test_ui_dev_missing_directory(tmp_path, monkeypatch):
@@ -157,4 +161,4 @@ def test_ui_dev_missing_directory(tmp_path, monkeypatch):
 
     result = runner.invoke(cli.app, ["ui", "dev"])
     assert result.exit_code != 0
-    assert "ragkit-ui" in result.stdout
+    assert "ragkit-ui" in result.output

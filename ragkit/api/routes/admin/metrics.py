@@ -1,4 +1,4 @@
-﻿"""Admin metrics endpoints."""
+"""Admin metrics endpoints."""
 
 from __future__ import annotations
 

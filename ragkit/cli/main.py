@@ -3,19 +3,19 @@
 from __future__ import annotations
 
 import asyncio
-from pathlib import Path
 import shutil
 import subprocess
+from pathlib import Path
 
 import typer
 
+from ragkit.agents import AgentOrchestrator
 from ragkit.config import ConfigLoader
 from ragkit.embedding import create_embedder
 from ragkit.ingestion import IngestionPipeline
+from ragkit.llm import LLMRouter
 from ragkit.retrieval import RetrievalEngine
 from ragkit.vectorstore import create_vector_store
-from ragkit.llm import LLMRouter
-from ragkit.agents import AgentOrchestrator
 
 app = typer.Typer(name="ragkit", help="RAGKIT - Configuration-First RAG Framework")
 ui_app = typer.Typer(help="UI commands")
@@ -79,7 +79,6 @@ def query(
     cfg = loader.load_with_env(config)
 
     embedder_query = create_embedder(cfg.embedding.query_model)
-    embedder_doc = create_embedder(cfg.embedding.document_model)
     vector_store = create_vector_store(cfg.vector_store)
     retrieval = RetrievalEngine(cfg.retrieval, vector_store, embedder_query)
     llm_router = LLMRouter(cfg.llm)
@@ -144,7 +143,11 @@ def serve(
 
             thread = threading.Thread(
                 target=uvicorn.run,
-                kwargs={"app": app_instance, "host": cfg.api.server.host, "port": cfg.api.server.port},
+                kwargs={
+                    "app": app_instance,
+                    "host": cfg.api.server.host,
+                    "port": cfg.api.server.port,
+                },
                 daemon=True,
             )
             thread.start()

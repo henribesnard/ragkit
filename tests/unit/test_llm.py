@@ -5,8 +5,7 @@ import pytest
 
 from ragkit.config.schema import LLMConfig, LLMModelConfig, LLMParams
 from ragkit.llm.litellm_provider import LLMProvider, LLMRouter
-
-from tests.helpers import DummyChoice, DummyResponse
+from tests.helpers import DummyResponse
 
 
 @pytest.mark.asyncio
@@ -16,7 +15,9 @@ async def test_llm_completion(monkeypatch):
 
     monkeypatch.setitem(sys.modules, "litellm", types.SimpleNamespace(acompletion=fake_completion))
 
-    config = LLMModelConfig(provider="openai", model="gpt-4o-mini", api_key="test", params=LLMParams())
+    config = LLMModelConfig(
+        provider="openai", model="gpt-4o-mini", api_key="test", params=LLMParams()
+    )
     llm = LLMProvider(config)
 
     response = await llm.complete([{"role": "user", "content": "Hello"}])
@@ -26,11 +27,13 @@ async def test_llm_completion(monkeypatch):
 @pytest.mark.asyncio
 async def test_llm_json_output(monkeypatch):
     async def fake_completion(**kwargs):
-        return DummyResponse("{\"name\": \"Alice\"}")
+        return DummyResponse('{"name": "Alice"}')
 
     monkeypatch.setitem(sys.modules, "litellm", types.SimpleNamespace(acompletion=fake_completion))
 
-    config = LLMModelConfig(provider="openai", model="gpt-4o-mini", api_key="test", params=LLMParams())
+    config = LLMModelConfig(
+        provider="openai", model="gpt-4o-mini", api_key="test", params=LLMParams()
+    )
     llm = LLMProvider(config)
 
     result = await llm.complete_json(
@@ -42,7 +45,9 @@ async def test_llm_json_output(monkeypatch):
 
 def test_llm_router():
     config = LLMConfig(
-        primary=LLMModelConfig(provider="openai", model="gpt-4o-mini", api_key="test", params=LLMParams()),
+        primary=LLMModelConfig(
+            provider="openai", model="gpt-4o-mini", api_key="test", params=LLMParams()
+        ),
         secondary=None,
         fast=None,
     )

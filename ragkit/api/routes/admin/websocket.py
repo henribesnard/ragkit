@@ -1,4 +1,4 @@
-﻿"""Admin websocket endpoints for realtime updates."""
+"""Admin websocket endpoints for realtime updates."""
 
 from __future__ import annotations
 
@@ -38,21 +38,29 @@ manager = ConnectionManager()
 async def websocket_endpoint(websocket: WebSocket) -> None:
     await manager.connect(websocket)
     try:
-        await websocket.send_json({"type": "connected", "timestamp": datetime.now(timezone.utc).isoformat()})
+        await websocket.send_json(
+            {"type": "connected", "timestamp": datetime.now(timezone.utc).isoformat()}
+        )
         while True:
             try:
                 data = await asyncio.wait_for(websocket.receive_text(), timeout=30.0)
             except asyncio.TimeoutError:
-                await websocket.send_json({"type": "heartbeat", "timestamp": datetime.now(timezone.utc).isoformat()})
+                await websocket.send_json(
+                    {"type": "heartbeat", "timestamp": datetime.now(timezone.utc).isoformat()}
+                )
                 continue
 
             if not data:
                 continue
             message = _safe_json(data)
             if message.get("type") == "ping":
-                await websocket.send_json({"type": "pong", "timestamp": datetime.now(timezone.utc).isoformat()})
+                await websocket.send_json(
+                    {"type": "pong", "timestamp": datetime.now(timezone.utc).isoformat()}
+                )
             elif message.get("type") == "subscribe":
-                await websocket.send_json({"type": "subscribed", "timestamp": datetime.now(timezone.utc).isoformat()})
+                await websocket.send_json(
+                    {"type": "subscribed", "timestamp": datetime.now(timezone.utc).isoformat()}
+                )
     except WebSocketDisconnect:
         manager.disconnect(websocket)
 

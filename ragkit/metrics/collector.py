@@ -1,22 +1,29 @@
-﻿"""Metrics collection and aggregation."""
+"""Metrics collection and aggregation."""
 
 from __future__ import annotations
 
-from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
 import json
-from pathlib import Path
 import sqlite3
 import threading
-from typing import Any, Iterable
+from collections.abc import Iterable
+from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
+from typing import Any
 
-from ragkit.metrics.models import ComponentMetrics, IngestionMetrics, MetricPoint, MetricsSummary, QueryMetrics
+from ragkit.metrics.models import (
+    ComponentMetrics,
+    IngestionMetrics,
+    MetricPoint,
+    MetricsSummary,
+    QueryMetrics,
+)
 
 
 class MetricsCollector:
     """Collects and stores metrics for RAGKIT operations."""
 
-    _instance: "MetricsCollector | None" = None
+    _instance: MetricsCollector | None = None
     _lock = threading.Lock()
 
     def __new__(cls, *args, **kwargs):
@@ -126,7 +133,9 @@ class MetricsCollector:
                     datetime.now(timezone.utc).isoformat(),
                 ),
             )
-            self._record_metric(conn, "component_latency_ms", float(latency_ms), {"component": component})
+            self._record_metric(
+                conn, "component_latency_ms", float(latency_ms), {"component": component}
+            )
             if not success:
                 self._record_metric(conn, "component_error", 1, {"component": component})
 
@@ -139,7 +148,13 @@ class MetricsCollector:
         with sqlite3.connect(self.db_path) as conn:
             conn.execute(
                 """
-                INSERT INTO ingestion_logs (documents_loaded, chunks_stored, duration_seconds, errors, timestamp)
+                INSERT INTO ingestion_logs (
+                    documents_loaded,
+                    chunks_stored,
+                    duration_seconds,
+                    errors,
+                    timestamp
+                )
                 VALUES (?, ?, ?, ?, ?)
                 """,
                 (documents, chunks, duration, errors, datetime.now(timezone.utc).isoformat()),
@@ -200,7 +215,13 @@ class MetricsCollector:
             for row in rows
         ]
 
-    def _record_metric(self, conn: sqlite3.Connection, name: str, value: float, labels: dict[str, str] | None = None) -> None:
+    def _record_metric(
+        self,
+        conn: sqlite3.Connection,
+        name: str,
+        value: float,
+        labels: dict[str, str] | None = None,
+    ) -> None:
         conn.execute(
             "INSERT INTO metrics (name, value, labels, timestamp) VALUES (?, ?, ?, ?)",
             (
@@ -313,7 +334,7 @@ class MetricsCollector:
 
 
 @contextmanager
-def record_component(metrics: "MetricsCollector", name: str) -> Iterable[None]:
+def record_component(metrics: MetricsCollector, name: str) -> Iterable[None]:
     start = datetime.now(timezone.utc)
     error: str | None = None
     try:

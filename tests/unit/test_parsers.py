@@ -33,7 +33,7 @@ Content of section 2.
 @pytest.mark.asyncio
 async def test_text_parser_decodes_bytes():
     raw_doc = RawDocument(
-        content="Plain text".encode("utf-8"),
+        content=b"Plain text",
         source_path="doc.txt",
         file_type="txt",
         metadata={},

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import re
-from typing import Iterable
+from collections.abc import Iterable
 
 import structlog
 
@@ -77,7 +77,9 @@ class RetrievalEngine:
 
         return self._prepare_context(fused)
 
-    def _fuse_results(self, results_by_type: dict[str, list[RetrievalResult]]) -> list[RetrievalResult]:
+    def _fuse_results(
+        self, results_by_type: dict[str, list[RetrievalResult]]
+    ) -> list[RetrievalResult]:
         if len(results_by_type) == 1:
             return next(iter(results_by_type.values()))
 
@@ -101,7 +103,9 @@ class RetrievalEngine:
 
         unique: list[RetrievalResult] = []
         for result in results:
-            if not _is_similar_to_any(result.chunk.content, [r.chunk.content for r in unique], threshold):
+            if not _is_similar_to_any(
+                result.chunk.content, [r.chunk.content for r in unique], threshold
+            ):
                 unique.append(result)
         return unique
 

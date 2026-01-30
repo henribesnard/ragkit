@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from ragkit.config.schema import ResponseGeneratorConfig
 from ragkit.llm.litellm_provider import LLMProvider
@@ -26,20 +26,29 @@ class ResponseGeneratorAgent:
         if not analysis.needs_retrieval:
             prompt = self._build_no_retrieval_prompt(query, history)
             response = await self.llm.complete(prompt)
-            return GeneratedResponse(content=response, sources=[], metadata={"intent": analysis.intent})
+            return GeneratedResponse(
+                content=response, sources=[], metadata={"intent": analysis.intent}
+            )
 
         if analysis.intent == "out_of_scope":
             prompt = self._build_out_of_scope_prompt(query, history)
             response = await self.llm.complete(prompt)
-            return GeneratedResponse(content=response, sources=[], metadata={"intent": analysis.intent})
+            return GeneratedResponse(
+                content=response, sources=[], metadata={"intent": analysis.intent}
+            )
 
         prompt = self._build_rag_prompt(query, context or [], history)
         response = await self.llm.complete(prompt)
         sources = self._extract_sources(context or [])
-        return GeneratedResponse(content=response, sources=sources, metadata={"intent": analysis.intent})
+        return GeneratedResponse(
+            content=response, sources=sources, metadata={"intent": analysis.intent}
+        )
 
     def _build_rag_prompt(
-        self, query: str, context: list[RetrievalResult], history: list[dict] | None = None,
+        self,
+        query: str,
+        context: list[RetrievalResult],
+        history: list[dict] | None = None,
     ) -> list[dict[str, str]]:
         formatted_context = self._format_context(context)
         system = self.config.system_prompt.format(context=formatted_context)
@@ -48,14 +57,22 @@ class ResponseGeneratorAgent:
         messages.append({"role": "user", "content": query})
         return messages
 
-    def _build_no_retrieval_prompt(self, query: str, history: list[dict] | None = None) -> list[dict[str, str]]:
-        messages: list[dict[str, str]] = [{"role": "system", "content": self.config.no_retrieval_prompt}]
+    def _build_no_retrieval_prompt(
+        self, query: str, history: list[dict] | None = None
+    ) -> list[dict[str, str]]:
+        messages: list[dict[str, str]] = [
+            {"role": "system", "content": self.config.no_retrieval_prompt}
+        ]
         messages.extend(self._history_messages(history))
         messages.append({"role": "user", "content": query})
         return messages
 
-    def _build_out_of_scope_prompt(self, query: str, history: list[dict] | None = None) -> list[dict[str, str]]:
-        messages: list[dict[str, str]] = [{"role": "system", "content": self.config.out_of_scope_prompt}]
+    def _build_out_of_scope_prompt(
+        self, query: str, history: list[dict] | None = None
+    ) -> list[dict[str, str]]:
+        messages: list[dict[str, str]] = [
+            {"role": "system", "content": self.config.out_of_scope_prompt}
+        ]
         messages.extend(self._history_messages(history))
         messages.append({"role": "user", "content": query})
         return messages

@@ -5,8 +5,8 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-from ragkit.ingestion.parsers.base import ParsedDocument
 from ragkit.ingestion.chunkers.base import BaseChunker
+from ragkit.ingestion.parsers.base import ParsedDocument
 from ragkit.models import Chunk
 
 _TOKEN_RE = re.compile(r"\S+")

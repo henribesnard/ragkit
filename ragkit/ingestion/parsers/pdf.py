@@ -41,7 +41,9 @@ def _extract_with_pypdf(raw_bytes: bytes) -> str | None:
 
 
 def _fallback_decode(raw_bytes: bytes) -> str:
-    return raw_bytes.decode("utf-8", errors="ignore") or raw_bytes.decode("latin-1", errors="ignore")
+    return raw_bytes.decode("utf-8", errors="ignore") or raw_bytes.decode(
+        "latin-1", errors="ignore"
+    )
 
 
 class PDFParser(BaseParser):

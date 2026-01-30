@@ -28,7 +28,6 @@ class LocalSourceConfig(SourceConfig):
     model_config = ConfigDict(extra="forbid")
 
 
-
 class OCRConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -228,10 +227,13 @@ class RetrievalConfig(BaseModel):
     context: ContextConfig = Field(default_factory=ContextConfig)
 
     @model_validator(mode="after")
-    def _validate_architecture(self) -> "RetrievalConfig":
+    def _validate_architecture(self) -> RetrievalConfig:
         if self.architecture in {"lexical", "hybrid", "hybrid_rerank"} and not self.lexical.enabled:
             raise ValueError("lexical.enabled must be true for selected retrieval architecture")
-        if self.architecture in {"semantic", "hybrid", "hybrid_rerank"} and not self.semantic.enabled:
+        if (
+            self.architecture in {"semantic", "hybrid", "hybrid_rerank"}
+            and not self.semantic.enabled
+        ):
             raise ValueError("semantic.enabled must be true for selected retrieval architecture")
         if self.architecture == "hybrid_rerank" and not self.rerank.enabled:
             raise ValueError("rerank.enabled must be true for hybrid_rerank architecture")
@@ -354,7 +356,9 @@ class ConversationConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     memory: ConversationMemoryConfig = Field(default_factory=ConversationMemoryConfig)
-    persistence: ConversationPersistenceConfig = Field(default_factory=ConversationPersistenceConfig)
+    persistence: ConversationPersistenceConfig = Field(
+        default_factory=ConversationPersistenceConfig
+    )
 
 
 class ChatbotServerConfig(BaseModel):

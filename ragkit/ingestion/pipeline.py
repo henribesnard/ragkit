@@ -89,7 +89,7 @@ class IngestionPipeline:
 
                     try:
                         parsed = await retry_async(
-                            lambda: self.parser.parse(raw_doc),
+                            lambda raw_doc=raw_doc: self.parser.parse(raw_doc),
                             max_retries=self.max_retries,
                             delay=self.retry_delay,
                         )
@@ -100,17 +100,19 @@ class IngestionPipeline:
 
                         if self.embedder:
                             embeddings = await retry_async(
-                                lambda: self.embedder.embed([c.content for c in chunks]),
+                                lambda chunks=chunks: self.embedder.embed(
+                                    [c.content for c in chunks]
+                                ),
                                 max_retries=self.max_retries,
                                 delay=self.retry_delay,
                             )
-                            for chunk, embedding in zip(chunks, embeddings):
+                            for chunk, embedding in zip(chunks, embeddings, strict=False):
                                 chunk.embedding = embedding
                             stats.chunks_embedded += len(chunks)
 
                         if self.vector_store:
                             await retry_async(
-                                lambda: self.vector_store.add(chunks),
+                                lambda chunks=chunks: self.vector_store.add(chunks),
                                 max_retries=self.max_retries,
                                 delay=self.retry_delay,
                             )
@@ -120,7 +122,9 @@ class IngestionPipeline:
                             self._update_state(raw_doc, state)
                     except Exception as exc:  # noqa: BLE001
                         stats.errors += 1
-                        self.logger.error("ingestion_failed", error=str(exc), source=raw_doc.source_path)
+                        self.logger.error(
+                            "ingestion_failed", error=str(exc), source=raw_doc.source_path
+                        )
         finally:
             stats.duration_seconds = time.perf_counter() - start
             if incremental:
