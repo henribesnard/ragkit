@@ -1,0 +1,15 @@
+version: "3.9"
+services:
+  ragkit:
+    build: .
+    ports:
+      - "8000:8000"
+      - "8080:8080"
+    volumes:
+      - ./ragkit.yaml:/app/ragkit.yaml:ro
+      - ./data:/app/data
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - COHERE_API_KEY=${COHERE_API_KEY}
+      - QDRANT_URL=${QDRANT_URL}
+      - QDRANT_API_KEY=${QDRANT_API_KEY}
