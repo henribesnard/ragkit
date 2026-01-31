@@ -64,6 +64,12 @@ export function Setup() {
     try {
       const defaults = await fetchDefaults();
       const fullConfig = {
+        version: config.version || '1.0',
+        project: config.project || {
+          name: 'ragkit-project',
+          description: '',
+          environment: 'development',
+        },
         ...config,
         ingestion: config.ingestion || defaults.ingestion,
         retrieval: config.retrieval || defaults.retrieval,
