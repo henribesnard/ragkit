@@ -16,13 +16,30 @@ RAGKIT is a configuration-first agentic RAG framework. It lets you run an end-to
 - Python 3.10+
 - Node.js 18+ (only for `ragkit ui build` / `ragkit ui dev`)
 
-## Install
+## Install (published)
+
+```bash
+pip install ragkit
+```
+
+## Install (dev / from repo)
 
 ```bash
 pip install -e ".[dev]"
 ```
 
-## Quickstart
+## Quickstart (published setup flow)
+
+```bash
+ragkit init my-project
+cd my-project
+ragkit serve
+```
+
+Then open the setup UI at `http://localhost:8000` and complete the wizard.
+The server starts in **setup mode** (no API keys required) until you apply a full config.
+
+## Quickstart (manual config)
 
 ```bash
 ragkit init my-project --template minimal
@@ -32,19 +49,19 @@ ragkit ingest
 ragkit query "What is this project about?"
 ```
 
-Start the API:
+Start the API (manual config):
 
 ```bash
 ragkit serve --api-only
 ```
 
-Start the chatbot:
+Start the chatbot (manual config):
 
 ```bash
 ragkit serve --chatbot-only
 ```
 
-Start both:
+Start both (manual config):
 
 ```bash
 ragkit serve
@@ -71,6 +88,10 @@ Streaming flags:
 
 - `chatbot.features.streaming`: enable or disable streaming in the chatbot UI
 - `api.streaming.enabled`: enable or disable SSE streaming in the API
+
+Notes:
+
+- Manual config requires API keys for hosted providers (OpenAI/Cohere/Anthropic/DeepSeek/Groq/Mistral) or you can use local providers like Ollama.
 
 ## API
 
