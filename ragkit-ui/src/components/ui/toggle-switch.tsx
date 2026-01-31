@@ -16,7 +16,7 @@ export function ToggleSwitch({ checked, onChange, label }: ToggleSwitchProps) {
         onClick={() => onChange(!checked)}
         className={cn(
           'relative h-6 w-11 rounded-full border transition',
-          checked ? 'border-accent/40 bg-accent/20' : 'border-slate-200 bg-slate-100'
+          checked ? 'border-accent bg-accent' : 'border-slate-300 bg-slate-200'
         )}
       >
         <span
