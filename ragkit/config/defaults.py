@@ -8,9 +8,15 @@ from ragkit.config.schema import (
     ChunkingConfig,
     ContextConfig,
     DeduplicationConfig,
+    EmbeddingConfig,
+    EmbeddingModelConfig,
+    EmbeddingParams,
     FixedChunkingConfig,
     FusionConfig,
     IngestionConfig,
+    LLMConfig,
+    LLMModelConfig,
+    LLMParams,
     LexicalParamsConfig,
     LexicalPreprocessingConfig,
     LexicalRetrievalConfig,
@@ -58,6 +64,22 @@ def default_ingestion_config() -> IngestionConfig:
     )
 
 
+def default_embedding_config() -> EmbeddingConfig:
+    document_model = EmbeddingModelConfig(
+        provider="openai",
+        model="text-embedding-3-small",
+        api_key_env="OPENAI_API_KEY",
+        params=EmbeddingParams(batch_size=100, dimensions=None),
+    )
+    query_model = EmbeddingModelConfig(
+        provider="openai",
+        model="text-embedding-3-small",
+        api_key_env="OPENAI_API_KEY",
+        params=EmbeddingParams(batch_size=100, dimensions=None),
+    )
+    return EmbeddingConfig(document_model=document_model, query_model=query_model)
+
+
 def default_retrieval_config() -> RetrievalConfig:
     return RetrievalConfig(
         architecture="semantic",
@@ -97,6 +119,24 @@ def default_retrieval_config() -> RetrievalConfig:
             deduplication=DeduplicationConfig(enabled=True, similarity_threshold=0.95),
         ),
     )
+
+
+def default_llm_config() -> LLMConfig:
+    primary = LLMModelConfig(
+        provider="openai",
+        model="gpt-4o-mini",
+        api_key_env="OPENAI_API_KEY",
+        params=LLMParams(temperature=0.7, max_tokens=1000, top_p=0.95),
+        timeout=60,
+        max_retries=3,
+    )
+    fast = LLMModelConfig(
+        provider="openai",
+        model="gpt-4o-mini",
+        api_key_env="OPENAI_API_KEY",
+        params=LLMParams(temperature=0.3, max_tokens=300, top_p=0.9),
+    )
+    return LLMConfig(primary=primary, fast=fast)
 
 
 def default_agents_config() -> AgentsConfig:

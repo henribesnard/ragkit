@@ -102,7 +102,9 @@ def test_get_defaults(tmp_path):
     assert response.status_code == 200
     data = response.json()
     assert "ingestion" in data
+    assert "embedding" in data
     assert "retrieval" in data
+    assert "llm" in data
     assert "agents" in data
 
 

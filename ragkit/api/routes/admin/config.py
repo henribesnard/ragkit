@@ -17,7 +17,9 @@ from pydantic import BaseModel
 
 from ragkit.config.defaults import (
     default_agents_config,
+    default_embedding_config,
     default_ingestion_config,
+    default_llm_config,
     default_retrieval_config,
 )
 from ragkit.config.schema import RAGKitConfig
@@ -129,7 +131,9 @@ async def apply_config(payload: ConfigUpdateRequest, request: Request) -> dict:
 async def get_defaults() -> dict:
     return {
         "ingestion": default_ingestion_config().model_dump(),
+        "embedding": default_embedding_config().model_dump(),
         "retrieval": default_retrieval_config().model_dump(),
+        "llm": default_llm_config().model_dump(),
         "agents": default_agents_config().model_dump(),
     }
 
