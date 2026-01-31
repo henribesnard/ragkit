@@ -10,6 +10,9 @@ from pydantic import BaseModel
 
 from ragkit.state.models import ComponentHealth, ComponentStatus
 
+_HOSTED_LLM_PROVIDERS = {"openai", "anthropic", "deepseek", "groq", "mistral"}
+_HOSTED_EMBEDDING_PROVIDERS = {"openai", "cohere"}
+
 router = APIRouter(prefix="/health")
 
 
@@ -54,7 +57,10 @@ async def get_detailed_health(request: Request) -> DetailedHealth:
     components["llm_primary"] = _check_llm_health(request)
     components["embedding"] = _check_embedding_health(request)
 
-    if request.app.state.config.retrieval.rerank.enabled:
+    if (
+        request.app.state.config.retrieval is not None
+        and request.app.state.config.retrieval.rerank.enabled
+    ):
         components["reranker"] = _check_reranker_health(request)
 
     statuses = [component.status for component in components.values()]
@@ -75,8 +81,15 @@ async def get_detailed_health(request: Request) -> DetailedHealth:
 
 
 def _check_llm_health(request: Request) -> ComponentHealth:
+    if request.app.state.config.llm is None:
+        return ComponentHealth(
+            name="LLM Primary",
+            status=ComponentStatus.UNKNOWN,
+            last_check=datetime.now(timezone.utc),
+            message="Not configured",
+        )
     config = request.app.state.config.llm.primary
-    if config.provider in {"openai", "anthropic"}:
+    if config.provider in _HOSTED_LLM_PROVIDERS:
         if not (config.api_key or config.api_key_env):
             return ComponentHealth(
                 name="LLM Primary",
@@ -93,8 +106,15 @@ def _check_llm_health(request: Request) -> ComponentHealth:
 
 
 def _check_embedding_health(request: Request) -> ComponentHealth:
+    if request.app.state.config.embedding is None:
+        return ComponentHealth(
+            name="Embedding",
+            status=ComponentStatus.UNKNOWN,
+            last_check=datetime.now(timezone.utc),
+            message="Not configured",
+        )
     config = request.app.state.config.embedding.document_model
-    if config.provider in {"openai", "cohere"}:
+    if config.provider in _HOSTED_EMBEDDING_PROVIDERS:
         if not (config.api_key or config.api_key_env):
             return ComponentHealth(
                 name="Embedding",
@@ -111,6 +131,13 @@ def _check_embedding_health(request: Request) -> ComponentHealth:
 
 
 def _check_reranker_health(request: Request) -> ComponentHealth:
+    if request.app.state.config.retrieval is None:
+        return ComponentHealth(
+            name="Reranker",
+            status=ComponentStatus.UNKNOWN,
+            last_check=datetime.now(timezone.utc),
+            message="Not configured",
+        )
     config = request.app.state.config.retrieval.rerank
     if config.provider == "cohere" and not (config.api_key or config.api_key_env):
         return ComponentHealth(

@@ -111,9 +111,17 @@ class LLMRouter:
 def _resolve_model_name(config: LLMModelConfig) -> str:
     if "/" in config.model:
         return config.model
-    if config.provider in {"ollama", "anthropic"}:
-        return f"{config.provider}/{config.model}"
-    return config.model
+    prefix = _PROVIDER_PREFIXES.get(config.provider, "")
+    return f"{prefix}{config.model}"
+
+
+_PROVIDER_PREFIXES: dict[str, str] = {
+    "ollama": "ollama/",
+    "anthropic": "anthropic/",
+    "deepseek": "deepseek/",
+    "groq": "groq/",
+    "mistral": "mistral/",
+}
 
 
 def _extract_content(response: Any) -> str:

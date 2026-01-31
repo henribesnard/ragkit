@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { LayoutGrid, Settings2, PlugZap, MessageCircle, FileStack, Activity } from 'lucide-react';
+import { useStatus } from '@/hooks/useStatus';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutGrid },
@@ -11,6 +12,7 @@ const navItems = [
 ];
 
 export function Sidebar({ open = true }: { open?: boolean }) {
+  const { data: status } = useStatus();
   return (
     <aside
       className={`shrink-0 border-r border-white/40 bg-white/70 backdrop-blur-xl transition-all ${
@@ -20,6 +22,11 @@ export function Sidebar({ open = true }: { open?: boolean }) {
       <div className="px-6 py-8">
         <p className="text-xs uppercase tracking-[0.3em] text-muted">RAGKIT</p>
         <h1 className="mt-2 text-2xl font-display">Control Room</h1>
+        {status?.setup_mode && (
+          <span className="mt-3 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
+            Setup mode
+          </span>
+        )}
       </div>
       <nav className="flex flex-col gap-2 px-4">
         {navItems.map(({ to, label, icon: Icon }) => (

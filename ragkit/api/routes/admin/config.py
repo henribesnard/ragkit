@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
+import os
+import platform
+import subprocess
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -10,6 +15,11 @@ from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import Response
 from pydantic import BaseModel
 
+from ragkit.config.defaults import (
+    default_agents_config,
+    default_ingestion_config,
+    default_retrieval_config,
+)
 from ragkit.config.schema import RAGKitConfig
 from ragkit.config.validators import validate_config as validate_custom
 
@@ -72,6 +82,55 @@ async def update_config(payload: ConfigUpdateRequest, request: Request) -> dict:
         "status": "updated",
         "message": "Configuration saved. Restart required for some changes.",
         "restart_required": True,
+    }
+
+
+def _restart_server() -> None:
+    if platform.system() == "Windows":
+        subprocess.Popen([sys.executable] + sys.argv)
+        raise SystemExit(0)
+    os.execv(sys.executable, [sys.executable] + sys.argv)
+
+
+@router.post("/apply")
+async def apply_config(payload: ConfigUpdateRequest, request: Request) -> dict:
+    try:
+        config = RAGKitConfig.model_validate(payload.config)
+    except Exception as exc:  # noqa: BLE001
+        raise HTTPException(status_code=400, detail={"errors": [str(exc)]}) from exc
+
+    if not config.is_configured:
+        raise HTTPException(
+            status_code=400,
+            detail={"errors": ["Configuration incomplete — all sections must be filled"]},
+        )
+
+    errors = validate_custom(config)
+    if errors:
+        raise HTTPException(status_code=400, detail={"errors": errors})
+
+    config_path: Path | None = getattr(request.app.state, "config_path", None)
+    if not config_path:
+        raise HTTPException(status_code=500, detail="Configuration path not configured")
+
+    yaml_content = yaml.safe_dump(payload.config, sort_keys=False)
+    config_path.write_text(yaml_content, encoding="utf-8")
+
+    async def _delayed_restart() -> None:
+        await asyncio.sleep(0.5)
+        _restart_server()
+
+    asyncio.create_task(_delayed_restart())
+
+    return {"status": "restarting", "message": "Configuration applied. Server restarting..."}
+
+
+@router.get("/defaults")
+async def get_defaults() -> dict:
+    return {
+        "ingestion": default_ingestion_config().model_dump(),
+        "retrieval": default_retrieval_config().model_dump(),
+        "agents": default_agents_config().model_dump(),
     }
 
 

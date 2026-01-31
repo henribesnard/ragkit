@@ -151,6 +151,8 @@ async def get_ingestion_history(request: Request, limit: int = 10) -> list[dict]
 def _count_pending_documents(config: RAGKitConfig, state_file: Path) -> int:
     state = _load_state(state_file)
     pending = 0
+    if config.ingestion is None:
+        return pending
     for source in config.ingestion.sources:
         if source.type != "local":
             continue

@@ -20,3 +20,20 @@ export async function validateConfig(config: Record<string, unknown>) {
   });
   return response.data;
 }
+
+export async function applyConfig(config: Record<string, unknown>) {
+  const response = await apiClient.post('/api/v1/admin/config/apply', {
+    config,
+  });
+  return response.data;
+}
+
+export async function fetchDefaults() {
+  const response = await apiClient.get('/api/v1/admin/config/defaults');
+  return response.data;
+}
+
+export async function fetchStatus() {
+  const response = await apiClient.get('/api/status');
+  return response.data;
+}

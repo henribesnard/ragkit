@@ -7,7 +7,7 @@ import { EmbeddingStep } from '@/components/wizard/steps/EmbeddingStep';
 import { LLMConfigStep } from '@/components/wizard/steps/LLMStep';
 import { RetrievalStep } from '@/components/wizard/steps/RetrievalStep';
 import { ReviewStep } from '@/components/wizard/steps/ReviewStep';
-import { useUpdateConfig } from '@/hooks/useConfig';
+import { applyConfig, fetchDefaults, fetchStatus } from '@/api/config';
 
 const STEPS = [
   { id: 'project', title: 'Project Info', description: 'Name and purpose' },
@@ -22,8 +22,24 @@ export function Setup() {
   const [currentStep, setCurrentStep] = useState(0);
   const [config, setConfig] = useState<Record<string, any>>({});
   const [error, setError] = useState<string | null>(null);
+  const [isRestarting, setIsRestarting] = useState(false);
   const navigate = useNavigate();
-  const { mutate, isPending } = useUpdateConfig();
+
+  const waitForServer = async () => {
+    const deadline = Date.now() + 60_000;
+    while (Date.now() < deadline) {
+      try {
+        const status = await fetchStatus();
+        if (status?.configured && !status?.setup_mode) {
+          return true;
+        }
+      } catch {
+        // Ignore while server is restarting.
+      }
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+    }
+    return false;
+  };
 
   const renderStep = (step: number) => {
     switch (step) {
@@ -42,19 +58,33 @@ export function Setup() {
     }
   };
 
-  const handleComplete = () => {
+  const handleComplete = async () => {
     setError(null);
-    mutate(
-      { config },
-      {
-        onSuccess: () => {
-          navigate('/config');
-        },
-        onError: (err: Error) => {
-          setError(err.message || 'Failed to save configuration.');
-        },
-      },
-    );
+    setIsRestarting(true);
+    try {
+      const defaults = await fetchDefaults();
+      const fullConfig = {
+        ...config,
+        ingestion: config.ingestion || defaults.ingestion,
+        retrieval: config.retrieval || defaults.retrieval,
+        agents: config.agents || defaults.agents,
+      };
+      await applyConfig(fullConfig);
+    } catch (err: any) {
+      if (err?.code !== 'ERR_NETWORK' && err?.message !== 'Network Error') {
+        setIsRestarting(false);
+        setError(err?.message || 'Failed to apply configuration.');
+        return;
+      }
+    }
+
+    const ready = await waitForServer();
+    setIsRestarting(false);
+    if (ready) {
+      navigate('/');
+    } else {
+      setError('Server did not restart in time. Please refresh.');
+    }
   };
 
   return (
@@ -65,10 +95,18 @@ export function Setup() {
         onStepChange={setCurrentStep}
         onComplete={handleComplete}
         renderStep={renderStep}
-        isSubmitting={isPending}
+        isSubmitting={isRestarting}
       />
       {error && (
         <p className="rounded-2xl bg-rose-50 p-4 text-sm text-rose-700">{error}</p>
+      )}
+      {isRestarting && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="rounded-3xl bg-white p-8 text-center shadow-xl">
+            <p className="text-lg font-semibold">Restarting server...</p>
+            <p className="mt-2 text-sm text-slate-600">Applying configuration changes.</p>
+          </div>
+        </div>
       )}
     </div>
   );

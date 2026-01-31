@@ -30,7 +30,10 @@ class QueryResponse(BaseModel):
 
 
 def get_orchestrator(request: Request) -> AgentOrchestrator:
-    return request.app.state.orchestrator
+    orchestrator = request.app.state.orchestrator
+    if orchestrator is None:
+        raise HTTPException(status_code=503, detail="Server is in setup mode")
+    return orchestrator
 
 
 @router.post("/query", response_model=QueryResponse)

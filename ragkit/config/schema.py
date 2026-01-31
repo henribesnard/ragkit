@@ -107,7 +107,7 @@ class EmbeddingCacheConfig(BaseModel):
 class EmbeddingModelConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    provider: Literal["openai", "ollama", "cohere"]
+    provider: Literal["openai", "ollama", "cohere", "litellm"]
     model: str
     api_key: str | None = None
     api_key_env: str | None = None
@@ -262,7 +262,7 @@ class LLMParams(BaseModel):
 class LLMModelConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    provider: Literal["openai", "anthropic", "ollama"]
+    provider: Literal["openai", "anthropic", "ollama", "deepseek", "groq", "mistral"]
     model: str
     api_key: str | None = None
     api_key_env: str | None = None
@@ -492,13 +492,25 @@ class RAGKitConfig(BaseModel):
 
     version: str
     project: ProjectConfig
-    ingestion: IngestionConfig
-    embedding: EmbeddingConfig
-    vector_store: VectorStoreConfig
-    retrieval: RetrievalConfig
-    llm: LLMConfig
-    agents: AgentsConfig
-    conversation: ConversationConfig
-    chatbot: ChatbotConfig
-    api: APIConfig
-    observability: ObservabilityConfig
+    ingestion: IngestionConfig | None = None
+    embedding: EmbeddingConfig | None = None
+    vector_store: VectorStoreConfig = Field(default_factory=_model_factory(VectorStoreConfig))
+    retrieval: RetrievalConfig | None = None
+    llm: LLMConfig | None = None
+    agents: AgentsConfig | None = None
+    conversation: ConversationConfig = Field(default_factory=_model_factory(ConversationConfig))
+    chatbot: ChatbotConfig = Field(default_factory=_model_factory(ChatbotConfig))
+    api: APIConfig = Field(default_factory=_model_factory(APIConfig))
+    observability: ObservabilityConfig = Field(default_factory=_model_factory(ObservabilityConfig))
+
+    @property
+    def is_configured(self) -> bool:
+        return all(
+            (
+                self.ingestion is not None,
+                self.embedding is not None,
+                self.llm is not None,
+                self.agents is not None,
+                self.retrieval is not None,
+            )
+        )

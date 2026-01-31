@@ -26,7 +26,7 @@ app.add_typer(ui_app, name="ui")
 @app.command()
 def init(
     name: str = typer.Argument(..., help="Project name"),
-    template: str = typer.Option("minimal", help="Template to use"),
+    template: str = typer.Option("setup", help="Template to use (setup, minimal, hybrid, full)"),
 ) -> None:
     """Initialize a new RAGKIT project."""
     dest = Path(name)
@@ -61,6 +61,8 @@ def ingest(
     """Ingest documents into the vector store."""
     loader = ConfigLoader()
     cfg = loader.load_with_env(config)
+    assert cfg.embedding is not None
+    assert cfg.ingestion is not None
 
     embedder = create_embedder(cfg.embedding.document_model)
     vector_store = create_vector_store(cfg.vector_store)
@@ -78,6 +80,10 @@ def query(
     """Query the RAG system from command line."""
     loader = ConfigLoader()
     cfg = loader.load_with_env(config)
+    assert cfg.embedding is not None
+    assert cfg.retrieval is not None
+    assert cfg.llm is not None
+    assert cfg.agents is not None
 
     embedder_query = create_embedder(cfg.embedding.query_model)
     vector_store = create_vector_store(cfg.vector_store)
@@ -107,17 +113,30 @@ def serve(
 
     loader = ConfigLoader()
     cfg = loader.load_with_env(config)
+    setup_mode = not cfg.is_configured
 
-    embedder = create_embedder(cfg.embedding.query_model)
-    vector_store = create_vector_store(cfg.vector_store)
-    retrieval = RetrievalEngine(cfg.retrieval, vector_store, embedder)
-    llm_router = LLMRouter(cfg.llm)
-    orchestrator = AgentOrchestrator(
-        cfg.agents,
-        retrieval,
-        llm_router,
-        metrics_enabled=cfg.observability.metrics.enabled,
-    )
+    orchestrator = None
+    vector_store = None
+    embedder = None
+    llm_router = None
+
+    if not setup_mode:
+        assert cfg.embedding is not None
+        assert cfg.retrieval is not None
+        assert cfg.llm is not None
+        assert cfg.agents is not None
+        embedder = create_embedder(cfg.embedding.query_model)
+        vector_store = create_vector_store(cfg.vector_store)
+        retrieval = RetrievalEngine(cfg.retrieval, vector_store, embedder)
+        llm_router = LLMRouter(cfg.llm)
+        orchestrator = AgentOrchestrator(
+            cfg.agents,
+            retrieval,
+            llm_router,
+            metrics_enabled=cfg.observability.metrics.enabled,
+        )
+    else:
+        typer.echo("Starting in setup mode — configure via the Web UI.")
 
     if not chatbot_only:
         from ragkit.api.app import create_app
@@ -134,6 +153,7 @@ def serve(
             vector_store=vector_store,
             embedder=embedder,
             llm_router=llm_router,
+            setup_mode=setup_mode,
         )
         import uvicorn
 
@@ -153,9 +173,10 @@ def serve(
             )
             thread.start()
 
-    if not api_only:
+    if not api_only and not setup_mode:
         from ragkit.chatbot.gradio_ui import create_chatbot
 
+        assert orchestrator is not None
         ui = create_chatbot(cfg.chatbot, orchestrator)
         launch_kwargs: dict[str, Any] = {
             "server_name": cfg.chatbot.server.host,
@@ -165,6 +186,8 @@ def serve(
             "title": cfg.chatbot.ui.title,
         }
         ui.launch(**launch_kwargs)
+    elif setup_mode and not api_only:
+        typer.echo("Chatbot UI disabled in setup mode. Use the Web UI to configure.")
 
 
 @ui_app.command("build")
