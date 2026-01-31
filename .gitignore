@@ -17,6 +17,7 @@ dist/
 .venv/
 venv/
 ENV/
+test_install/
 
 # pytest
 .pytest_cache/
