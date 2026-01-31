@@ -64,6 +64,7 @@ def _stub_config():
             features=types.SimpleNamespace(streaming=False, show_sources=True, show_latency=True),
         ),
         observability=types.SimpleNamespace(metrics=types.SimpleNamespace(enabled=True)),
+        is_configured=True,
     )
 
 
