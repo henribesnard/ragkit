@@ -133,7 +133,11 @@ def serve(
     config: Path = typer.Option("ragkit.yaml", "--config", "-c", help="Config file path"),
     api_only: bool = typer.Option(False, help="Serve API only"),
     chatbot_only: bool = typer.Option(False, help="Serve chatbot only"),
-    with_ui: bool = typer.Option(True, "--with-ui/--no-ui", help="Serve the Web UI (build if needed)"),
+    with_ui: bool = typer.Option(
+        True,
+        "--with-ui/--no-ui",
+        help="Serve the Web UI (build if needed)",
+    ),
     port: int | None = typer.Option(None, "--port", help="Override the API port"),
 ) -> None:
     """Start the RAGKIT server."""
@@ -173,7 +177,9 @@ def serve(
     if with_ui and not chatbot_only:
         ui_ready = _ensure_ui_assets()
         if not ui_ready:
-            typer.echo("Web UI assets not found. Run `ragkit ui build` from source to enable the UI.")
+            typer.echo(
+                "Web UI assets not found. Run `ragkit ui build` from source to enable the UI."
+            )
 
     if not chatbot_only:
         from ragkit.api.app import create_app
