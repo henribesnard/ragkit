@@ -34,6 +34,7 @@ def create_app(
     state_store: StateStore | None = None,
     metrics: MetricsCollector | None = None,
     setup_mode: bool = False,
+    mount_ui: bool = True,
 ) -> FastAPI:
     app = FastAPI(
         title="RAGKIT API",
@@ -94,7 +95,7 @@ def create_app(
         app.add_middleware(SetupModeGuard)
 
     frontend_path = Path(__file__).resolve().parent.parent / "ui" / "dist"
-    if frontend_path.exists():
+    if mount_ui and frontend_path.exists():
         app.mount("/", StaticFiles(directory=frontend_path, html=True), name="frontend")
 
     return app

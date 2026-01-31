@@ -23,6 +23,30 @@ ui_app = typer.Typer(help="UI commands")
 app.add_typer(ui_app, name="ui")
 
 
+def _display_host(host: str) -> str:
+    if host in {"0.0.0.0", "::"}:
+        return "localhost"
+    return host
+
+
+def _ensure_ui_assets() -> bool:
+    ui_dist = Path(__file__).resolve().parent.parent / "ui" / "dist"
+    if ui_dist.exists():
+        return True
+
+    ui_src = Path(__file__).resolve().parent.parent.parent / "ragkit-ui"
+    if ui_src.exists():
+        typer.echo("Building Web UI assets...")
+        try:
+            build_ui()
+        except subprocess.CalledProcessError as exc:
+            typer.echo(f"Web UI build failed: {exc}")
+            return False
+        return ui_dist.exists()
+
+    return False
+
+
 @app.command()
 def init(
     name: str = typer.Argument(..., help="Project name"),
@@ -109,7 +133,8 @@ def serve(
     config: Path = typer.Option("ragkit.yaml", "--config", "-c", help="Config file path"),
     api_only: bool = typer.Option(False, help="Serve API only"),
     chatbot_only: bool = typer.Option(False, help="Serve chatbot only"),
-    with_ui: bool = typer.Option(False, help="Serve the Web UI if built"),
+    with_ui: bool = typer.Option(True, "--with-ui/--no-ui", help="Serve the Web UI (build if needed)"),
+    port: int | None = typer.Option(None, "--port", help="Override the API port"),
 ) -> None:
     """Start the RAGKIT server."""
     if api_only and chatbot_only:
@@ -140,15 +165,18 @@ def serve(
             metrics_enabled=cfg.observability.metrics.enabled,
         )
     else:
-        typer.echo("Starting in setup mode — configure via the Web UI.")
+        typer.echo("Starting in setup mode - configure via the Web UI.")
+
+    api_host = cfg.api.server.host
+    api_port = port or cfg.api.server.port
+    ui_ready = False
+    if with_ui and not chatbot_only:
+        ui_ready = _ensure_ui_assets()
+        if not ui_ready:
+            typer.echo("Web UI assets not found. Run `ragkit ui build` from source to enable the UI.")
 
     if not chatbot_only:
         from ragkit.api.app import create_app
-
-        if with_ui:
-            ui_dist = Path(__file__).resolve().parent.parent / "ui" / "dist"
-            if not ui_dist.exists():
-                typer.echo("UI build not found. Run `ragkit ui build` first.")
 
         app_instance = create_app(
             cfg,
@@ -158,11 +186,16 @@ def serve(
             embedder=embedder,
             llm_router=llm_router,
             setup_mode=setup_mode,
+            mount_ui=with_ui,
         )
         import uvicorn
 
         if api_only:
-            uvicorn.run(app_instance, host=cfg.api.server.host, port=cfg.api.server.port)
+            if with_ui and ui_ready:
+                typer.echo(f"Web UI: http://{_display_host(api_host)}:{api_port}/")
+            if cfg.api.docs.enabled:
+                typer.echo(f"API docs: http://{_display_host(api_host)}:{api_port}/api/docs")
+            uvicorn.run(app_instance, host=api_host, port=api_port)
         else:
             import threading
 
@@ -170,12 +203,16 @@ def serve(
                 target=uvicorn.run,
                 kwargs={
                     "app": app_instance,
-                    "host": cfg.api.server.host,
-                    "port": cfg.api.server.port,
+                    "host": api_host,
+                    "port": api_port,
                 },
                 daemon=True,
             )
             thread.start()
+            if with_ui and ui_ready:
+                typer.echo(f"Web UI: http://{_display_host(api_host)}:{api_port}/")
+            if cfg.api.docs.enabled:
+                typer.echo(f"API docs: http://{_display_host(api_host)}:{api_port}/api/docs")
 
     if not api_only and not setup_mode:
         from ragkit.chatbot.gradio_ui import create_chatbot

@@ -14,7 +14,7 @@ RAGKIT is a configuration-first agentic RAG framework. It lets you run an end-to
 ## Requirements
 
 - Python 3.10+
-- Node.js 18+ (only for `ragkit ui build` / `ragkit ui dev`)
+- Node.js 18+ (only for `ragkit ui build` / `ragkit ui dev` or auto-build from source)
 
 ## Install (published)
 
@@ -25,6 +25,8 @@ pip install ragkit
 ## Install (dev / from repo)
 
 ```bash
+git clone https://github.com/henribesnard/ragkit.git
+cd ragkit
 pip install -e ".[dev]"
 ```
 
@@ -36,7 +38,7 @@ cd my-project
 ragkit serve
 ```
 
-Then open the setup UI at `http://localhost:8000` and complete the wizard.
+Then open the setup UI at `http://localhost:8000` (or use `--port XXXX`) and complete the wizard.
 The server starts in **setup mode** (no API keys required) until you apply a full config.
 
 ## Quickstart (manual config)
@@ -67,11 +69,10 @@ Start both (manual config):
 ragkit serve
 ```
 
-Build the Web UI and serve it from FastAPI:
+If the Web UI assets are missing (source install), build them:
 
 ```bash
 ragkit ui build
-ragkit serve --with-ui
 ```
 
 UI dev server (hot reload):
