@@ -4,7 +4,7 @@ import { WizardContainer } from '@/components/wizard/WizardContainer';
 import { ProjectStep } from '@/components/wizard/steps/ProjectStep';
 import { SourcesStep } from '@/components/wizard/steps/SourcesStep';
 import { EmbeddingStep } from '@/components/wizard/steps/EmbeddingStep';
-import { LLMConfigStep } from '@/components/wizard/steps/LLMStep';
+import { LLMStep } from '@/components/wizard/steps/LLMStep';
 import { RetrievalStep } from '@/components/wizard/steps/RetrievalStep';
 import { ReviewStep } from '@/components/wizard/steps/ReviewStep';
 import { applyConfig, fetchDefaults, fetchStatus } from '@/api/config';
@@ -50,7 +50,7 @@ export function Setup() {
       case 2:
         return <EmbeddingStep config={config} onChange={setConfig} />;
       case 3:
-        return <LLMConfigStep config={config} onChange={setConfig} />;
+        return <LLMStep config={config} onChange={setConfig} />;
       case 4:
         return <RetrievalStep config={config} onChange={setConfig} />;
       default:
