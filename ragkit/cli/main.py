@@ -34,7 +34,11 @@ def init(
         raise typer.BadParameter(f"Destination already exists: {dest}")
     dest.mkdir(parents=True)
 
-    template_path = Path(__file__).resolve().parent.parent.parent / "templates" / f"{template}.yaml"
+    template_root = Path(__file__).resolve().parent.parent / "templates"
+    template_path = template_root / f"{template}.yaml"
+    if not template_path.exists():
+        fallback_root = Path(__file__).resolve().parent.parent.parent / "templates"
+        template_path = fallback_root / f"{template}.yaml"
     if not template_path.exists():
         raise typer.BadParameter(f"Unknown template: {template}")
 
