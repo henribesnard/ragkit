@@ -190,7 +190,7 @@ def serve(
         )
         import uvicorn
 
-        if api_only:
+        if api_only or setup_mode:
             if with_ui and ui_ready:
                 typer.echo(f"Web UI: http://{_display_host(api_host)}:{api_port}/")
             if cfg.api.docs.enabled:
