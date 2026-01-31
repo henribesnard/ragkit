@@ -4,9 +4,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useConfig, useUpdateConfig } from '@/hooks/useConfig';
 import { GeneralConfig } from '@/components/config/sections/GeneralConfig';
 import { IngestionConfigSection } from '@/components/config/sections/IngestionConfig';
+import { EmbeddingConfigSection } from '@/components/config/sections/EmbeddingConfig';
 import { RetrievalConfigSection } from '@/components/config/sections/RetrievalConfig';
 import { LLMConfigSection } from '@/components/config/sections/LLMConfig';
 import { AgentsConfigSection } from '@/components/config/sections/AgentsConfig';
+import { VectorStoreConfigSection } from '@/components/config/sections/VectorStoreConfig';
+import { ConversationConfigSection } from '@/components/config/sections/ConversationConfig';
+import { ObservabilityConfigSection } from '@/components/config/sections/ObservabilityConfig';
 
 export function Config() {
   const { data, isLoading } = useConfig();
@@ -55,9 +59,13 @@ export function Config() {
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="ingestion">Ingestion</TabsTrigger>
+          <TabsTrigger value="embedding">Embedding</TabsTrigger>
           <TabsTrigger value="retrieval">Retrieval</TabsTrigger>
           <TabsTrigger value="llm">LLM</TabsTrigger>
           <TabsTrigger value="agents">Agents</TabsTrigger>
+          <TabsTrigger value="vector-store">Vector Store</TabsTrigger>
+          <TabsTrigger value="conversation">Conversation</TabsTrigger>
+          <TabsTrigger value="observability">Observability</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -71,6 +79,15 @@ export function Config() {
         </TabsContent>
         <TabsContent value="ingestion">
           <IngestionConfigSection
+            config={localConfig}
+            onChange={(value) => {
+              setLocalConfig(value);
+              setHasChanges(true);
+            }}
+          />
+        </TabsContent>
+        <TabsContent value="embedding">
+          <EmbeddingConfigSection
             config={localConfig}
             onChange={(value) => {
               setLocalConfig(value);
@@ -98,6 +115,33 @@ export function Config() {
         </TabsContent>
         <TabsContent value="agents">
           <AgentsConfigSection
+            config={localConfig}
+            onChange={(value) => {
+              setLocalConfig(value);
+              setHasChanges(true);
+            }}
+          />
+        </TabsContent>
+        <TabsContent value="vector-store">
+          <VectorStoreConfigSection
+            config={localConfig}
+            onChange={(value) => {
+              setLocalConfig(value);
+              setHasChanges(true);
+            }}
+          />
+        </TabsContent>
+        <TabsContent value="conversation">
+          <ConversationConfigSection
+            config={localConfig}
+            onChange={(value) => {
+              setLocalConfig(value);
+              setHasChanges(true);
+            }}
+          />
+        </TabsContent>
+        <TabsContent value="observability">
+          <ObservabilityConfigSection
             config={localConfig}
             onChange={(value) => {
               setLocalConfig(value);

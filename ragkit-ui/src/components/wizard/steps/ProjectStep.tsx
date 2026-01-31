@@ -1,4 +1,5 @@
-﻿import { Input } from '@/components/ui/input';
+﻿import { FieldLabel } from '@/components/ui/field-label';
+import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -12,7 +13,10 @@ export function ProjectStep({ config, onChange }: WizardStepProps) {
   return (
     <div className="space-y-6">
       <div>
-        <p className="text-sm font-semibold">Project name</p>
+        <FieldLabel
+          label="Project name"
+          help="Nom unique de votre projet RAG. Utilise dans les logs et l'interface."
+        />
         <Input
           placeholder="Acme Knowledge Base"
           value={project.name || ''}
@@ -25,7 +29,10 @@ export function ProjectStep({ config, onChange }: WizardStepProps) {
         />
       </div>
       <div>
-        <p className="text-sm font-semibold">Description</p>
+        <FieldLabel
+          label="Description"
+          help="Description libre du projet. Aide a documenter l'objectif du systeme RAG."
+        />
         <Textarea
           placeholder="Explain what this RAG system powers"
           rows={4}
@@ -39,7 +46,10 @@ export function ProjectStep({ config, onChange }: WizardStepProps) {
         />
       </div>
       <div>
-        <p className="text-sm font-semibold">Environment</p>
+        <FieldLabel
+          label="Environment"
+          help="development : logs verbeux, rechargement rapide. staging : test pre-production. production : optimise pour la performance."
+        />
         <Select
           value={project.environment || 'development'}
           onChange={(event) =>
