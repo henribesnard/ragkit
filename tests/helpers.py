@@ -142,9 +142,7 @@ class DummyOrchestrator:
         response = GeneratedResponse(content="Answer", sources=["doc"], metadata={})
         return types.SimpleNamespace(response=response, analysis=analysis, context=context)
 
-    async def process_stream(
-        self, query: str, history: list[dict[str, str]] | None = None
-    ) -> Any:
+    async def process_stream(self, query: str, history: list[dict[str, str]] | None = None) -> Any:
         yield {"type": "delta", "content": "Answer"}
         yield {
             "type": "final",
