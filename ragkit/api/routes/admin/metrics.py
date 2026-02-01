@@ -36,9 +36,7 @@ async def get_metric_timeseries(
     metrics_collector = getattr(request.app.state, "metrics", None)
     metric_name = _METRIC_ALIASES.get(metric, metric)
     return (
-        metrics_collector.get_timeseries(metric_name, period, interval)
-        if metrics_collector
-        else []
+        metrics_collector.get_timeseries(metric_name, period, interval) if metrics_collector else []
     )
 
 

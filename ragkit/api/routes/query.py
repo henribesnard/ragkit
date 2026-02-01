@@ -70,9 +70,7 @@ async def query_stream(
 ) -> StreamingResponse:
     config = http_request.app.state.config
     if not config.api.streaming.enabled:
-        raise HTTPException(
-            status_code=501, detail="Streaming is not enabled in configuration"
-        )
+        raise HTTPException(status_code=501, detail="Streaming is not enabled in configuration")
 
     async def event_stream() -> AsyncIterator[str]:
         async for event in orchestrator.process_stream(request.query, request.history):

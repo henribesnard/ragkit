@@ -24,9 +24,6 @@ test_install/
 .pytest_tmp/
 .ragkit/
 
-# Tests
-tests/
-
 # Coverage
 .coverage
 coverage.xml
