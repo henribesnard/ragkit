@@ -5,6 +5,28 @@ Tous les tests se font via CLI et appels HTTP (curl), sans frontend.
 
 ---
 
+## Environnement de test
+
+| Element | Chemin |
+|---------|--------|
+| **Repertoire de travail** | `C:\Users\henri\Projets\test_ragkit` |
+| **Code source ragkit** | `C:\Users\henri\Projets\ragkit` |
+| **Base de connaissances** | `C:\Users\henri\Projets\Branham\sermons\1947` |
+| **Fichier .env (cles API)** | `C:\Users\henri\Projets\test_ragkit\.env` |
+
+> Toutes les commandes de cette procedure doivent etre executees depuis le
+> repertoire de travail `C:\Users\henri\Projets\test_ragkit` sauf indication
+> contraire.
+
+### Base de connaissances de reference
+
+Le dossier `C:\Users\henri\Projets\Branham\sermons\1947` contient 6 fichiers
+de sermons (3 `.pdf`, 3 `.doc`) en francais, totalisant environ 36 000 mots.
+Ce corpus produit environ 539 chunks avec la configuration par defaut
+(chunking fixe, 512 tokens, overlap 50).
+
+---
+
 ## Pre-requis
 
 ### Outils necessaires
@@ -16,7 +38,8 @@ Tous les tests se font via CLI et appels HTTP (curl), sans frontend.
 
 ### Cles API
 
-Creer un fichier `.env` dans le repertoire de test avec les cles suivantes :
+Le fichier `.env` doit exister dans `C:\Users\henri\Projets\test_ragkit`
+avec les cles suivantes :
 
 ```
 OPENAI_API_KEY=sk-...
@@ -28,25 +51,39 @@ DEEPSEEK_API_KEY=sk-...
 
 ### Documents de test
 
-Preparer un dossier contenant au minimum :
-- 2 fichiers `.pdf` avec du texte extractible
-- 2 fichiers `.txt` ou `.md`
-- (optionnel) 1-2 fichiers `.doc` ou `.docx`
+La base de connaissances de reference est :
 
-Le corpus doit contenir assez de contenu pour generer au moins 50 chunks
-(~10 pages de texte au total).
+```
+C:\Users\henri\Projets\Branham\sermons\1947
+```
+
+Ce dossier contient :
+- 3 fichiers `.pdf` (sermons en francais)
+- 3 fichiers `.doc` (ancien format Word, sermons en francais)
+
+Le corpus genere environ 539 chunks. Si vous utilisez un autre corpus, il doit
+contenir au minimum :
+- 2 fichiers `.pdf` avec du texte extractible
+- (optionnel) 1-2 fichiers `.doc` ou `.docx`
+- Assez de contenu pour generer au moins 50 chunks (~10 pages de texte)
 
 ---
 
 ## Phase 0 - Installation
 
-### 0.1 Installer ragkit
+### 0.1 Se placer dans le repertoire de test
 
 ```bash
-pip install -e /chemin/vers/ragkit
+cd C:\Users\henri\Projets\test_ragkit
 ```
 
-### 0.2 Verifier l'installation
+### 0.2 Installer ragkit depuis le code source
+
+```bash
+pip install -e "C:\Users\henri\Projets\ragkit[dev]"
+```
+
+### 0.3 Verifier l'installation
 
 ```bash
 ragkit --help
@@ -61,8 +98,9 @@ ragkit --help
 
 ### 1.1 Creer un projet avec le template minimal
 
+Depuis `C:\Users\henri\Projets\test_ragkit` :
+
 ```bash
-mkdir test-ragkit && cd test-ragkit
 ragkit init mon-projet --template minimal
 ```
 
@@ -86,13 +124,16 @@ ragkit init autre-projet --template inexistant
 
 **PASS** : Erreur explicite `Unknown template: inexistant`.
 
+> Nettoyage : `rm -rf mon-projet autre-projet` (ces dossiers ne servent que
+> pour cette phase).
+
 ---
 
 ## Phase 2 - Configuration
 
 ### 2.1 Ecrire le fichier ragkit.yaml
 
-Creer `ragkit.yaml` a la racine du dossier de test (pas dans mon-projet) :
+Creer `ragkit.yaml` dans `C:\Users\henri\Projets\test_ragkit` :
 
 ```yaml
 version: "1.0"
@@ -105,7 +146,7 @@ project:
 ingestion:
   sources:
     - type: "local"
-      path: "./data/documents"     # <-- adapter au dossier contenant vos documents
+      path: "C:\\Users\\henri\\Projets\\Branham\\sermons\\1947"
       patterns:
         - "*.pdf"
         - "*.txt"
@@ -337,26 +378,32 @@ observability:
 
 ### 2.2 Valider la configuration
 
+Depuis `C:\Users\henri\Projets\test_ragkit` (le `.env` est charge automatiquement) :
+
 ```bash
-export $(cat .env | xargs)
 ragkit validate --config ragkit.yaml
 ```
 
 **PASS** : Affiche `Configuration OK` sans erreur.
 
+> Note : ragkit charge automatiquement le fichier `.env` situe a cote de
+> `ragkit.yaml` (grace a `python-dotenv`). Pas besoin d'exporter manuellement.
+
 ### 2.3 Valider avec une cle API manquante
 
+Renommer temporairement le `.env` pour simuler l'absence de cles :
+
 ```bash
-unset OPENAI_API_KEY
+mv .env .env.bak
 ragkit validate --config ragkit.yaml
 ```
 
 **PASS** : Erreur explicite `Missing environment variable: OPENAI_API_KEY`.
 
-Restaurer les variables :
+Restaurer :
 
 ```bash
-export $(cat .env | xargs)
+mv .env.bak .env
 ```
 
 ### 2.4 Valider avec un YAML invalide
@@ -382,20 +429,19 @@ rm -rf data/chroma .ragkit
 ### 3.2 Lancer l'ingestion
 
 ```bash
-export $(cat .env | xargs)
 ragkit ingest --config ragkit.yaml
 ```
 
 **PASS** : Le resultat affiche :
-- `documents_loaded` = nombre de fichiers dans le dossier source
-- `documents_parsed` = meme nombre (ou proche, les fichiers non supportes sont ignores)
-- `chunks_created` > 0
+- `documents_loaded` = 6 (3 PDF + 3 DOC)
+- `documents_parsed` = 6
+- `chunks_created` ~ 539 (peut varier legerement selon la version des parsers)
 - `chunks_embedded` = `chunks_created`
 - `chunks_stored` = `chunks_embedded`
 - `errors` = 0
 
 > **Noter** les valeurs exactes pour comparaison avec l'ingestion API plus tard.
-> Exemple attendu : `documents_loaded=6 documents_parsed=6 chunks_created=539
+> Valeurs de reference : `documents_loaded=6 documents_parsed=6 chunks_created=539
 > chunks_embedded=539 chunks_stored=539 errors=0`
 
 ### 3.3 Verifier l'ingestion incrementale
@@ -424,7 +470,6 @@ ragkit ingest --config ragkit.yaml
 ### 4.1 Question simple liee aux documents
 
 ```bash
-export $(cat .env | xargs)
 ragkit query "Resumer le contenu du premier document" --config ragkit.yaml
 ```
 
@@ -447,7 +492,6 @@ ragkit query "Bonjour!" --config ragkit.yaml
 ### 5.1 Demarrer le serveur API
 
 ```bash
-export $(cat .env | xargs)
 ragkit serve --config ragkit.yaml --api-only --no-ui &
 SERVER_PID=$!
 sleep 8
@@ -501,6 +545,11 @@ curl -s http://localhost:8000/api/v1/admin/health/detailed
 - `components.vector_store.status` = `"healthy"`
 - `components.vector_store.latency_ms` est un nombre > 0
 - Le champ `checked_at` est une date ISO 8601
+
+> Note : Si `api.health.active_checks: true` dans ragkit.yaml, les composants
+> `llm` et `embedding` affichent `"healthy"` ou `"unhealthy"` avec un temps de
+> reponse. Sinon, ils affichent `"unknown"` (checks actifs desactives par defaut
+> pour eviter des couts API).
 
 ---
 
@@ -745,13 +794,13 @@ curl -s -X POST http://localhost:8000/api/v1/query \
 (Avec la config par defaut ou `streaming.enabled: false`)
 
 ```bash
-curl -s -X POST http://localhost:8000/api/v1/query/stream \
+curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:8000/api/v1/query/stream \
   -H "Content-Type: application/json" \
   -d '{"query": "Resumer les documents", "history": []}'
 ```
 
 **PASS** :
-- Le serveur retourne une erreur (HTTP 404 ou 501)
+- HTTP **501** (Not Implemented)
 - Le message indique que le streaming est desactive
 
 ### 10.2 POST /api/v1/query/stream - streaming active
@@ -775,9 +824,11 @@ curl -s -N -X POST http://localhost:8000/api/v1/query/stream \
 
 **PASS** :
 - Le serveur repond avec `Content-Type: text/event-stream`
-- Le body contient des lignes au format SSE : `data: {"content": "...", "done": false}`
-- La derniere ligne contient `data: {"content": "", "done": true}`
+- Le body contient des events SSE token par token :
+  - `data: {"type":"delta","content":"..."}` (multiples lignes, une par token)
+  - `data: {"type":"final","content":"...","sources":[...],"metadata":{...}}`
 - Le contenu reconstitue est une reponse coherente
+- Les sources et metadata sont presentes dans l'event `final`
 
 ---
 
@@ -819,7 +870,16 @@ curl -s http://localhost:8000/api/v1/admin/metrics/timeseries/query_latency
 
 **PASS** :
 - HTTP 200
-- Le body est un tableau (peut etre vide, mais ne doit pas etre une erreur)
+- Le body est un tableau non vide (l'alias `query_latency` -> `query_latency_ms` est resolu)
+- Chaque element contient `timestamp` et `value`
+
+Verifier aussi le nom exact :
+
+```bash
+curl -s http://localhost:8000/api/v1/admin/metrics/timeseries/query_latency_ms
+```
+
+**PASS** : Memes resultats que ci-dessus.
 
 ---
 
@@ -1038,9 +1098,11 @@ vector_store:
 
 ## Phase 16 - Nettoyage
 
+Depuis `C:\Users\henri\Projets\test_ragkit` :
+
 ```bash
 kill %1 2>/dev/null  # arreter les serveurs en arriere-plan
-rm -rf data/chroma data/qdrant .ragkit openapi.json
+rm -rf data/chroma data/qdrant .ragkit openapi.json mon-projet autre-projet
 ```
 
 ---
@@ -1051,8 +1113,7 @@ Cocher chaque test apres execution :
 
 | # | Phase | Test | Resultat |
 |---|-------|------|----------|
-| 0.1 | Installation | `ragkit --help` | [ ] |
-| 0.2 | Installation | Version correcte | [ ] |
+| 0.3 | Installation | `ragkit --help` | [ ] |
 | 1.1 | Init | Creer un projet | [ ] |
 | 1.2 | Init | Nom deja existant | [ ] |
 | 1.3 | Init | Template inconnu | [ ] |
@@ -1102,7 +1163,7 @@ Cocher chaque test apres execution :
 | 14.3 | Setup | Query bloquee | [ ] |
 | 14.4 | Setup | Admin accessible | [ ] |
 
-**Total : 46 tests**
+**Total : 45 tests**
 
-Score minimum pour publication : **42/46** (toutes les phases sauf 10.2, 13.x, 15
+Score minimum pour publication : **41/45** (toutes les phases sauf 10.2, 13.x, 15
 qui sont optionnelles ou tolerantes).
