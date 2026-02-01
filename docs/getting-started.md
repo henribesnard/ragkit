@@ -23,13 +23,16 @@ ragkit validate
 
 ## 4. Add documents
 
-Put files in `data/documents` (md, txt, pdf, docx).
+Put files in `data/documents` (md, txt, pdf, docx, doc).
+For legacy `.doc` files, install `antiword` or LibreOffice (`soffice`) for better extraction.
 
 ## 5. Ingest
 
 ```bash
 ragkit ingest
 ```
+
+Tip: `.env` files are auto-loaded (priority to the `.env` next to your `ragkit.yaml`).
 
 ## 6. Query
 

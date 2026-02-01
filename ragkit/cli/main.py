@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import typer
+from dotenv import load_dotenv
 
 from ragkit.agents import AgentOrchestrator
 from ragkit.config import ConfigLoader
@@ -27,6 +28,13 @@ def _display_host(host: str) -> str:
     if host in {"0.0.0.0", "::"}:
         return "localhost"
     return host
+
+
+def _load_dotenv(config_path: Path) -> None:
+    config_env = config_path.parent / ".env"
+    if config_env.exists():
+        load_dotenv(dotenv_path=config_env, override=False)
+    load_dotenv(override=False)
 
 
 def _ensure_ui_assets() -> bool:
@@ -76,6 +84,7 @@ def validate(
     config: Path = typer.Option("ragkit.yaml", "--config", "-c", help="Config file path"),
 ) -> None:
     """Validate configuration file."""
+    _load_dotenv(config)
     loader = ConfigLoader()
     loader.load_with_env(config)
     typer.echo("Configuration OK")
@@ -87,6 +96,7 @@ def ingest(
     incremental: bool = typer.Option(False, help="Only ingest modified files"),
 ) -> None:
     """Ingest documents into the vector store."""
+    _load_dotenv(config)
     loader = ConfigLoader()
     cfg = loader.load_with_env(config)
     assert cfg.embedding is not None
@@ -106,6 +116,7 @@ def query(
     config: Path = typer.Option("ragkit.yaml", "--config", "-c", help="Config file path"),
 ) -> None:
     """Query the RAG system from command line."""
+    _load_dotenv(config)
     loader = ConfigLoader()
     cfg = loader.load_with_env(config)
     assert cfg.embedding is not None
@@ -144,6 +155,7 @@ def serve(
     if api_only and chatbot_only:
         raise typer.BadParameter("Choose either --api-only or --chatbot-only")
 
+    _load_dotenv(config)
     loader = ConfigLoader()
     cfg = loader.load_with_env(config)
     setup_mode = not cfg.is_configured

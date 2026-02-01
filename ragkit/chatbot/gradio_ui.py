@@ -31,24 +31,26 @@ def create_chatbot(config: ChatbotConfig, orchestrator: AgentOrchestrator) -> gr
 
     async def respond_stream(message: str, history: list) -> AsyncIterator[str]:
         start = time.perf_counter()
-        result = await orchestrator.process(message, history)
-        response = result.response.content
-
-        if config.features.show_sources and result.response.sources:
-            response += "\n\nSources:\n"
-            for source in result.response.sources:
-                response += f"- {source}\n"
-
-        if config.features.show_latency:
-            latency = time.perf_counter() - start
-            response += f"\n\nLatency: {latency:.2f}s"
-
-        chunk_size = 50
         partial = ""
-        for idx in range(0, len(response), chunk_size):
-            partial = response[: idx + chunk_size]
-            yield partial
-            await asyncio.sleep(0)
+        async for event in orchestrator.process_stream(message, history):
+            event_type = event.get("type")
+            if event_type == "delta":
+                partial += event.get("content", "")
+                yield partial
+            elif event_type == "final":
+                response = event.get("content", "")
+                sources = event.get("sources", []) or []
+                if config.features.show_sources and sources:
+                    response += "\n\nSources:\n"
+                    for source in sources:
+                        response += f"- {source}\n"
+                if config.features.show_latency:
+                    latency = time.perf_counter() - start
+                    response += f"\n\nLatency: {latency:.2f}s"
+                yield response
+            elif event_type == "error":
+                message = event.get("message", "Streaming error")
+                yield f"Error: {message}"
 
     handler = respond_stream if config.features.streaming else respond
 

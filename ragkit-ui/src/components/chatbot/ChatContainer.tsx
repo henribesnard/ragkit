@@ -6,6 +6,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   sources?: string[];
+  isStreaming?: boolean;
 }
 
 interface ChatContainerProps {

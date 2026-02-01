@@ -21,7 +21,11 @@ test_install/
 
 # pytest
 .pytest_cache/
+.pytest_tmp/
 .ragkit/
+
+# Tests
+tests/
 
 # Coverage
 .coverage

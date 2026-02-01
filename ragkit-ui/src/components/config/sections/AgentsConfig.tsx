@@ -21,7 +21,7 @@ const intentOptions = [
   { value: 'clarification', label: 'clarification' },
 ];
 
-const responseLangOptions = ['auto', 'fr', 'en', 'es', 'de', 'it', 'pt'];
+const responseLangOptions = ['auto', 'match_query', 'match_documents', 'fr', 'en', 'es', 'de', 'it', 'pt'];
 
 export function AgentsConfigSection({ config, onChange }: SectionProps) {
   const agents = config?.agents || {};
@@ -227,6 +227,21 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
                 updateResponseGenerator({ behavior: { ...responseBehavior, cite_sources: checked } })
               }
             />
+          </div>
+          <div>
+            <FieldLabel
+              label="Source path mode"
+              help="Controle la sortie des chemins sources (basename masque les chemins complets)."
+            />
+            <Select
+              value={responseBehavior.source_path_mode || 'basename'}
+              onChange={(event) =>
+                updateResponseGenerator({ behavior: { ...responseBehavior, source_path_mode: event.target.value } })
+              }
+            >
+              <option value="basename">Basename</option>
+              <option value="full">Full path</option>
+            </Select>
           </div>
           <div>
             <FieldLabel label="Citation format" help="Format des citations dans la reponse." />

@@ -137,20 +137,22 @@ export interface RetrievalConfig {
 
 export interface VectorStoreConfig {
   provider: 'qdrant' | 'chroma';
-  qdrant: {
-    mode: 'memory' | 'local' | 'cloud';
-    path?: string | null;
-    url?: string | null;
-    api_key?: string | null;
-    collection_name: string;
-    distance_metric: 'cosine' | 'euclidean' | 'dot';
-  };
-  chroma: {
-    mode: 'memory' | 'persistent';
-    path?: string | null;
-    collection_name: string;
-  };
-}
+    qdrant: {
+      mode: 'memory' | 'local' | 'cloud';
+      path?: string | null;
+      url?: string | null;
+      api_key?: string | null;
+      collection_name: string;
+      distance_metric: 'cosine' | 'euclidean' | 'dot';
+      add_batch_size?: number | null;
+    };
+    chroma: {
+      mode: 'memory' | 'persistent';
+      path?: string | null;
+      collection_name: string;
+      add_batch_size?: number;
+    };
+  }
 
 export interface AgentsConfig {
   mode: 'default' | 'custom';
@@ -172,14 +174,15 @@ export interface AgentsConfig {
     system_prompt: string;
     no_retrieval_prompt: string;
     out_of_scope_prompt: string;
-    behavior: {
-      cite_sources: boolean;
-      citation_format: string;
-      admit_uncertainty: boolean;
-      uncertainty_phrase: string;
-      max_response_length?: number | null;
-      response_language: string;
-    };
+      behavior: {
+        cite_sources: boolean;
+        citation_format: string;
+        admit_uncertainty: boolean;
+        uncertainty_phrase: string;
+        max_response_length?: number | null;
+        response_language: string;
+        source_path_mode?: 'full' | 'basename';
+      };
   };
   global: {
     timeout: number;

@@ -50,24 +50,27 @@ class QdrantVectorStore(BaseVectorStore):
 
         from qdrant_client.models import PointStruct
 
-        points = []
-        for chunk in chunks:
-            embedding = chunk.embedding
-            if embedding is None:
-                raise RetrievalError("All chunks must have embeddings before adding")
-            points.append(
-                PointStruct(
-                    id=_normalize_id(chunk.id),
-                    vector=embedding,
-                    payload={
-                        "content": chunk.content,
-                        "metadata": chunk.metadata,
-                        "document_id": chunk.document_id,
-                        "original_id": chunk.id,
-                    },
+        batch_size = self.config.add_batch_size or len(chunks)
+        for i in range(0, len(chunks), batch_size):
+            batch = chunks[i : i + batch_size]
+            points = []
+            for chunk in batch:
+                embedding = chunk.embedding
+                if embedding is None:
+                    raise RetrievalError("All chunks must have embeddings before adding")
+                points.append(
+                    PointStruct(
+                        id=_normalize_id(chunk.id),
+                        vector=embedding,
+                        payload={
+                            "content": chunk.content,
+                            "metadata": chunk.metadata,
+                            "document_id": chunk.document_id,
+                            "original_id": chunk.id,
+                        },
+                    )
                 )
-            )
-        self.client.upsert(collection_name=self.collection_name, points=points)
+            self.client.upsert(collection_name=self.collection_name, points=points)
 
     async def search(
         self,

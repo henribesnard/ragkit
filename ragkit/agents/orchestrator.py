@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import time
-from collections.abc import Awaitable
-from typing import TypeVar
+from collections.abc import AsyncIterator, Awaitable
+from typing import Any, TypeVar
 
 from ragkit.agents.query_analyzer import QueryAnalyzerAgent
 from ragkit.agents.response_generator import ResponseGeneratorAgent
@@ -33,6 +33,7 @@ class AgentOrchestrator:
         self.query_analyzer = QueryAnalyzerAgent(
             config.query_analyzer,
             llm_router.get(config.query_analyzer.llm),
+            verbose=config.global_config.verbose,
         )
         self.response_generator = ResponseGeneratorAgent(
             config.response_generator,
@@ -75,6 +76,80 @@ class AgentOrchestrator:
         except Exception as exc:  # noqa: BLE001
             error = str(exc)
             raise
+        finally:
+            if self.metrics_enabled:
+                latency_ms = (time.perf_counter() - start) * 1000
+                intent = analysis.intent if analysis else None
+                self.metrics.record_query(
+                    query=query,
+                    latency_ms=latency_ms,
+                    success=error is None,
+                    intent=intent,
+                    error=error,
+                )
+
+    async def process_stream(
+        self, query: str, history: list[dict] | None = None
+    ) -> AsyncIterator[dict[str, Any]]:
+        start = time.perf_counter()
+        error: str | None = None
+        analysis: QueryAnalysis | None = None
+        context: list[RetrievalResult] | None = None
+        response_chunks: list[str] = []
+        try:
+            analysis = await _timed_component(
+                self.metrics,
+                self.metrics_enabled,
+                "query_analyzer",
+                self.query_analyzer.analyze(query, history),
+            )
+
+            if analysis.needs_retrieval:
+                search_query = analysis.rewritten_query or query
+                context = await _timed_component(
+                    self.metrics,
+                    self.metrics_enabled,
+                    "retrieval",
+                    self.retrieval.retrieve(search_query),
+                )
+
+            sources: list[str] = []
+            if analysis.needs_retrieval and analysis.intent != "out_of_scope":
+                sources = self.response_generator.extract_sources(context)
+            metadata = {"intent": analysis.intent}
+
+            generator_start = time.perf_counter()
+            generator_error: str | None = None
+            try:
+                async for token in self.response_generator.generate_stream(
+                    query, context, analysis, history
+                ):
+                    response_chunks.append(token)
+                    yield {"type": "delta", "content": token}
+            except Exception as exc:  # noqa: BLE001
+                generator_error = str(exc)
+                raise
+            finally:
+                if self.metrics_enabled:
+                    latency_ms = (time.perf_counter() - generator_start) * 1000
+                    self.metrics.record_component_call(
+                        "response_generator",
+                        latency_ms,
+                        generator_error is None,
+                        generator_error,
+                    )
+
+            response_text = "".join(response_chunks)
+            yield {
+                "type": "final",
+                "content": response_text,
+                "sources": sources,
+                "metadata": metadata,
+            }
+        except Exception as exc:  # noqa: BLE001
+            error = str(exc)
+            yield {"type": "error", "message": error}
+            return
         finally:
             if self.metrics_enabled:
                 latency_ms = (time.perf_counter() - start) * 1000

@@ -6,6 +6,13 @@ from typing import Any
 
 from fastapi import APIRouter, Query, Request
 
+_METRIC_ALIASES = {
+    "query_latency": "query_latency_ms",
+    "component_latency": "component_latency_ms",
+    "ingestion_count": "ingestion_runs",
+    "ingestion_duration": "ingestion_duration_seconds",
+}
+
 router = APIRouter(prefix="/metrics")
 
 
@@ -27,7 +34,12 @@ async def get_metric_timeseries(
     interval: str = Query("1h"),
 ) -> list[Any]:
     metrics_collector = getattr(request.app.state, "metrics", None)
-    return metrics_collector.get_timeseries(metric, period, interval) if metrics_collector else []
+    metric_name = _METRIC_ALIASES.get(metric, metric)
+    return (
+        metrics_collector.get_timeseries(metric_name, period, interval)
+        if metrics_collector
+        else []
+    )
 
 
 @router.get("/queries")

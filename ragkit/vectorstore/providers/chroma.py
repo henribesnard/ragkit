@@ -26,6 +26,7 @@ class ChromaVectorStore(BaseVectorStore):
             self.client = chromadb.Client()
         self.collection_name = config.collection_name
         self.collection: Any = self.client.get_or_create_collection(self.collection_name)
+        self.add_batch_size = config.add_batch_size
 
     async def add(self, chunks: list[Chunk]) -> None:
         if not chunks:
@@ -33,18 +34,21 @@ class ChromaVectorStore(BaseVectorStore):
         if any(chunk.embedding is None for chunk in chunks):
             raise RetrievalError("All chunks must have embeddings before adding")
 
-        embeddings: list[list[float]] = []
-        for chunk in chunks:
-            if chunk.embedding is None:
-                raise RetrievalError("All chunks must have embeddings before adding")
-            embeddings.append(chunk.embedding)
+        batch_size = self.add_batch_size or len(chunks)
+        for i in range(0, len(chunks), batch_size):
+            batch = chunks[i : i + batch_size]
+            embeddings: list[list[float]] = []
+            for chunk in batch:
+                if chunk.embedding is None:
+                    raise RetrievalError("All chunks must have embeddings before adding")
+                embeddings.append(chunk.embedding)
 
-        self.collection.add(
-            ids=[chunk.id for chunk in chunks],
-            documents=[chunk.content for chunk in chunks],
-            metadatas=[_metadata_payload(chunk) for chunk in chunks],
-            embeddings=cast(Any, embeddings),
-        )
+            self.collection.add(
+                ids=[chunk.id for chunk in batch],
+                documents=[chunk.content for chunk in batch],
+                metadatas=[_metadata_payload(chunk) for chunk in batch],
+                embeddings=cast(Any, embeddings),
+            )
 
     async def search(
         self,

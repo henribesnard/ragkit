@@ -5,6 +5,9 @@
       latency_ms?: number;
       chunks_retrieved?: number;
       needs_retrieval?: boolean;
+      detected_language?: string;
+      response_language?: string;
+      streaming?: boolean;
     };
   };
   onClose?: () => void;
@@ -27,6 +30,12 @@ export function DebugPanel({ lastMessage, onClose }: DebugPanelProps) {
         <p>Latency: {Math.round(debug?.latency_ms || 0)}ms</p>
         <p>Chunks: {debug?.chunks_retrieved ?? 0}</p>
         <p>Needs retrieval: {debug?.needs_retrieval ? 'yes' : 'no'}</p>
+        <p>
+          Language: {debug?.detected_language || '--'} {'->'} {debug?.response_language || '--'}
+        </p>
+        {debug?.streaming !== undefined ? (
+          <p>Streaming: {debug.streaming ? 'yes' : 'no'}</p>
+        ) : null}
       </div>
     </div>
   );

@@ -60,10 +60,12 @@ vector_store:
     path: "./data/qdrant"
     collection_name: "ragkit_documents"
     distance_metric: "cosine"
+    add_batch_size: null
   chroma:
     mode: "memory"
     path: "./data/chroma"
     collection_name: "ragkit_documents"
+    add_batch_size: 100
 
 retrieval:
   architecture: "hybrid"
@@ -159,6 +161,7 @@ agents:
       uncertainty_phrase: "I could not find relevant information in the documents."
       max_response_length: null
       response_language: "auto"
+      source_path_mode: "basename"
     system_prompt: |
       You answer using only the provided context.
       Cite sources using [Source: name].
@@ -219,6 +222,11 @@ api:
   streaming:
     enabled: false
     type: "sse"
+  health:
+    active_checks: false
+    timeout_seconds: 5
+    cache_ttl_seconds: 60
+  startup_sync_ingestion_status: false
 
 observability:
   logging:
@@ -231,4 +239,4 @@ observability:
       retention_days: 7
   metrics:
     enabled: true
-    track: ["query_count", "query_latency", "retrieval_latency"]
+    track: ["query_count", "query_latency_ms", "component_latency_ms"]

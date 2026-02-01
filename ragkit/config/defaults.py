@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from ragkit.config.schema import (
     AgentsConfig,
     AgentsGlobalConfig,
@@ -34,6 +36,17 @@ from ragkit.config.schema import (
     SemanticRetrievalConfig,
     SourceConfig,
 )
+from ragkit.utils.language import detect_language
+
+_OCR_LANGUAGE_MAP: dict[str, str] = {
+    "en": "eng",
+    "fr": "fra",
+    "de": "deu",
+    "es": "spa",
+    "it": "ita",
+    "pt": "por",
+    "nl": "nld",
+}
 
 
 def default_ingestion_config() -> IngestionConfig:
@@ -48,7 +61,7 @@ def default_ingestion_config() -> IngestionConfig:
         ],
         parsing=ParsingConfig(
             engine="auto",
-            ocr=OCRConfig(enabled=False, engine="tesseract", languages=["eng"]),
+            ocr=OCRConfig(enabled=False, engine="tesseract", languages=_default_ocr_languages()),
         ),
         chunking=ChunkingConfig(
             strategy="fixed",
@@ -188,6 +201,7 @@ def default_agents_config() -> AgentsConfig:
                 uncertainty_phrase="I could not find relevant information in the documents.",
                 max_response_length=None,
                 response_language="auto",
+                source_path_mode="basename",
             ),
             system_prompt=(
                 "You answer using only the provided context.\n"
@@ -201,3 +215,27 @@ def default_agents_config() -> AgentsConfig:
         "global": AgentsGlobalConfig(timeout=30, max_retries=2, retry_delay=1, verbose=False),
     }
     return AgentsConfig.model_validate(payload)
+
+
+def _default_ocr_languages() -> list[str]:
+    code = _detect_language_from_docs(Path("./data/documents"))
+    if code:
+        mapped = _OCR_LANGUAGE_MAP.get(code)
+        if mapped:
+            return [mapped]
+    return ["eng"]
+
+
+def _detect_language_from_docs(base_path: Path) -> str | None:
+    if not base_path.exists():
+        return None
+    for suffix in (".txt", ".md"):
+        for path in base_path.rglob(f"*{suffix}"):
+            try:
+                sample = path.read_text(encoding="utf-8", errors="ignore")[:2000]
+            except Exception:
+                continue
+            code = detect_language(sample)
+            if code:
+                return code
+    return None

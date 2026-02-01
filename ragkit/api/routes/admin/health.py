@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import time
+from collections.abc import Awaitable, Callable
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Request
@@ -14,6 +16,8 @@ _HOSTED_LLM_PROVIDERS = {"openai", "anthropic", "deepseek", "groq", "mistral"}
 _HOSTED_EMBEDDING_PROVIDERS = {"openai", "cohere"}
 
 router = APIRouter(prefix="/health")
+
+_HEALTH_CACHE: dict[str, tuple[float, ComponentHealth]] = {}
 
 
 class DetailedHealth(BaseModel):
@@ -54,8 +58,8 @@ async def get_detailed_health(request: Request) -> DetailedHealth:
                 message=str(exc),
             )
 
-    components["llm_primary"] = _check_llm_health(request)
-    components["embedding"] = _check_embedding_health(request)
+    components["llm_primary"] = await _check_llm_health(request)
+    components["embedding"] = await _check_embedding_health(request)
 
     if (
         request.app.state.config.retrieval is not None
@@ -80,7 +84,7 @@ async def get_detailed_health(request: Request) -> DetailedHealth:
     )
 
 
-def _check_llm_health(request: Request) -> ComponentHealth:
+async def _check_llm_health(request: Request) -> ComponentHealth:
     if request.app.state.config.llm is None:
         return ComponentHealth(
             name="LLM Primary",
@@ -97,15 +101,55 @@ def _check_llm_health(request: Request) -> ComponentHealth:
                 last_check=datetime.now(timezone.utc),
                 message="Missing API key",
             )
-    return ComponentHealth(
-        name="LLM Primary",
-        status=ComponentStatus.UNKNOWN,
-        last_check=datetime.now(timezone.utc),
-        message="Active health check disabled",
-    )
+    health_cfg = request.app.state.config.api.health
+    if not health_cfg.active_checks:
+        return ComponentHealth(
+            name="LLM Primary",
+            status=ComponentStatus.UNKNOWN,
+            last_check=datetime.now(timezone.utc),
+            message="Active health check disabled",
+        )
+
+    llm_router = getattr(request.app.state, "llm_router", None)
+    if llm_router is None:
+        return ComponentHealth(
+            name="LLM Primary",
+            status=ComponentStatus.UNKNOWN,
+            last_check=datetime.now(timezone.utc),
+            message="LLM router not initialized",
+        )
+
+    async def _run_check() -> ComponentHealth:
+        start = time.perf_counter()
+        try:
+            await asyncio.wait_for(
+                llm_router.primary.complete(
+                    [
+                        {"role": "system", "content": "Reply with OK."},
+                        {"role": "user", "content": "ping"},
+                    ]
+                ),
+                timeout=health_cfg.timeout_seconds,
+            )
+            latency = (time.perf_counter() - start) * 1000
+            return ComponentHealth(
+                name="LLM Primary",
+                status=ComponentStatus.HEALTHY,
+                last_check=datetime.now(timezone.utc),
+                latency_ms=latency,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return ComponentHealth(
+                name="LLM Primary",
+                status=ComponentStatus.UNHEALTHY,
+                last_check=datetime.now(timezone.utc),
+                message=str(exc),
+            )
+
+    return await _cached_component("llm_primary", health_cfg.cache_ttl_seconds, _run_check)
 
 
-def _check_embedding_health(request: Request) -> ComponentHealth:
+async def _check_embedding_health(request: Request) -> ComponentHealth:
     if request.app.state.config.embedding is None:
         return ComponentHealth(
             name="Embedding",
@@ -122,12 +166,47 @@ def _check_embedding_health(request: Request) -> ComponentHealth:
                 last_check=datetime.now(timezone.utc),
                 message="Missing API key",
             )
-    return ComponentHealth(
-        name="Embedding",
-        status=ComponentStatus.UNKNOWN,
-        last_check=datetime.now(timezone.utc),
-        message="Active health check disabled",
-    )
+    health_cfg = request.app.state.config.api.health
+    if not health_cfg.active_checks:
+        return ComponentHealth(
+            name="Embedding",
+            status=ComponentStatus.UNKNOWN,
+            last_check=datetime.now(timezone.utc),
+            message="Active health check disabled",
+        )
+
+    embedder = getattr(request.app.state, "embedder", None)
+    if embedder is None:
+        return ComponentHealth(
+            name="Embedding",
+            status=ComponentStatus.UNKNOWN,
+            last_check=datetime.now(timezone.utc),
+            message="Embedding provider not initialized",
+        )
+
+    async def _run_check() -> ComponentHealth:
+        start = time.perf_counter()
+        try:
+            await asyncio.wait_for(
+                embedder.embed_query("ping"),
+                timeout=health_cfg.timeout_seconds,
+            )
+            latency = (time.perf_counter() - start) * 1000
+            return ComponentHealth(
+                name="Embedding",
+                status=ComponentStatus.HEALTHY,
+                last_check=datetime.now(timezone.utc),
+                latency_ms=latency,
+            )
+        except Exception as exc:  # noqa: BLE001
+            return ComponentHealth(
+                name="Embedding",
+                status=ComponentStatus.UNHEALTHY,
+                last_check=datetime.now(timezone.utc),
+                message=str(exc),
+            )
+
+    return await _cached_component("embedding", health_cfg.cache_ttl_seconds, _run_check)
 
 
 def _check_reranker_health(request: Request) -> ComponentHealth:
@@ -152,3 +231,17 @@ def _check_reranker_health(request: Request) -> ComponentHealth:
         last_check=datetime.now(timezone.utc),
         message="Active health check disabled",
     )
+
+
+async def _cached_component(
+    key: str,
+    ttl_seconds: int,
+    checker: Callable[[], Awaitable[ComponentHealth]],
+) -> ComponentHealth:
+    if ttl_seconds > 0:
+        cached = _HEALTH_CACHE.get(key)
+        if cached and (time.monotonic() - cached[0]) < ttl_seconds:
+            return cached[1]
+    result = await checker()
+    _HEALTH_CACHE[key] = (time.monotonic(), result)
+    return result

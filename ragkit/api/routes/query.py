@@ -70,23 +70,14 @@ async def query_stream(
 ) -> StreamingResponse:
     config = http_request.app.state.config
     if not config.api.streaming.enabled:
-        raise HTTPException(status_code=404, detail="Streaming disabled")
+        raise HTTPException(
+            status_code=501, detail="Streaming is not enabled in configuration"
+        )
 
     async def event_stream() -> AsyncIterator[str]:
-        result = await orchestrator.process(request.query, request.history)
-        response_text = result.response.content
-        if result.response.sources:
-            sources = "\n".join(f"- {source}" for source in result.response.sources)
-            response_text += f"\n\nSources:\n{sources}"
-
-        chunk_size = 50
-        for start in range(0, len(response_text), chunk_size):
-            chunk = response_text[start : start + chunk_size]
-            payload = json.dumps({"content": chunk, "done": False})
+        async for event in orchestrator.process_stream(request.query, request.history):
+            payload = json.dumps(event)
             yield f"data: {payload}\n\n"
             await asyncio.sleep(0)
-
-        payload = json.dumps({"content": "", "done": True})
-        yield f"data: {payload}\n\n"
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")

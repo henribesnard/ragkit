@@ -1,18 +1,22 @@
 ﻿import { useState } from 'react';
 import { ChatContainer } from '@/components/chatbot/ChatContainer';
 import { DebugPanel } from '@/components/chatbot/DebugPanel';
-import { queryRag } from '@/api/query';
+import { queryRag, queryRagStream } from '@/api/query';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   sources?: string[];
+  isStreaming?: boolean;
   debug?: {
     intent?: string;
     latency_ms?: number;
     chunks_retrieved?: number;
     needs_retrieval?: boolean;
+    detected_language?: string;
+    response_language?: string;
+    streaming?: boolean;
   };
 }
 
@@ -27,36 +31,82 @@ export function Chatbot() {
       role: 'user',
       content: query,
     };
-    setMessages((prev) => [...prev, userMessage]);
+    const assistantId = crypto.randomUUID();
+    const history = messages;
+
+    setMessages((prev) => [
+      ...prev,
+      userMessage,
+      { id: assistantId, role: 'assistant', content: '', isStreaming: true },
+    ]);
     setIsLoading(true);
 
-    try {
-      const start = performance.now();
-      const response = await queryRag({ query, history: messages });
-      const latency = performance.now() - start;
+    const start = performance.now();
 
-      const assistantMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: response.answer,
-        sources: response.sources,
+    const updateAssistant = (updater: (message: Message) => Message) => {
+      setMessages((prev) => prev.map((message) => (message.id === assistantId ? updater(message) : message)));
+    };
+
+    const finalizeMessage = (response: any, streaming: boolean) => {
+      const latency = performance.now() - start;
+      const metadata = response?.metadata || {};
+      const content = response?.content ?? response?.answer ?? '';
+      updateAssistant((message) => ({
+        ...message,
+        content,
+        sources: response?.sources || [],
+        isStreaming: false,
         debug: {
-          intent: response.metadata?.intent,
+          intent: metadata.intent,
           latency_ms: latency,
-          chunks_retrieved: response.metadata?.chunks_count || 0,
-          needs_retrieval: response.metadata?.needs_retrieval ?? true,
+          chunks_retrieved: metadata.chunks_count || 0,
+          needs_retrieval: metadata.needs_retrieval ?? true,
+          detected_language: metadata.detected_language,
+          response_language: metadata.response_language,
+          streaming,
         },
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-    } catch (error) {
-      setMessages((prev) => [
-        ...prev,
+      }));
+    };
+
+    try {
+      await queryRagStream(
+        { query, history },
         {
-          id: crypto.randomUUID(),
-          role: 'assistant',
+          onDelta: (content) => {
+            updateAssistant((message) => ({
+              ...message,
+              content: message.content + content,
+              isStreaming: true,
+            }));
+          },
+          onFinal: (response) => {
+            finalizeMessage(response, true);
+          },
+          onError: () => {
+            // handled in catch
+          },
+        }
+      );
+    } catch (error) {
+      const err = error as Error;
+      if (err.message === 'STREAMING_DISABLED') {
+        try {
+          const response = await queryRag({ query, history });
+          finalizeMessage(response, false);
+        } catch {
+          updateAssistant((message) => ({
+            ...message,
+            isStreaming: false,
+            content: 'Streaming is disabled in configuration. Enable it in Settings > API.',
+          }));
+        }
+      } else {
+        updateAssistant((message) => ({
+          ...message,
+          isStreaming: false,
           content: 'Unable to reach the API. Please check the server logs.',
-        },
-      ]);
+        }));
+      }
     } finally {
       setIsLoading(false);
     }

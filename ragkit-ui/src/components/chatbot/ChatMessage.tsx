@@ -4,9 +4,10 @@ interface ChatMessageProps {
   role: 'user' | 'assistant';
   content: string;
   sources?: string[];
+  isStreaming?: boolean;
 }
 
-export function ChatMessage({ role, content, sources }: ChatMessageProps) {
+export function ChatMessage({ role, content, sources, isStreaming }: ChatMessageProps) {
   return (
     <div
       className={cn(
@@ -16,7 +17,10 @@ export function ChatMessage({ role, content, sources }: ChatMessageProps) {
           : 'bg-white/80 text-ink max-w-[80%]'
       )}
     >
-      <p>{content}</p>
+      <p>
+        {content}
+        {isStreaming ? <span className="ml-1 animate-pulse">|</span> : null}
+      </p>
       {sources && sources.length > 0 && (
         <div className="mt-3 text-xs text-muted">
           <p className="font-semibold">Sources</p>

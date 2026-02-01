@@ -133,6 +133,7 @@ class QdrantConfig(BaseModel):
     api_key_env: str | None = None
     collection_name: str = "ragkit_documents"
     distance_metric: Literal["cosine", "euclidean", "dot"] = "cosine"
+    add_batch_size: int | None = Field(default=None, ge=1)
 
 
 class ChromaConfig(BaseModel):
@@ -141,6 +142,7 @@ class ChromaConfig(BaseModel):
     mode: Literal["memory", "persistent"] = "memory"
     path: str | None = None
     collection_name: str = "ragkit_documents"
+    add_batch_size: int = Field(100, ge=1)
 
 
 class VectorStoreConfig(BaseModel):
@@ -316,6 +318,7 @@ class ResponseBehaviorConfig(BaseModel):
     uncertainty_phrase: str = "I could not find relevant information."
     max_response_length: int | None = Field(default=None, ge=1)
     response_language: str = "auto"
+    source_path_mode: Literal["full", "basename"] = "basename"
 
 
 class ResponseGeneratorConfig(BaseModel):
@@ -446,6 +449,14 @@ class APIStreamingConfig(BaseModel):
     type: Literal["sse"] = "sse"
 
 
+class APIHealthConfig(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    active_checks: bool = False
+    timeout_seconds: int = Field(5, ge=1)
+    cache_ttl_seconds: int = Field(60, ge=0)
+
+
 class APIConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -454,6 +465,8 @@ class APIConfig(BaseModel):
     cors: APICorsConfig = Field(default_factory=_model_factory(APICorsConfig))
     docs: APIDocsConfig = Field(default_factory=_model_factory(APIDocsConfig))
     streaming: APIStreamingConfig = Field(default_factory=_model_factory(APIStreamingConfig))
+    health: APIHealthConfig = Field(default_factory=_model_factory(APIHealthConfig))
+    startup_sync_ingestion_status: bool = False
 
 
 class LoggingFileConfig(BaseModel):

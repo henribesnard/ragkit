@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import warnings
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -15,6 +16,8 @@ class LLMProvider:
     """Unified LLM provider wrapper using LiteLLM."""
 
     def __init__(self, config: LLMModelConfig):
+        if config.provider == "deepseek":
+            _suppress_pydantic_warnings()
         self.config = config
         self.model = _resolve_model_name(config)
         self.params = config.params.model_dump(exclude_none=True)
@@ -148,3 +151,25 @@ def _parse_json(content: str) -> Any:
         if start >= 0 and end > start:
             return json.loads(content[start : end + 1])
         raise
+
+
+_WARNINGS_CONFIGURED = False
+
+
+def _suppress_pydantic_warnings() -> None:
+    global _WARNINGS_CONFIGURED
+    if _WARNINGS_CONFIGURED:
+        return
+    try:
+        from pydantic.warnings import PydanticSerializationUnexpectedValue
+
+        warnings.filterwarnings(
+            "ignore",
+            category=PydanticSerializationUnexpectedValue,
+        )
+    except Exception:
+        warnings.filterwarnings(
+            "ignore",
+            message=".*PydanticSerializationUnexpectedValue.*",
+        )
+    _WARNINGS_CONFIGURED = True

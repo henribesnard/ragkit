@@ -13,10 +13,14 @@ interface SectionProps {
 
 const metricOptions = [
   { value: 'query_count', label: 'query_count' },
-  { value: 'query_latency', label: 'query_latency' },
-  { value: 'ingestion_count', label: 'ingestion_count' },
-  { value: 'ingestion_duration', label: 'ingestion_duration' },
-  { value: 'llm_tokens', label: 'llm_tokens' },
+  { value: 'query_latency_ms', label: 'query_latency_ms' },
+  { value: 'component_latency_ms', label: 'component_latency_ms' },
+  { value: 'component_error', label: 'component_error' },
+  { value: 'ingestion_runs', label: 'ingestion_runs' },
+  { value: 'ingestion_duration_seconds', label: 'ingestion_duration_seconds' },
+  { value: 'ingestion_documents', label: 'ingestion_documents' },
+  { value: 'ingestion_chunks', label: 'ingestion_chunks' },
+  { value: 'ingestion_errors', label: 'ingestion_errors' },
 ];
 
 export function ObservabilityConfigSection({ config, onChange }: SectionProps) {

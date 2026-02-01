@@ -1,5 +1,6 @@
 import { FieldLabel } from '@/components/ui/field-label';
 import { Input } from '@/components/ui/input';
+import { NumberInput } from '@/components/ui/number-input';
 import { Select } from '@/components/ui/select';
 
 interface SectionProps {
@@ -95,6 +96,18 @@ export function VectorStoreConfigSection({ config, onChange }: SectionProps) {
               <option value="dot">Dot</option>
             </Select>
           </div>
+          <div>
+            <FieldLabel label="Add batch size" help="Taille des lots pour les insertions (laisser vide = pas de batching)." />
+            <NumberInput
+              value={qdrant.add_batch_size ?? null}
+              min={1}
+              max={10000}
+              step={1}
+              onChange={(value) =>
+                updateVectorStore({ ...vectorStore, qdrant: { ...qdrant, add_batch_size: value } })
+              }
+            />
+          </div>
         </div>
       ) : (
         <div className="space-y-4">
@@ -123,6 +136,18 @@ export function VectorStoreConfigSection({ config, onChange }: SectionProps) {
               value={chroma.collection_name || ''}
               onChange={(event) =>
                 updateVectorStore({ ...vectorStore, chroma: { ...chroma, collection_name: event.target.value } })
+              }
+            />
+          </div>
+          <div>
+            <FieldLabel label="Add batch size" help="Taille des lots pour les insertions." />
+            <NumberInput
+              value={chroma.add_batch_size ?? 100}
+              min={1}
+              max={10000}
+              step={1}
+              onChange={(value) =>
+                updateVectorStore({ ...vectorStore, chroma: { ...chroma, add_batch_size: value } })
               }
             />
           </div>

@@ -53,6 +53,24 @@ def create_app(
     app.state.llm_router = llm_router
     app.state.setup_mode = setup_mode
 
+    async def _sync_ingestion_status() -> None:
+        if setup_mode or vector_store is None:
+            return
+        if not config.api.startup_sync_ingestion_status:
+            return
+        provider = config.vector_store.provider
+        if provider == "chroma" and config.vector_store.chroma.mode != "persistent":
+            return
+        if provider == "qdrant" and config.vector_store.qdrant.mode == "memory":
+            return
+        try:
+            total_chunks = await vector_store.count()
+            total_documents = len(await vector_store.list_documents())
+            app.state.state_store.set("total_documents", total_documents)
+            app.state.state_store.set("total_chunks", total_chunks)
+        except Exception:  # noqa: BLE001
+            pass
+
     class SetupModeGuard(BaseHTTPMiddleware):
         BLOCKED_PREFIXES = ("/api/v1/query",)
         BLOCKED_EXACT = {"/api/v1/admin/ingestion/run"}
@@ -90,6 +108,8 @@ def create_app(
     app.include_router(admin_router, prefix="/api/v1")
     app.include_router(ws_router, prefix="/api/v1/admin")
     app.include_router(status_router)
+
+    app.add_event_handler("startup", _sync_ingestion_status)
 
     if setup_mode:
         app.add_middleware(SetupModeGuard)

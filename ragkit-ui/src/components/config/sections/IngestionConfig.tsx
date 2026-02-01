@@ -64,6 +64,7 @@ export function IngestionConfigSection({ config, onChange }: SectionProps) {
     { value: '*.md', label: '*.md' },
     { value: '*.txt', label: '*.txt' },
     { value: '*.docx', label: '*.docx' },
+    { value: '*.doc', label: '*.doc' },
     { value: '*.html', label: '*.html' },
   ];
   const ocrLanguageOptions = [
