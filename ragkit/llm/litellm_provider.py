@@ -160,14 +160,19 @@ def _suppress_pydantic_warnings() -> None:
     global _WARNINGS_CONFIGURED
     if _WARNINGS_CONFIGURED:
         return
+    warning_class = None
     try:
-        from pydantic.warnings import PydanticSerializationUnexpectedValue
+        from pydantic import warnings as pydantic_warnings
 
-        warnings.filterwarnings(
-            "ignore",
-            category=PydanticSerializationUnexpectedValue,
+        warning_class = getattr(
+            pydantic_warnings, "PydanticSerializationUnexpectedValue", None
         )
     except Exception:
+        warning_class = None
+
+    if warning_class is not None:
+        warnings.filterwarnings("ignore", category=warning_class)
+    else:
         warnings.filterwarnings(
             "ignore",
             message=".*PydanticSerializationUnexpectedValue.*",
