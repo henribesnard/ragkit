@@ -99,7 +99,9 @@ class DOCXParser(BaseParser):
             if not _has_doc_tools():
                 self.logger.warning(
                     "doc_parser_missing_dependencies",
-                    message="antiword and soffice not found, .doc extraction may produce garbled text",
+                    message=(
+                        "antiword and soffice not found, .doc extraction may produce garbled text"
+                    ),
                     source=raw_doc.source_path,
                 )
             text = (

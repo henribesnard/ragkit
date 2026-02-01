@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
 try:
     from langdetect import LangDetectException, detect
 except Exception:  # pragma: no cover - optional dependency fallback
@@ -22,7 +20,7 @@ _LANGUAGE_NAMES: dict[str, str] = {
 }
 
 
-def detect_language(text: str) -> Optional[str]:
+def detect_language(text: str) -> str | None:
     cleaned = (text or "").strip()
     if len(cleaned) < 3 or detect is None:
         return None
