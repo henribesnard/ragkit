@@ -164,9 +164,7 @@ def _suppress_pydantic_warnings() -> None:
     try:
         from pydantic import warnings as pydantic_warnings
 
-        warning_class = getattr(
-            pydantic_warnings, "PydanticSerializationUnexpectedValue", None
-        )
+        warning_class = getattr(pydantic_warnings, "PydanticSerializationUnexpectedValue", None)
     except Exception:
         warning_class = None
 
