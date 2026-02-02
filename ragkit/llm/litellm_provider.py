@@ -16,8 +16,7 @@ class LLMProvider:
     """Unified LLM provider wrapper using LiteLLM."""
 
     def __init__(self, config: LLMModelConfig):
-        if config.provider == "deepseek":
-            _suppress_pydantic_warnings()
+        _suppress_pydantic_warnings()
         self.config = config
         self.model = _resolve_model_name(config)
         self.params = config.params.model_dump(exclude_none=True)
@@ -170,9 +169,10 @@ def _suppress_pydantic_warnings() -> None:
 
     if warning_class is not None:
         warnings.filterwarnings("ignore", category=warning_class)
-    else:
-        warnings.filterwarnings(
-            "ignore",
-            message=".*PydanticSerializationUnexpectedValue.*",
-        )
+    # Also filter the UserWarning wrapper emitted by pydantic's serializer
+    warnings.filterwarnings(
+        "ignore",
+        message="Pydantic serializer warnings",
+        category=UserWarning,
+    )
     _WARNINGS_CONFIGURED = True

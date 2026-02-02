@@ -24,15 +24,15 @@ class ResponseGeneratorAgent:
         analysis: QueryAnalysis,
         history: list[dict] | None = None,
     ) -> GeneratedResponse:
-        if not analysis.needs_retrieval:
-            prompt = self._build_no_retrieval_prompt(query, history)
+        if analysis.intent == "out_of_scope":
+            prompt = self._build_out_of_scope_prompt(query, history)
             response = await self.llm.complete(prompt)
             return GeneratedResponse(
                 content=response, sources=[], metadata={"intent": analysis.intent}
             )
 
-        if analysis.intent == "out_of_scope":
-            prompt = self._build_out_of_scope_prompt(query, history)
+        if not analysis.needs_retrieval:
+            prompt = self._build_no_retrieval_prompt(query, history)
             response = await self.llm.complete(prompt)
             return GeneratedResponse(
                 content=response, sources=[], metadata={"intent": analysis.intent}
@@ -52,14 +52,14 @@ class ResponseGeneratorAgent:
         analysis: QueryAnalysis,
         history: list[dict] | None = None,
     ) -> AsyncIterator[str]:
-        if not analysis.needs_retrieval:
-            prompt = self._build_no_retrieval_prompt(query, history)
+        if analysis.intent == "out_of_scope":
+            prompt = self._build_out_of_scope_prompt(query, history)
             async for token in self.llm.complete_stream(prompt):
                 yield token
             return
 
-        if analysis.intent == "out_of_scope":
-            prompt = self._build_out_of_scope_prompt(query, history)
+        if not analysis.needs_retrieval:
+            prompt = self._build_no_retrieval_prompt(query, history)
             async for token in self.llm.complete_stream(prompt):
                 yield token
             return
@@ -79,6 +79,12 @@ class ResponseGeneratorAgent:
     ) -> list[dict[str, str]]:
         formatted_context = self._format_context(context)
         system = self.config.system_prompt.format(context=formatted_context)
+        if self.config.behavior.admit_uncertainty:
+            system += (
+                f"\nIf the provided context does not contain relevant information "
+                f"to answer the question, respond with: "
+                f'"{self.config.behavior.uncertainty_phrase}"'
+            )
         messages: list[dict[str, str]] = [{"role": "system", "content": system}]
         language_instruction = self._language_instruction(query)
         if language_instruction:

@@ -49,29 +49,34 @@ class QueryAnalyzerAgent:
 
         return analysis
 
+    _NO_RETRIEVAL_INTENTS = frozenset({"greeting", "chitchat", "out_of_scope"})
+
     def _clamp_intent(self, analysis: QueryAnalysis) -> QueryAnalysis:
         allowed = self.config.behavior.detect_intents
         if not allowed:
             return analysis
-        if analysis.intent in allowed:
-            return analysis
+        if analysis.intent not in allowed:
+            original_intent = analysis.intent or ""
+            lowered = original_intent.lower()
+            if "greet" in lowered:
+                fallback_intent = "greeting"
+                needs_retrieval = False
+            else:
+                fallback_intent = "question"
+                needs_retrieval = True
 
-        original_intent = analysis.intent or ""
-        lowered = original_intent.lower()
-        if "greet" in lowered:
-            fallback_intent = "greeting"
-            needs_retrieval = False
-        else:
-            fallback_intent = "question"
-            needs_retrieval = True
+            if self.verbose:
+                self.logger.warning(
+                    "query_intent_fallback",
+                    original_intent=original_intent,
+                    fallback_intent=fallback_intent,
+                )
 
-        if self.verbose:
-            self.logger.warning(
-                "query_intent_fallback",
-                original_intent=original_intent,
-                fallback_intent=fallback_intent,
-            )
+            analysis.intent = fallback_intent
+            analysis.needs_retrieval = needs_retrieval
 
-        analysis.intent = fallback_intent
-        analysis.needs_retrieval = needs_retrieval
+        # Enforce coherence: no retrieval for non-retrieval intents
+        if analysis.intent in self._NO_RETRIEVAL_INTENTS:
+            analysis.needs_retrieval = False
+
         return analysis

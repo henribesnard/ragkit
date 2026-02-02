@@ -169,7 +169,18 @@ def default_agents_config() -> AgentsConfig:
                 query_rewriting=QueryRewritingConfig(enabled=True, num_rewrites=1),
             ),
             system_prompt=(
-                "You analyze user queries for a RAG system.\n"
+                "You analyze user queries for a RAG (Retrieval-Augmented Generation) system.\n"
+                "Classify the query intent as one of the allowed values.\n\n"
+                "Intent definitions:\n"
+                "- question: a question that can be answered using the document knowledge base\n"
+                "- greeting: a greeting or hello message\n"
+                "- chitchat: casual conversation unrelated to the knowledge base\n"
+                "- out_of_scope: a question that clearly cannot be answered from the document "
+                "knowledge base (e.g. recipes, sports scores, general knowledge unrelated to "
+                "the documents)\n"
+                "- clarification: user asks for clarification about a previous answer\n\n"
+                "Set needs_retrieval=true only for 'question' and 'clarification'.\n"
+                "Set needs_retrieval=false for 'greeting', 'chitchat', and 'out_of_scope'.\n\n"
                 "Return JSON with intent, needs_retrieval, rewritten_query, reasoning."
             ),
             output_schema={

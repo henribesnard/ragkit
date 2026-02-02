@@ -28,6 +28,23 @@ from ragkit.config.validators import validate_config as validate_custom
 router = APIRouter(prefix="/config")
 
 
+def _mask_secrets(data: dict) -> dict:
+    """Recursively mask api_key values in a config dict."""
+    if not isinstance(data, dict):
+        return data
+    result = {}
+    for key, value in data.items():
+        if key == "api_key" and isinstance(value, str) and len(value) > 8:
+            result[key] = value[:4] + "***" + value[-4:]
+        elif isinstance(value, dict):
+            result[key] = _mask_secrets(value)
+        elif isinstance(value, list):
+            result[key] = [_mask_secrets(v) if isinstance(v, dict) else v for v in value]
+        else:
+            result[key] = value
+    return result
+
+
 class ConfigResponse(BaseModel):
     config: dict
     loaded_at: str
@@ -51,7 +68,7 @@ async def get_config(request: Request) -> ConfigResponse:
     loaded_at = getattr(
         request.app.state, "config_loaded_at", datetime.now(timezone.utc)
     ).isoformat()
-    return ConfigResponse(config=config.model_dump(), loaded_at=loaded_at, source="file")
+    return ConfigResponse(config=_mask_secrets(config.model_dump()), loaded_at=loaded_at, source="file")
 
 
 @router.post("/validate", response_model=ValidationResult)
@@ -141,7 +158,7 @@ async def get_defaults() -> dict:
 @router.get("/export")
 async def export_config(request: Request) -> Response:
     config = request.app.state.config
-    yaml_content = yaml.safe_dump(config.model_dump(), sort_keys=False)
+    yaml_content = yaml.safe_dump(_mask_secrets(config.model_dump()), sort_keys=False)
     return Response(
         content=yaml_content,
         media_type="application/x-yaml",
