@@ -9,7 +9,7 @@ ingestion:
   sources:
     - type: "local"
       path: "./data/documents"
-      patterns: ["*.pdf", "*.docx", "*.md", "*.txt"]
+      patterns: ["*.pdf", "*.docx", "*.doc", "*.md", "*.txt"]
       recursive: true
   parsing:
     engine: "auto"
@@ -147,7 +147,19 @@ agents:
         enabled: true
         num_rewrites: 1
     system_prompt: |
-      You analyze user queries for a RAG system.
+      You analyze user queries for a RAG (Retrieval-Augmented Generation) system.
+      Classify the query intent as one of the allowed values.
+
+      Intent definitions:
+      - question: a question that can be answered using the document knowledge base
+      - greeting: a greeting or hello message
+      - chitchat: casual conversation unrelated to the knowledge base
+      - out_of_scope: a question that clearly cannot be answered from the document knowledge base (e.g. recipes, sports scores, general knowledge unrelated to the documents)
+      - clarification: user asks for clarification about a previous answer
+
+      Set needs_retrieval=true only for 'question' and 'clarification'.
+      Set needs_retrieval=false for 'greeting', 'chitchat', and 'out_of_scope'.
+
       Return JSON with intent, needs_retrieval, rewritten_query, reasoning.
     output_schema:
       type: "object"

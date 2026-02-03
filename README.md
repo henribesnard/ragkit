@@ -10,9 +10,11 @@ RAGKIT is a configuration-first agentic RAG framework. It lets you run an end-to
 - Multiple embedding providers (OpenAI, Ollama, Cohere)
 - Vector stores: ChromaDB and Qdrant with configurable batch sizes
 - Real token-by-token SSE streaming (API and chatbot UI)
-- Intent detection with validation against configured intents
-- Automatic response language matching (query language, document language, or explicit)
+- Intent detection with enriched prompt definitions and coherent needs_retrieval enforcement
+- Automatic response language matching with confidence-based detection and French bias for short text
 - Source path sanitization (basename mode by default)
+- Uncertainty phrase injection to prevent hallucination on irrelevant context
+- API key masking in admin config endpoints
 - Active health checks for LLM and embedding providers
 - Web UI dashboard, setup wizard, chatbot test bench, and config editor
 - Legacy `.doc` file support with `antiword`/LibreOffice fallback
@@ -137,4 +139,4 @@ docker-compose up --build
 
 ## Backend Test Procedure
 
-See `BACKEND_TEST_PROCEDURE.md` for a comprehensive 46-test procedure to validate all backend functionality.
+See `BACKEND_TEST_PROCEDURE.md` for a comprehensive 45-test procedure to validate all backend functionality.
