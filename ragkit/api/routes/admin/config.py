@@ -68,7 +68,8 @@ async def get_config(request: Request) -> ConfigResponse:
     loaded_at = getattr(
         request.app.state, "config_loaded_at", datetime.now(timezone.utc)
     ).isoformat()
-    return ConfigResponse(config=_mask_secrets(config.model_dump()), loaded_at=loaded_at, source="file")
+    data = _mask_secrets(config.model_dump())
+    return ConfigResponse(config=data, loaded_at=loaded_at, source="file")
 
 
 @router.post("/validate", response_model=ValidationResult)
