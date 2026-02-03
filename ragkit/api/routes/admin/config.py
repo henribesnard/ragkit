@@ -9,6 +9,7 @@ import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 import yaml
 from fastapi import APIRouter, HTTPException, Request
@@ -32,7 +33,7 @@ def _mask_secrets(data: dict) -> dict:
     """Recursively mask api_key values in a config dict."""
     if not isinstance(data, dict):
         return data
-    result = {}
+    result: dict[str, Any] = {}
     for key, value in data.items():
         if key == "api_key" and isinstance(value, str) and len(value) > 8:
             result[key] = value[:4] + "***" + value[-4:]
