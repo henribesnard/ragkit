@@ -3,7 +3,7 @@
 use anyhow::{anyhow, Result};
 use std::sync::atomic::{AtomicU16, Ordering};
 use std::time::Duration;
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 use tokio::process::{Child, Command};
 use tokio::sync::Mutex;
 use tokio::time::sleep;
