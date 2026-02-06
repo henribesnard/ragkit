@@ -46,6 +46,13 @@ dev = [
   "mypy>=1.0",
   "types-PyYAML>=6.0"
 ]
+desktop = [
+  "onnxruntime>=1.16",
+  "tokenizers>=0.15",
+  "huggingface_hub>=0.20",
+  "keyring>=24.0",
+  "cryptography>=41.0"
+]
 
 [project.scripts]
 ragkit = "ragkit.cli.main:app"

@@ -107,7 +107,7 @@ class EmbeddingCacheConfig(BaseModel):
 class EmbeddingModelConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    provider: Literal["openai", "ollama", "cohere", "litellm"]
+    provider: Literal["openai", "ollama", "cohere", "litellm", "onnx_local"]
     model: str
     api_key: str | None = None
     api_key_env: str | None = None

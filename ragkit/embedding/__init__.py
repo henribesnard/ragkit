@@ -9,6 +9,7 @@ from ragkit.embedding.providers.cohere import CohereEmbedder
 from ragkit.embedding.providers.litellm import LiteLLMEmbedder
 from ragkit.embedding.providers.ollama import OllamaEmbedder
 from ragkit.embedding.providers.openai import OpenAIEmbedder
+from ragkit.embedding.providers.onnx_local import ONNXLocalEmbedder
 
 
 def create_embedder(config: EmbeddingModelConfig) -> BaseEmbedder:
@@ -20,6 +21,8 @@ def create_embedder(config: EmbeddingModelConfig) -> BaseEmbedder:
         embedder = CohereEmbedder(config)
     elif config.provider == "litellm":
         embedder = LiteLLMEmbedder(config)
+    elif config.provider == "onnx_local":
+        embedder = ONNXLocalEmbedder(config)
     else:
         raise ValueError(f"Unknown embedding provider: {config.provider}")
 
@@ -38,5 +41,6 @@ __all__ = [
     "OllamaEmbedder",
     "CohereEmbedder",
     "LiteLLMEmbedder",
+    "ONNXLocalEmbedder",
     "create_embedder",
 ]
