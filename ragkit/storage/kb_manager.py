@@ -6,11 +6,12 @@ including their associated vector stores and documents.
 
 from __future__ import annotations
 
+import builtins
 import logging
 import shutil
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ragkit.storage.sqlite_store import SQLiteStore
@@ -192,7 +193,7 @@ class KnowledgeBaseManager:
         data = self.db.get_knowledge_base_by_name(name)
         return KnowledgeBase.from_dict(data) if data else None
 
-    async def list(self) -> list[KnowledgeBase]:
+    async def list(self) -> builtins.list[KnowledgeBase]:
         """List all knowledge bases.
 
         Returns:
@@ -219,7 +220,7 @@ class KnowledgeBaseManager:
         Returns:
             Updated knowledge base or None if not found.
         """
-        updates = {}
+        updates: dict[str, Any] = {}
         if name is not None:
             updates["name"] = name
         if description is not None:
@@ -316,6 +317,7 @@ class KnowledgeBaseManager:
             mode="persistent",
             path=vector_path,
             collection_name=f"kb_{kb_id}",
+            add_batch_size=100,
         )
 
         store = ChromaVectorStore(
@@ -388,7 +390,7 @@ class KnowledgeBaseManager:
         self,
         kb_id: str,
         status: str | None = None,
-    ) -> list[Document]:
+    ) -> builtins.list[Document]:
         """List documents in a knowledge base.
 
         Args:

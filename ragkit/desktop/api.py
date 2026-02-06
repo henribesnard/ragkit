@@ -7,6 +7,7 @@ to interact with the backend.
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
@@ -60,7 +61,7 @@ class SetApiKeyRequest(BaseModel):
 # ============================================================================
 
 
-def get_state(request: Request):
+def get_state(request: Request) -> Any:
     """Get app state from request."""
     return request.app.state.app_state
 
@@ -71,7 +72,7 @@ def get_state(request: Request):
 
 
 @router.get("/knowledge-bases")
-async def list_knowledge_bases(request: Request):
+async def list_knowledge_bases(request: Request) -> list[dict[str, Any]]:
     """List all knowledge bases."""
     state = get_state(request)
     kbs = await state.kb_manager.list()
@@ -92,7 +93,9 @@ async def list_knowledge_bases(request: Request):
 
 
 @router.post("/knowledge-bases")
-async def create_knowledge_base(request: Request, body: CreateKnowledgeBaseRequest):
+async def create_knowledge_base(
+    request: Request, body: CreateKnowledgeBaseRequest
+) -> dict[str, Any]:
     """Create a new knowledge base."""
     state = get_state(request)
 
@@ -118,7 +121,7 @@ async def create_knowledge_base(request: Request, body: CreateKnowledgeBaseReque
 
 
 @router.delete("/knowledge-bases/{kb_id}")
-async def delete_knowledge_base(request: Request, kb_id: str):
+async def delete_knowledge_base(request: Request, kb_id: str) -> bool:
     """Delete a knowledge base."""
     state = get_state(request)
     deleted = await state.kb_manager.delete(kb_id)
@@ -128,7 +131,7 @@ async def delete_knowledge_base(request: Request, kb_id: str):
 
 
 @router.post("/knowledge-bases/{kb_id}/documents")
-async def add_documents(request: Request, kb_id: str, body: AddDocumentsRequest):
+async def add_documents(request: Request, kb_id: str, body: AddDocumentsRequest) -> dict[str, Any]:
     """Add documents to a knowledge base."""
     state = get_state(request)
 
@@ -158,7 +161,7 @@ async def add_documents(request: Request, kb_id: str, body: AddDocumentsRequest)
 
 
 @router.get("/conversations")
-async def list_conversations(request: Request, kb_id: str | None = None):
+async def list_conversations(request: Request, kb_id: str | None = None) -> list[dict[str, Any]]:
     """List conversations."""
     state = get_state(request)
     convs = await state.conversation_manager.list(kb_id=kb_id)
@@ -175,7 +178,7 @@ async def list_conversations(request: Request, kb_id: str | None = None):
 
 
 @router.post("/conversations")
-async def create_conversation(request: Request, body: CreateConversationRequest):
+async def create_conversation(request: Request, body: CreateConversationRequest) -> dict[str, Any]:
     """Create a new conversation."""
     state = get_state(request)
     conv = await state.conversation_manager.create(
@@ -192,7 +195,7 @@ async def create_conversation(request: Request, body: CreateConversationRequest)
 
 
 @router.delete("/conversations/{conv_id}")
-async def delete_conversation(request: Request, conv_id: str):
+async def delete_conversation(request: Request, conv_id: str) -> bool:
     """Delete a conversation."""
     state = get_state(request)
     deleted = await state.conversation_manager.delete(conv_id)
@@ -202,7 +205,7 @@ async def delete_conversation(request: Request, conv_id: str):
 
 
 @router.get("/conversations/{conv_id}/messages")
-async def get_messages(request: Request, conv_id: str):
+async def get_messages(request: Request, conv_id: str) -> list[dict[str, Any]]:
     """Get messages in a conversation."""
     state = get_state(request)
     messages = await state.conversation_manager.get_messages(conv_id)
@@ -226,7 +229,7 @@ async def get_messages(request: Request, conv_id: str):
 
 
 @router.post("/query")
-async def query(request: Request, body: QueryRequest):
+async def query(request: Request, body: QueryRequest) -> dict[str, Any]:
     """Query a knowledge base."""
     state = get_state(request)
 
@@ -278,14 +281,14 @@ async def query(request: Request, body: QueryRequest):
 
 
 @router.get("/settings")
-async def get_settings(request: Request):
+async def get_settings(request: Request) -> dict[str, Any]:
     """Get application settings."""
     state = get_state(request)
     return state.get_settings()
 
 
 @router.put("/settings")
-async def update_settings(request: Request, settings: SettingsModel):
+async def update_settings(request: Request, settings: SettingsModel) -> dict[str, Any]:
     """Update application settings."""
     state = get_state(request)
     updated = state.update_settings(settings.model_dump())
@@ -298,7 +301,7 @@ async def update_settings(request: Request, settings: SettingsModel):
 
 
 @router.post("/keys")
-async def set_api_key(request: Request, body: SetApiKeyRequest):
+async def set_api_key(request: Request, body: SetApiKeyRequest) -> dict[str, bool]:
     """Store an API key."""
     state = get_state(request)
     state.key_store.store(body.provider, body.api_key)
@@ -306,7 +309,7 @@ async def set_api_key(request: Request, body: SetApiKeyRequest):
 
 
 @router.get("/keys/{provider}")
-async def has_api_key(request: Request, provider: str):
+async def has_api_key(request: Request, provider: str) -> dict[str, bool]:
     """Check if an API key exists."""
     state = get_state(request)
     exists = state.key_store.has_key(provider)
@@ -314,7 +317,7 @@ async def has_api_key(request: Request, provider: str):
 
 
 @router.delete("/keys/{provider}")
-async def delete_api_key(request: Request, provider: str):
+async def delete_api_key(request: Request, provider: str) -> bool:
     """Delete an API key."""
     state = get_state(request)
     deleted = state.key_store.delete(provider)
@@ -327,7 +330,7 @@ async def delete_api_key(request: Request, provider: str):
 
 
 @router.get("/ollama/status")
-async def get_ollama_status(request: Request):
+async def get_ollama_status(request: Request) -> dict[str, Any]:
     """Get Ollama service status."""
     state = get_state(request)
     status = await state.ollama_manager.get_status()
@@ -340,7 +343,7 @@ async def get_ollama_status(request: Request):
 
 
 @router.get("/ollama/models")
-async def list_ollama_models(request: Request):
+async def list_ollama_models(request: Request) -> list[dict[str, Any]]:
     """List installed Ollama models."""
     state = get_state(request)
     models = await state.ollama_manager.list_models()
@@ -357,14 +360,14 @@ async def list_ollama_models(request: Request):
 
 
 @router.get("/ollama/recommended")
-async def get_recommended_models(request: Request):
+async def get_recommended_models(request: Request) -> list[dict[str, Any]]:
     """Get list of recommended models."""
     state = get_state(request)
     return state.ollama_manager.get_recommended_models()
 
 
 @router.get("/ollama/embedding-models")
-async def get_ollama_embedding_models(request: Request):
+async def get_ollama_embedding_models(request: Request) -> list[dict[str, Any]]:
     """Get list of Ollama embedding models."""
     state = get_state(request)
     return state.ollama_manager.get_embedding_models()
@@ -375,7 +378,7 @@ class PullModelRequest(BaseModel):
 
 
 @router.post("/ollama/pull")
-async def pull_ollama_model(request: Request, body: PullModelRequest):
+async def pull_ollama_model(request: Request, body: PullModelRequest) -> dict[str, Any]:
     """Pull (download) an Ollama model."""
     state = get_state(request)
 
@@ -403,7 +406,7 @@ class DeleteModelRequest(BaseModel):
 
 
 @router.delete("/ollama/models")
-async def delete_ollama_model(request: Request, body: DeleteModelRequest):
+async def delete_ollama_model(request: Request, body: DeleteModelRequest) -> dict[str, bool]:
     """Delete an Ollama model."""
     state = get_state(request)
     success = await state.ollama_manager.delete_model(body.model_name)
@@ -418,7 +421,7 @@ async def delete_ollama_model(request: Request, body: DeleteModelRequest):
 
 
 @router.post("/ollama/start")
-async def start_ollama_service(request: Request):
+async def start_ollama_service(request: Request) -> dict[str, bool]:
     """Attempt to start the Ollama service."""
     state = get_state(request)
 
@@ -440,7 +443,7 @@ async def start_ollama_service(request: Request):
 
 
 @router.get("/ollama/install-instructions")
-async def get_install_instructions():
+async def get_install_instructions() -> dict[str, Any]:
     """Get Ollama installation instructions."""
     import sys
 

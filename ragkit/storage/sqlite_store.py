@@ -285,7 +285,7 @@ class SQLiteStore:
         """
         with self.connection() as conn:
             cursor = conn.execute("SELECT * FROM knowledge_bases ORDER BY updated_at DESC")
-            return [_row_to_dict(row) for row in cursor.fetchall()]
+            return [d for row in cursor.fetchall() if (d := _row_to_dict(row)) is not None]
 
     def update_knowledge_base(self, kb_id: str, **kwargs: Any) -> dict | None:
         """Update a knowledge base.
@@ -422,7 +422,7 @@ class SQLiteStore:
                     "SELECT * FROM documents WHERE kb_id = ? ORDER BY created_at DESC",
                     (kb_id,),
                 )
-            return [_row_to_dict(row) for row in cursor.fetchall()]
+            return [d for row in cursor.fetchall() if (d := _row_to_dict(row)) is not None]
 
     def update_document(self, doc_id: str, **kwargs: Any) -> dict | None:
         """Update a document record."""
@@ -535,7 +535,7 @@ class SQLiteStore:
                     """,
                     (limit,),
                 )
-            return [_row_to_dict(row) for row in cursor.fetchall()]
+            return [d for row in cursor.fetchall() if (d := _row_to_dict(row)) is not None]
 
     def update_conversation(self, conv_id: str, **kwargs: Any) -> dict | None:
         """Update a conversation."""
@@ -650,7 +650,7 @@ class SQLiteStore:
                 """,
                 (conversation_id,),
             )
-            return [_row_to_dict(row) for row in cursor.fetchall()]
+            return [d for row in cursor.fetchall() if (d := _row_to_dict(row)) is not None]
 
     # --- Settings Operations ---
 

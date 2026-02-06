@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ragkit.storage.sqlite_store import SQLiteStore
@@ -78,7 +78,7 @@ class SecureKeyStore:
             logger.warning("keyring module not installed")
             return False
 
-    def _get_fernet(self):
+    def _get_fernet(self) -> Any:  # Returns cryptography.fernet.Fernet
         """Get or create Fernet instance for encryption."""
         from cryptography.fernet import Fernet
 

@@ -6,12 +6,13 @@ including export functionality.
 
 from __future__ import annotations
 
+import builtins
 import json
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ragkit.storage.sqlite_store import SQLiteStore
@@ -88,9 +89,9 @@ class Conversation:
             messages=messages or [],
         )
 
-    def to_dict(self, include_messages: bool = True) -> dict:
+    def to_dict(self, include_messages: bool = True) -> dict[str, Any]:
         """Convert to dictionary."""
-        result = {
+        result: dict[str, Any] = {
             "id": self.id,
             "kb_id": self.kb_id,
             "title": self.title,
@@ -171,7 +172,7 @@ class ConversationManager:
         self,
         kb_id: str | None = None,
         limit: int = 50,
-    ) -> list[Conversation]:
+    ) -> builtins.list[Conversation]:
         """List conversations.
 
         Args:
@@ -202,7 +203,7 @@ class ConversationManager:
         Returns:
             Updated conversation or None if not found.
         """
-        updates = {}
+        updates: dict[str, Any] = {}
         if title is not None:
             updates["title"] = title
         if kb_id is not None:
@@ -237,7 +238,7 @@ class ConversationManager:
         conversation_id: str,
         role: str,
         content: str,
-        sources: list[dict] | None = None,
+        sources: builtins.list[dict] | None = None,
         latency_ms: int | None = None,
         token_count: int | None = None,
         metadata: dict | None = None,
@@ -276,7 +277,7 @@ class ConversationManager:
 
         return Message.from_dict(data)
 
-    async def get_messages(self, conversation_id: str) -> list[Message]:
+    async def get_messages(self, conversation_id: str) -> builtins.list[Message]:
         """Get all messages in a conversation.
 
         Args:
@@ -455,7 +456,7 @@ class ConversationManager:
         user_count = sum(1 for m in messages if m.role == "user")
         assistant_count = sum(1 for m in messages if m.role == "assistant")
         total_tokens = sum(m.token_count or 0 for m in messages)
-        avg_latency = 0
+        avg_latency: float = 0.0
 
         latencies = [m.latency_ms for m in messages if m.latency_ms]
         if latencies:

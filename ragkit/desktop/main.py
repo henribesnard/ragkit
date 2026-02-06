@@ -11,7 +11,9 @@ import asyncio
 import logging
 import signal
 import sys
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Any
 
 import uvicorn
 from fastapi import FastAPI
@@ -32,7 +34,7 @@ app_state: AppState | None = None
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """Manage application lifecycle."""
     global app_state
 
@@ -76,7 +78,7 @@ def create_app() -> FastAPI:
 
     # Health check endpoint
     @app.get("/health")
-    async def health_check():
+    async def health_check() -> dict[str, Any]:
         return {
             "ok": True,
             "version": "1.5.0",
@@ -84,7 +86,7 @@ def create_app() -> FastAPI:
 
     # Shutdown endpoint (called by Tauri on app close)
     @app.post("/shutdown")
-    async def shutdown():
+    async def shutdown() -> dict[str, bool]:
         logger.info("Shutdown requested")
         # Schedule shutdown after response is sent
         asyncio.get_event_loop().call_later(0.5, lambda: sys.exit(0))
@@ -93,7 +95,7 @@ def create_app() -> FastAPI:
     return app
 
 
-def main():
+def main() -> None:
     """Main entry point."""
     parser = argparse.ArgumentParser(description="RAGKIT Desktop Backend")
     parser.add_argument(
@@ -114,7 +116,7 @@ def main():
     app = create_app()
 
     # Setup signal handlers for graceful shutdown
-    def handle_signal(signum, frame):
+    def handle_signal(signum: int, frame: Any) -> None:
         logger.info(f"Received signal {signum}, shutting down...")
         sys.exit(0)
 
