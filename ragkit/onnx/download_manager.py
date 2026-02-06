@@ -134,13 +134,15 @@ class ModelDownloadManager:
         """
         models = []
         for model_id, info in SUPPORTED_MODELS.items():
-            models.append({
-                "id": model_id,
-                "dimensions": info["dimensions"],
-                "size_mb": info["size_mb"],
-                "description": info["description"],
-                "downloaded": self.is_model_downloaded(model_id),
-            })
+            models.append(
+                {
+                    "id": model_id,
+                    "dimensions": info["dimensions"],
+                    "size_mb": info["size_mb"],
+                    "description": info["description"],
+                    "downloaded": self.is_model_downloaded(model_id),
+                }
+            )
         return models
 
     async def download_model(
@@ -165,8 +167,7 @@ class ModelDownloadManager:
         """
         if model_id not in SUPPORTED_MODELS:
             raise ValueError(
-                f"Unsupported model: {model_id}. "
-                f"Supported: {list(SUPPORTED_MODELS.keys())}"
+                f"Unsupported model: {model_id}. Supported: {list(SUPPORTED_MODELS.keys())}"
             )
 
         # Check if already downloaded
@@ -337,6 +338,7 @@ class ModelDownloadManager:
         # Verify model.onnx is loadable
         try:
             import onnxruntime as ort
+
             ort.InferenceSession(str(model_dir / "model.onnx"))
             return True
         except Exception as e:

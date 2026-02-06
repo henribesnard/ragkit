@@ -106,8 +106,7 @@ class ONNXLocalEmbedder(BaseEmbedder):
             from tokenizers import Tokenizer
         except ImportError as e:
             raise EmbeddingError(
-                "ONNX dependencies not installed. "
-                "Install with: pip install ragkit[desktop]"
+                "ONNX dependencies not installed. Install with: pip install ragkit[desktop]"
             ) from e
 
         model_path = self._model_path

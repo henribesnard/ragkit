@@ -197,9 +197,11 @@ async def test_onnx_embedder_mean_pooling():
     embedder = ONNXLocalEmbedder(config)
 
     # Test with simple inputs
-    hidden_states = np.array([
-        [[1.0, 2.0], [3.0, 4.0], [0.0, 0.0]],  # batch 1, seq_len 3, hidden 2
-    ])
+    hidden_states = np.array(
+        [
+            [[1.0, 2.0], [3.0, 4.0], [0.0, 0.0]],  # batch 1, seq_len 3, hidden 2
+        ]
+    )
     attention_mask = np.array([[1, 1, 0]])  # Only first 2 tokens are real
 
     pooled = embedder._mean_pooling(hidden_states, attention_mask)
@@ -241,6 +243,7 @@ def has_onnx_deps():
     try:
         import onnxruntime  # noqa: F401
         import tokenizers  # noqa: F401
+
         return True
     except ImportError:
         return False

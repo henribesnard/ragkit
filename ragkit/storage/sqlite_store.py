@@ -259,9 +259,7 @@ class SQLiteStore:
             Knowledge base as dict, or None if not found.
         """
         with self.connection() as conn:
-            cursor = conn.execute(
-                "SELECT * FROM knowledge_bases WHERE id = ?", (kb_id,)
-            )
+            cursor = conn.execute("SELECT * FROM knowledge_bases WHERE id = ?", (kb_id,))
             row = cursor.fetchone()
             return _row_to_dict(row) if row else None
 
@@ -275,9 +273,7 @@ class SQLiteStore:
             Knowledge base as dict, or None if not found.
         """
         with self.connection() as conn:
-            cursor = conn.execute(
-                "SELECT * FROM knowledge_bases WHERE name = ?", (name,)
-            )
+            cursor = conn.execute("SELECT * FROM knowledge_bases WHERE name = ?", (name,))
             row = cursor.fetchone()
             return _row_to_dict(row) if row else None
 
@@ -288,9 +284,7 @@ class SQLiteStore:
             List of knowledge bases as dicts.
         """
         with self.connection() as conn:
-            cursor = conn.execute(
-                "SELECT * FROM knowledge_bases ORDER BY updated_at DESC"
-            )
+            cursor = conn.execute("SELECT * FROM knowledge_bases ORDER BY updated_at DESC")
             return [_row_to_dict(row) for row in cursor.fetchall()]
 
     def update_knowledge_base(self, kb_id: str, **kwargs: Any) -> dict | None:
@@ -304,8 +298,12 @@ class SQLiteStore:
             Updated knowledge base, or None if not found.
         """
         allowed_fields = {
-            "name", "description", "document_count", "chunk_count",
-            "vector_store_path", "config"
+            "name",
+            "description",
+            "document_count",
+            "chunk_count",
+            "vector_store_path",
+            "config",
         }
         updates = {k: v for k, v in kwargs.items() if k in allowed_fields}
 
@@ -339,9 +337,7 @@ class SQLiteStore:
             True if deleted, False if not found.
         """
         with self.connection() as conn:
-            cursor = conn.execute(
-                "DELETE FROM knowledge_bases WHERE id = ?", (kb_id,)
-            )
+            cursor = conn.execute("DELETE FROM knowledge_bases WHERE id = ?", (kb_id,))
             return cursor.rowcount > 0
 
     # --- Document Operations ---
@@ -430,9 +426,7 @@ class SQLiteStore:
 
     def update_document(self, doc_id: str, **kwargs: Any) -> dict | None:
         """Update a document record."""
-        allowed_fields = {
-            "status", "error_message", "chunk_count", "hash", "metadata"
-        }
+        allowed_fields = {"status", "error_message", "chunk_count", "hash", "metadata"}
         updates = {k: v for k, v in kwargs.items() if k in allowed_fields}
 
         if not updates:
@@ -503,9 +497,7 @@ class SQLiteStore:
     def get_conversation(self, conv_id: str) -> dict | None:
         """Get a conversation by ID."""
         with self.connection() as conn:
-            cursor = conn.execute(
-                "SELECT * FROM conversations WHERE id = ?", (conv_id,)
-            )
+            cursor = conn.execute("SELECT * FROM conversations WHERE id = ?", (conv_id,))
             row = cursor.fetchone()
             return _row_to_dict(row) if row else None
 
@@ -572,9 +564,7 @@ class SQLiteStore:
     def delete_conversation(self, conv_id: str) -> bool:
         """Delete a conversation and all its messages."""
         with self.connection() as conn:
-            cursor = conn.execute(
-                "DELETE FROM conversations WHERE id = ?", (conv_id,)
-            )
+            cursor = conn.execute("DELETE FROM conversations WHERE id = ?", (conv_id,))
             return cursor.rowcount > 0
 
     # --- Message Operations ---
@@ -675,9 +665,7 @@ class SQLiteStore:
             Setting value or default.
         """
         with self.connection() as conn:
-            cursor = conn.execute(
-                "SELECT value_json FROM settings WHERE key = ?", (key,)
-            )
+            cursor = conn.execute("SELECT value_json FROM settings WHERE key = ?", (key,))
             row = cursor.fetchone()
             if row:
                 return json.loads(row[0])
@@ -752,9 +740,7 @@ class SQLiteStore:
     def delete_api_key(self, provider: str) -> bool:
         """Delete an API key."""
         with self.connection() as conn:
-            cursor = conn.execute(
-                "DELETE FROM api_keys WHERE provider = ?", (provider,)
-            )
+            cursor = conn.execute("DELETE FROM api_keys WHERE provider = ?", (provider,))
             return cursor.rowcount > 0
 
     def list_api_key_providers(self) -> list[str]:

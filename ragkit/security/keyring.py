@@ -271,6 +271,7 @@ class SecureKeyStore:
         """
         if self.keyring_available:
             import keyring
+
             backend = keyring.get_keyring()
             return f"keyring ({type(backend).__name__})"
         return "encrypted_sqlite"
