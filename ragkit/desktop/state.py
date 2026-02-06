@@ -9,11 +9,11 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from ragkit.storage.sqlite_store import SQLiteStore
-from ragkit.storage.kb_manager import KnowledgeBaseManager
-from ragkit.storage.conversation_manager import ConversationManager
-from ragkit.security.keyring import SecureKeyStore
 from ragkit.llm.providers.ollama_manager import OllamaManager
+from ragkit.security.keyring import SecureKeyStore
+from ragkit.storage.conversation_manager import ConversationManager
+from ragkit.storage.kb_manager import KnowledgeBaseManager
+from ragkit.storage.sqlite_store import SQLiteStore
 
 logger = logging.getLogger(__name__)
 

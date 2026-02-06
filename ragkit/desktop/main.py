@@ -12,7 +12,6 @@ import logging
 import signal
 import sys
 from contextlib import asynccontextmanager
-from pathlib import Path
 
 import uvicorn
 from fastapi import FastAPI

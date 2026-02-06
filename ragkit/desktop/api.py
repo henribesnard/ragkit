@@ -7,7 +7,6 @@ to interact with the backend.
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
@@ -24,8 +23,8 @@ router = APIRouter(prefix="/api")
 
 class CreateKnowledgeBaseRequest(BaseModel):
     name: str
-    description: Optional[str] = None
-    embedding_model: Optional[str] = None
+    description: str | None = None
+    embedding_model: str | None = None
 
 
 class AddDocumentsRequest(BaseModel):
@@ -33,8 +32,8 @@ class AddDocumentsRequest(BaseModel):
 
 
 class CreateConversationRequest(BaseModel):
-    kb_id: Optional[str] = None
-    title: Optional[str] = None
+    kb_id: str | None = None
+    title: str | None = None
 
 
 class QueryRequest(BaseModel):
@@ -115,7 +114,7 @@ async def create_knowledge_base(request: Request, body: CreateKnowledgeBaseReque
             "updated_at": kb.updated_at,
         }
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.delete("/knowledge-bases/{kb_id}")
@@ -159,7 +158,7 @@ async def add_documents(request: Request, kb_id: str, body: AddDocumentsRequest)
 
 
 @router.get("/conversations")
-async def list_conversations(request: Request, kb_id: Optional[str] = None):
+async def list_conversations(request: Request, kb_id: str | None = None):
     """List conversations."""
     state = get_state(request)
     convs = await state.conversation_manager.list(kb_id=kb_id)
@@ -444,6 +443,7 @@ async def start_ollama_service(request: Request):
 async def get_install_instructions():
     """Get Ollama installation instructions."""
     import sys
+
     from ragkit.llm.providers.ollama_manager import OllamaManager
 
     instructions = OllamaManager.get_install_instructions()
