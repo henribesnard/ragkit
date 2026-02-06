@@ -40,7 +40,7 @@ htmlcov/
 .idea/
 
 # Frontend
-ragkit-ui/node_modules/
+node_modules/
 ragkit-ui/dist/
 /.claude/
 !ragkit/ui/dist/
