@@ -46,6 +46,10 @@ ragkit-ui/dist/
 !ragkit/ui/dist/
 !ragkit/ui/dist/**
 
+# Environment
+.env
+.env.*
+
 # OS files
 .DS_Store
 Thumbs.db
