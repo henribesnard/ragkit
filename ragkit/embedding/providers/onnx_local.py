@@ -17,8 +17,8 @@ from ragkit.config.schema import EmbeddingModelConfig
 from ragkit.embedding.base import BaseEmbedder
 from ragkit.exceptions import EmbeddingError
 from ragkit.onnx.download_manager import (
-    ModelDownloadManager,
     SUPPORTED_MODELS,
+    ModelDownloadManager,
     get_model_dimensions,
 )
 

@@ -305,8 +305,8 @@ class KnowledgeBaseManager:
         if not kb_data:
             raise ValueError(f"Knowledge base not found: {kb_id}")
 
-        from ragkit.vectorstore.chroma import ChromaVectorStore
         from ragkit.config.schema import ChromaConfig
+        from ragkit.vectorstore.chroma import ChromaVectorStore
 
         vector_path = kb_data.get("vector_store_path")
         if not vector_path:

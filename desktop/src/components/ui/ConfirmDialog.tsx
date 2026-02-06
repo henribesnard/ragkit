@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
 import { AlertTriangle, Trash2, Info } from "lucide-react";
 import { Button } from "./Button";
-import { Modal, ModalFooter } from "./Modal";
+import { Modal } from "./Modal";
 import { cn } from "@/lib/utils";
 
 // Types

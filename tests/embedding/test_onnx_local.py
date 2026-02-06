@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import numpy as np
 import pytest
@@ -14,7 +13,6 @@ from ragkit.onnx.download_manager import (
     ModelDownloadManager,
     get_model_dimensions,
 )
-
 
 # --- Unit Tests for ModelDownloadManager ---
 

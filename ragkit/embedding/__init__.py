@@ -8,8 +8,8 @@ from ragkit.embedding.cache import CachedEmbedder, EmbeddingCache
 from ragkit.embedding.providers.cohere import CohereEmbedder
 from ragkit.embedding.providers.litellm import LiteLLMEmbedder
 from ragkit.embedding.providers.ollama import OllamaEmbedder
-from ragkit.embedding.providers.openai import OpenAIEmbedder
 from ragkit.embedding.providers.onnx_local import ONNXLocalEmbedder
+from ragkit.embedding.providers.openai import OpenAIEmbedder
 
 
 def create_embedder(config: EmbeddingModelConfig) -> BaseEmbedder:

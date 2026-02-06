@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import sqlite3
 from pathlib import Path
 
 import pytest
@@ -44,7 +45,7 @@ def test_create_knowledge_base_duplicate_name(db: SQLiteStore):
         embedding_dimensions=384,
     )
 
-    with pytest.raises(Exception):  # sqlite3.IntegrityError
+    with pytest.raises(sqlite3.IntegrityError):
         db.create_knowledge_base(
             name="Unique Name",
             embedding_model="test",

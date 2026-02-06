@@ -13,10 +13,11 @@ from __future__ import annotations
 import json
 import logging
 import sqlite3
+from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Generator
+from typing import Any
 from uuid import uuid4
 
 logger = logging.getLogger(__name__)
@@ -416,7 +417,8 @@ class SQLiteStore:
         with self.connection() as conn:
             if status:
                 cursor = conn.execute(
-                    "SELECT * FROM documents WHERE kb_id = ? AND status = ? ORDER BY created_at DESC",
+                    "SELECT * FROM documents WHERE kb_id = ? AND status = ? "
+                    "ORDER BY created_at DESC",
                     (kb_id, status),
                 )
             else:
