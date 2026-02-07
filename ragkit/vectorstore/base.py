@@ -55,3 +55,7 @@ class BaseVectorStore(ABC):
     @abstractmethod
     async def list_documents(self) -> list[str]:
         """Return list of document ids stored."""
+
+    @abstractmethod
+    async def list_chunks(self) -> list[Chunk]:
+        """Return all chunks stored."""

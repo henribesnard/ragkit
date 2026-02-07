@@ -79,6 +79,14 @@ class ResponseGeneratorAgent:
     ) -> list[dict[str, str]]:
         formatted_context = self._format_context(context)
         system = self.config.system_prompt.format(context=formatted_context)
+        if self.config.behavior.cite_sources:
+            if self.config.behavior.citation_format:
+                system += (
+                    "\nUse this citation format for sources: "
+                    f"{self.config.behavior.citation_format}"
+                )
+        else:
+            system += "\nDo not include citations or source attributions."
         if self.config.behavior.admit_uncertainty:
             system += (
                 f"\nIf the provided context does not contain relevant information "
@@ -132,13 +140,19 @@ class ResponseGeneratorAgent:
 
     def _format_context(self, context: Iterable[RetrievalResult]) -> str:
         lines: list[str] = []
+        include_sources = self.config.behavior.cite_sources
         for idx, result in enumerate(context, start=1):
             source = _source_name(result, self.config.behavior.source_path_mode)
             snippet = result.chunk.content.strip().replace("\n", " ")
-            lines.append(f"[{idx}] {source}: {snippet}")
+            if include_sources:
+                lines.append(f"[{idx}] {source}: {snippet}")
+            else:
+                lines.append(f"[{idx}] {snippet}")
         return "\n".join(lines)
 
     def _extract_sources(self, context: Iterable[RetrievalResult]) -> list[str]:
+        if not self.config.behavior.cite_sources:
+            return []
         seen: set[str] = set()
         sources: list[str] = []
         for result in context:

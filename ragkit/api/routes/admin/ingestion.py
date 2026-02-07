@@ -89,8 +89,26 @@ async def run_ingestion(payload: IngestionRunRequest, request: Request) -> Inges
 
             state.set("last_ingestion_time", datetime.now(timezone.utc).isoformat())
             state.set("last_ingestion_stats", stats.model_dump())
-            state.set("total_documents", stats.documents_loaded)
-            state.set("total_chunks", stats.chunks_stored)
+
+            total_documents = stats.documents_loaded
+            total_chunks = stats.chunks_stored
+            vector_store = getattr(request.app.state, "vector_store", None)
+            if vector_store is not None:
+                try:
+                    total_chunks = await vector_store.count()
+                    total_documents = len(await vector_store.list_documents())
+                except Exception:  # noqa: BLE001
+                    pass
+
+            state.set("total_documents", total_documents)
+            state.set("total_chunks", total_chunks)
+
+            orchestrator = getattr(request.app.state, "orchestrator", None)
+            if orchestrator is not None:
+                try:
+                    await orchestrator.retrieval.refresh_lexical_index()
+                except Exception:  # noqa: BLE001
+                    pass
 
             state.add_ingestion_run(
                 stats=stats.model_dump(),

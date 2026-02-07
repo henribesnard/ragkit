@@ -11,6 +11,7 @@ import tempfile
 import structlog
 
 from ragkit.config.schema import ParsingConfig
+from ragkit.exceptions import IngestionError
 from ragkit.ingestion.parsers.base import BaseParser, ParsedDocument
 from ragkit.ingestion.sources.base import RawDocument
 
@@ -93,28 +94,49 @@ class DOCXParser(BaseParser):
     async def parse(self, raw_doc: RawDocument) -> ParsedDocument:
         content = raw_doc.content
         file_type = raw_doc.file_type.lower() if raw_doc.file_type else "docx"
+        engine = (self.config.engine or "auto").lower()
+        if self.config.ocr.enabled:
+            self.logger.warning(
+                "docx_parser_ocr_ignored",
+                message="OCR is not supported for DOC/DOCX parsing",
+                source=raw_doc.source_path,
+            )
+        if engine == "pypdf":
+            raise IngestionError("pypdf engine is only supported for PDF parsing")
+        if engine == "docling":
+            raise IngestionError("docling engine is not supported for DOC/DOCX parsing")
         if isinstance(content, str):
             text = content
         elif file_type == "doc":
-            if not _has_doc_tools():
-                self.logger.warning(
-                    "doc_parser_missing_dependencies",
-                    message=(
-                        "antiword and soffice not found, .doc extraction may produce garbled text"
-                    ),
-                    source=raw_doc.source_path,
+            if engine == "unstructured":
+                text = _extract_with_unstructured(content, file_type="doc") or _fallback_decode(
+                    content
                 )
-            text = (
-                _extract_with_unstructured(content, file_type="doc")
-                or _extract_with_antiword(content)
-                or _fallback_decode(content)
-            )
+            else:
+                if not _has_doc_tools():
+                    self.logger.warning(
+                        "doc_parser_missing_dependencies",
+                        message=(
+                            "antiword and soffice not found, .doc extraction may produce garbled text"
+                        ),
+                        source=raw_doc.source_path,
+                    )
+                text = (
+                    _extract_with_unstructured(content, file_type="doc")
+                    or _extract_with_antiword(content)
+                    or _fallback_decode(content)
+                )
         else:
-            text = (
-                _extract_with_unstructured(content, file_type="docx")
-                or _extract_with_python_docx(content)
-                or _fallback_decode(content)
-            )
+            if engine == "unstructured":
+                text = _extract_with_unstructured(content, file_type="docx") or _fallback_decode(
+                    content
+                )
+            else:
+                text = (
+                    _extract_with_unstructured(content, file_type="docx")
+                    or _extract_with_python_docx(content)
+                    or _fallback_decode(content)
+                )
 
         metadata = dict(raw_doc.metadata)
         metadata.setdefault("file_type", file_type)

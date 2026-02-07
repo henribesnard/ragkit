@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
+import tempfile
 import time
 from pathlib import Path
 from typing import Any
@@ -55,7 +57,25 @@ class EmbeddingCache:
         payload: dict[str, Any] = {}
         for key, (embedding, ts) in self._memory.items():
             payload[key] = {"embedding": embedding, "ts": ts}
-        self.path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+        data = json.dumps(payload, indent=2)
+        tmp_name = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                "w",
+                encoding="utf-8",
+                dir=self.path.parent,
+                delete=False,
+            ) as handle:
+                handle.write(data)
+                tmp_name = handle.name
+            if tmp_name:
+                os.replace(tmp_name, self.path)
+        finally:
+            if tmp_name and os.path.exists(tmp_name):
+                try:
+                    os.unlink(tmp_name)
+                except OSError:
+                    pass
 
 
 class CachedEmbedder(BaseEmbedder):

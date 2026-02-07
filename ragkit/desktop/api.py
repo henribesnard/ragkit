@@ -7,10 +7,17 @@ to interact with the backend.
 from __future__ import annotations
 
 import logging
+import time
+from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
+
+from ragkit.config.defaults import default_ingestion_config
+from ragkit.ingestion.chunkers import create_chunker
+from ragkit.ingestion.parsers import create_parser
+from ragkit.ingestion.sources.base import RawDocument
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +71,73 @@ class SetApiKeyRequest(BaseModel):
 def get_state(request: Request) -> Any:
     """Get app state from request."""
     return request.app.state.app_state
+
+
+def _detect_file_type(path: Path) -> str:
+    suffix = path.suffix.lower().lstrip(".")
+    if suffix in {"md", "markdown"}:
+        return "md"
+    if suffix:
+        return suffix
+    return "unknown"
+
+
+def _read_content(path: Path, file_type: str) -> bytes | str:
+    if file_type in {"md", "txt"}:
+        return path.read_text(encoding="utf-8", errors="ignore")
+    return path.read_bytes()
+
+
+async def _ingest_document(
+    *,
+    path: Path,
+    document_id: str,
+    embedder: Any,
+    vector_store: Any,
+) -> int:
+    ingestion_defaults = default_ingestion_config()
+    parser = create_parser(ingestion_defaults.parsing)
+    chunker = create_chunker(ingestion_defaults.chunking, embedder=embedder)
+
+    file_type = _detect_file_type(path)
+    stat = path.stat()
+    metadata = {
+        "document_id": document_id,
+        "source_path": str(path),
+        "file_name": path.name,
+        "file_type": file_type,
+        "size": stat.st_size,
+        "modified_time": stat.st_mtime,
+    }
+    raw_doc = RawDocument(
+        content=_read_content(path, file_type),
+        source_path=str(path),
+        file_type=file_type,
+        metadata=metadata,
+    )
+
+    parsed = await parser.parse(raw_doc)
+    chunks = await chunker.chunk_async(parsed)
+    if not chunks:
+        return 0
+
+    embeddings = await embedder.embed([chunk.content for chunk in chunks])
+    if len(embeddings) != len(chunks):
+        raise RuntimeError(
+            f"Embedding count mismatch: {len(embeddings)} embeddings for {len(chunks)} chunks"
+        )
+    for chunk, embedding in zip(chunks, embeddings):
+        chunk.embedding = embedding
+
+    await vector_store.add(chunks)
+    return len(chunks)
+
+
+def _source_filename(metadata: dict[str, Any], fallback: str = "unknown") -> str:
+    source = metadata.get("file_name") or metadata.get("source") or metadata.get("source_path")
+    if source:
+        return Path(str(source)).name
+    return fallback
 
 
 # ============================================================================
@@ -140,17 +214,42 @@ async def add_documents(request: Request, kb_id: str, body: AddDocumentsRequest)
     if not kb:
         raise HTTPException(status_code=404, detail="Knowledge base not found")
 
+    embedder = state.get_embedder(kb.embedding_model, kb.embedding_dimensions)
+    vector_store = state.kb_manager.get_vector_store(kb_id)
+
     # Add each document
     added = []
     for path in body.paths:
+        doc = None
         try:
             doc = await state.kb_manager.add_document(kb_id, path)
             added.append(doc.id)
-        except (FileNotFoundError, ValueError) as e:
-            logger.warning(f"Failed to add document {path}: {e}")
+            chunk_count = await _ingest_document(
+                path=Path(path),
+                document_id=doc.id,
+                embedder=embedder,
+                vector_store=vector_store,
+            )
+            await state.kb_manager.update_document_status(
+                doc.id,
+                status="indexed",
+                chunk_count=chunk_count,
+            )
+        except (FileNotFoundError, ValueError, RuntimeError) as e:
+            logger.warning(f"Failed to ingest document {path}: {e}")
+            if doc is not None:
+                await state.kb_manager.update_document_status(
+                    doc.id,
+                    status="error",
+                    error_message=str(e),
+                )
 
-    # TODO: Trigger indexing pipeline
-    # This would process documents and add to vector store
+    await state.kb_manager.update_stats(kb_id)
+    try:
+        orchestrator = await state.get_orchestrator(kb_id)
+        await orchestrator.retrieval.refresh_lexical_index()
+    except Exception:  # noqa: BLE001
+        pass
 
     return {"added": added}
 
@@ -238,12 +337,13 @@ async def query(request: Request, body: QueryRequest) -> dict[str, Any]:
     if not kb:
         raise HTTPException(status_code=404, detail="Knowledge base not found")
 
-    # TODO: Implement actual RAG query
-    # For now, return a placeholder response
-    # This would:
-    # 1. Embed the question
-    # 2. Retrieve relevant chunks from vector store
-    # 3. Generate response using LLM
+    # Load conversation history
+    history_messages = await state.conversation_manager.get_messages(body.conversation_id)
+    history = [
+        {"role": msg.role, "content": msg.content}
+        for msg in history_messages
+        if msg.role in {"user", "assistant"}
+    ]
 
     # Add user message to conversation
     await state.conversation_manager.add_message(
@@ -252,26 +352,34 @@ async def query(request: Request, body: QueryRequest) -> dict[str, Any]:
         content=body.question,
     )
 
-    # Placeholder response
-    answer = (
-        f"This is a placeholder response. The RAG pipeline integration is pending.\n\n"
-        f"Your question was: {body.question}\n\n"
-        f"Knowledge base: {kb.name}"
-    )
+    orchestrator = await state.get_orchestrator(body.kb_id)
+    start = time.perf_counter()
+    result = await orchestrator.process(body.question, history)
+    latency_ms = int((time.perf_counter() - start) * 1000)
+
+    sources_payload = []
+    for item in result.context or []:
+        sources_payload.append(
+            {
+                "filename": _source_filename(item.chunk.metadata, fallback=kb.name),
+                "chunk": item.chunk.content,
+                "score": item.score,
+            }
+        )
 
     # Add assistant message
     await state.conversation_manager.add_message(
         conversation_id=body.conversation_id,
         role="assistant",
-        content=answer,
-        sources=[],
-        latency_ms=100,
+        content=result.response.content,
+        sources=sources_payload,
+        latency_ms=latency_ms,
     )
 
     return {
-        "answer": answer,
-        "sources": [],
-        "latency_ms": 100,
+        "answer": result.response.content,
+        "sources": sources_payload,
+        "latency_ms": latency_ms,
     }
 
 

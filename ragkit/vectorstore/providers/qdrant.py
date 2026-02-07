@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 from typing import Any, cast
 
@@ -38,6 +39,9 @@ class QdrantVectorStore(BaseVectorStore):
         self.collection_name = config.collection_name
         self._vector_size: int | None = None
 
+    async def _run_sync(self, func: Any, *args: Any, **kwargs: Any) -> Any:
+        return await asyncio.to_thread(func, *args, **kwargs)
+
     async def add(self, chunks: list[Chunk]) -> None:
         if not chunks:
             return
@@ -70,7 +74,11 @@ class QdrantVectorStore(BaseVectorStore):
                         },
                     )
                 )
-            self.client.upsert(collection_name=self.collection_name, points=points)
+            await self._run_sync(
+                self.client.upsert,
+                collection_name=self.collection_name,
+                points=points,
+            )
 
     async def search(
         self,
@@ -80,7 +88,8 @@ class QdrantVectorStore(BaseVectorStore):
     ) -> list[SearchResult]:
         qdrant_filter = _build_filter(filters)
         if hasattr(self.client, "query_points"):
-            response = self.client.query_points(
+            response = await self._run_sync(
+                self.client.query_points,
                 collection_name=self.collection_name,
                 query=query_embedding,
                 limit=top_k,
@@ -89,7 +98,8 @@ class QdrantVectorStore(BaseVectorStore):
             )
             points = _extract_points(response)
         elif hasattr(self.client, "search"):
-            results = self.client.search(
+            results = await self._run_sync(
+                self.client.search,
                 collection_name=self.collection_name,
                 query_vector=query_embedding,
                 limit=top_k,
@@ -119,17 +129,24 @@ class QdrantVectorStore(BaseVectorStore):
         if not ids:
             return
         normalized = [_normalize_id(item) for item in ids]
-        self.client.delete(
-            collection_name=self.collection_name, points_selector=cast(list[Any], normalized)
+        await self._run_sync(
+            self.client.delete,
+            collection_name=self.collection_name,
+            points_selector=cast(list[Any], normalized),
         )
 
     async def clear(self) -> None:
-        if self.client.collection_exists(self.collection_name):
-            self.client.delete_collection(self.collection_name)
+        exists = await self._run_sync(self.client.collection_exists, self.collection_name)
+        if exists:
+            await self._run_sync(self.client.delete_collection, self.collection_name)
         self._vector_size = None
 
     async def count(self) -> int:
-        result = self.client.count(collection_name=self.collection_name, exact=True)
+        result = await self._run_sync(
+            self.client.count,
+            collection_name=self.collection_name,
+            exact=True,
+        )
         count = getattr(result, "count", None)
         return int(count or 0)
 
@@ -149,8 +166,12 @@ class QdrantVectorStore(BaseVectorStore):
     async def list_documents(self) -> list[str]:
         document_ids: set[str] = set()
         next_offset: Any = None
+        exists = await self._run_sync(self.client.collection_exists, self.collection_name)
+        if not exists:
+            return []
         while True:
-            response = self.client.scroll(
+            response = await self._run_sync(
+                self.client.scroll,
                 collection_name=self.collection_name,
                 limit=256,
                 offset=next_offset,
@@ -167,12 +188,54 @@ class QdrantVectorStore(BaseVectorStore):
                 break
         return sorted(document_ids)
 
+    async def list_chunks(self) -> list[Chunk]:
+        chunks: list[Chunk] = []
+        next_offset: Any = None
+        exists = await self._run_sync(self.client.collection_exists, self.collection_name)
+        if not exists:
+            return chunks
+        while True:
+            response = await self._run_sync(
+                self.client.scroll,
+                collection_name=self.collection_name,
+                limit=256,
+                offset=next_offset,
+                with_payload=True,
+                with_vectors=False,
+            )
+            points, next_offset = _extract_scroll(response)
+            for point in points:
+                payload = getattr(point, "payload", None) or {}
+                metadata = payload.get("metadata", {}) or {}
+                chunk_id = payload.get("original_id") or getattr(point, "id", "")
+                chunks.append(
+                    Chunk(
+                        id=str(chunk_id),
+                        document_id=str(payload.get("document_id", "")),
+                        content=str(payload.get("content", "")),
+                        metadata=metadata,
+                        embedding=None,
+                    )
+                )
+            if not next_offset:
+                break
+        return chunks
+
     async def _ensure_collection(self, vector_size: int) -> None:
-        if self.client.collection_exists(self.collection_name):
+        exists = await self._run_sync(self.client.collection_exists, self.collection_name)
+        if exists:
+            info = await self._run_sync(self.client.get_collection, self.collection_name)
+            existing_size = _extract_vector_size(info)
+            if existing_size is not None and existing_size != vector_size:
+                raise RetrievalError(
+                    "Qdrant collection vector size mismatch: "
+                    f"expected {vector_size}, got {existing_size}"
+                )
             return
         from qdrant_client.models import VectorParams
 
-        self.client.create_collection(
+        await self._run_sync(
+            self.client.create_collection,
             collection_name=self.collection_name,
             vectors_config=VectorParams(
                 size=vector_size, distance=_distance(self.config.distance_metric)
@@ -218,6 +281,28 @@ def _extract_scroll(response: Any) -> tuple[list[Any], Any]:
     if points is None:
         points = []
     return list(points), next_offset
+
+
+def _extract_vector_size(info: Any) -> int | None:
+    if info is None:
+        return None
+    config = getattr(info, "config", None)
+    params = getattr(config, "params", None)
+    vectors = getattr(params, "vectors", None)
+    size = getattr(vectors, "size", None)
+    if size is not None:
+        return int(size)
+    if isinstance(info, dict):
+        try:
+            return int(
+                info.get("config", {})
+                .get("params", {})
+                .get("vectors", {})
+                .get("size")
+            )
+        except (TypeError, ValueError):
+            return None
+    return None
 
 
 def _normalize_id(raw_id: str | int) -> str | int:

@@ -5,17 +5,26 @@ from __future__ import annotations
 import io
 
 from ragkit.config.schema import ParsingConfig
+from ragkit.exceptions import IngestionError
 from ragkit.ingestion.parsers.base import BaseParser, ParsedDocument
 from ragkit.ingestion.sources.base import RawDocument
 
 
-def _extract_with_unstructured(raw_bytes: bytes) -> str | None:
+def _extract_with_unstructured(raw_bytes: bytes, config: ParsingConfig) -> str | None:
     try:
         from unstructured.partition.pdf import partition_pdf
     except Exception:
         return None
 
-    elements = partition_pdf(file=io.BytesIO(raw_bytes))
+    kwargs: dict[str, object] = {"file": io.BytesIO(raw_bytes)}
+    if config.ocr.enabled:
+        if config.ocr.languages:
+            kwargs["ocr_languages"] = config.ocr.languages
+        kwargs["strategy"] = "ocr_only"
+    try:
+        elements = partition_pdf(**kwargs)
+    except TypeError:
+        elements = partition_pdf(file=io.BytesIO(raw_bytes))
     parts: list[str] = []
     for element in elements:
         text = getattr(element, "text", None)
@@ -59,11 +68,21 @@ class PDFParser(BaseParser):
         if isinstance(content, str):
             text = content
         else:
-            text = (
-                _extract_with_unstructured(content)
-                or _extract_with_pypdf(content)
-                or _fallback_decode(content)
-            )
+            engine = (self.config.engine or "auto").lower()
+            if self.config.ocr.enabled and engine not in {"auto", "unstructured"}:
+                raise IngestionError("OCR is only supported with the unstructured engine")
+            if engine == "docling":
+                raise IngestionError("docling engine is not supported for PDF parsing")
+            if engine == "pypdf":
+                text = _extract_with_pypdf(content) or _fallback_decode(content)
+            elif engine == "unstructured":
+                text = _extract_with_unstructured(content, self.config) or _fallback_decode(content)
+            else:
+                text = (
+                    _extract_with_unstructured(content, self.config)
+                    or _extract_with_pypdf(content)
+                    or _fallback_decode(content)
+                )
 
         metadata = dict(raw_doc.metadata)
         metadata.setdefault("file_type", "pdf")

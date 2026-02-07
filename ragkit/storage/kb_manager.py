@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from ragkit.storage.sqlite_store import SQLiteStore
-    from ragkit.vectorstore.chroma import ChromaVectorStore
+    from ragkit.vectorstore.providers.chroma import ChromaVectorStore
 
 logger = logging.getLogger(__name__)
 
@@ -307,7 +307,7 @@ class KnowledgeBaseManager:
             raise ValueError(f"Knowledge base not found: {kb_id}")
 
         from ragkit.config.schema import ChromaConfig
-        from ragkit.vectorstore.chroma import ChromaVectorStore
+        from ragkit.vectorstore.providers.chroma import ChromaVectorStore
 
         vector_path = kb_data.get("vector_store_path")
         if not vector_path:
@@ -320,10 +320,7 @@ class KnowledgeBaseManager:
             add_batch_size=100,
         )
 
-        store = ChromaVectorStore(
-            config=config,
-            embedding_dimensions=kb_data["embedding_dimensions"],
-        )
+        store = ChromaVectorStore(config=config)
 
         self._vector_stores[kb_id] = store
         return store

@@ -12,3 +12,7 @@ class BaseChunker(ABC):
     @abstractmethod
     def chunk(self, document: ParsedDocument) -> list[Chunk]:
         """Split a document into chunks."""
+
+    async def chunk_async(self, document: ParsedDocument) -> list[Chunk]:
+        """Async chunking hook (defaults to sync chunker)."""
+        return self.chunk(document)

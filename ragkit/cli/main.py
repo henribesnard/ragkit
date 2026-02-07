@@ -37,6 +37,12 @@ def _load_dotenv(config_path: Path) -> None:
     load_dotenv(override=False)
 
 
+def _require_sections(cfg: Any, sections: list[str]) -> None:
+    missing = [name for name in sections if getattr(cfg, name, None) is None]
+    if missing:
+        raise typer.BadParameter(f"Missing configuration sections: {', '.join(missing)}")
+
+
 def _ensure_ui_assets() -> bool:
     ui_dist = Path(__file__).resolve().parent.parent / "ui" / "dist"
     if ui_dist.exists():
@@ -99,8 +105,7 @@ def ingest(
     _load_dotenv(config)
     loader = ConfigLoader()
     cfg = loader.load_with_env(config)
-    assert cfg.embedding is not None
-    assert cfg.ingestion is not None
+    _require_sections(cfg, ["embedding", "ingestion"])
 
     embedder = create_embedder(cfg.embedding.document_model)
     vector_store = create_vector_store(cfg.vector_store)
@@ -119,10 +124,7 @@ def query(
     _load_dotenv(config)
     loader = ConfigLoader()
     cfg = loader.load_with_env(config)
-    assert cfg.embedding is not None
-    assert cfg.retrieval is not None
-    assert cfg.llm is not None
-    assert cfg.agents is not None
+    _require_sections(cfg, ["embedding", "retrieval", "llm", "agents"])
 
     embedder_query = create_embedder(cfg.embedding.query_model)
     vector_store = create_vector_store(cfg.vector_store)
@@ -166,10 +168,7 @@ def serve(
     llm_router = None
 
     if not setup_mode:
-        assert cfg.embedding is not None
-        assert cfg.retrieval is not None
-        assert cfg.llm is not None
-        assert cfg.agents is not None
+        _require_sections(cfg, ["embedding", "retrieval", "llm", "agents"])
         embedder = create_embedder(cfg.embedding.query_model)
         vector_store = create_vector_store(cfg.vector_store)
         retrieval = RetrievalEngine(cfg.retrieval, vector_store, embedder)

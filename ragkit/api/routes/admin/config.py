@@ -123,7 +123,7 @@ async def apply_config(payload: ConfigUpdateRequest, request: Request) -> dict:
     if not config.is_configured:
         raise HTTPException(
             status_code=400,
-            detail={"errors": ["Configuration incomplete — all sections must be filled"]},
+            detail={"errors": ["Configuration incomplete -- all sections must be filled"]},
         )
 
     errors = validate_custom(config)

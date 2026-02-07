@@ -9,7 +9,14 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+from ragkit.agents import AgentOrchestrator
+from ragkit.config.defaults import default_agents_config, default_retrieval_config
+from ragkit.config.schema import EmbeddingModelConfig, EmbeddingParams, LLMConfig, LLMModelConfig, LLMParams
+from ragkit.embedding import create_embedder
+from ragkit.embedding.base import BaseEmbedder
+from ragkit.llm import LLMRouter
 from ragkit.llm.providers.ollama_manager import OllamaManager
+from ragkit.retrieval import RetrievalEngine
 from ragkit.security.keyring import SecureKeyStore
 from ragkit.storage.conversation_manager import ConversationManager
 from ragkit.storage.kb_manager import KnowledgeBaseManager
@@ -50,6 +57,11 @@ class AppState:
 
         # Settings cache
         self._settings: dict = {}
+
+        # Caches
+        self._embedder_cache: dict[tuple[str, str, str, int | None], BaseEmbedder] = {}
+        self._llm_router_cache: dict[tuple[str, str, str], LLMRouter] = {}
+        self._orchestrator_cache: dict[str, AgentOrchestrator] = {}
 
     async def initialize(self) -> None:
         """Initialize all components."""
@@ -118,4 +130,82 @@ class AppState:
                 self.db.set_setting(key, value)
                 self._settings[key] = value
 
+        # Clear caches when settings change
+        self._embedder_cache.clear()
+        self._llm_router_cache.clear()
+        self._orchestrator_cache.clear()
+
         return self._settings.copy()
+
+    def _get_api_key(self, provider: str) -> str | None:
+        if not self.key_store:
+            return None
+        return self.key_store.retrieve(provider)
+
+    def get_embedder(self, model: str, dimensions: int | None = None) -> BaseEmbedder:
+        provider = self._settings.get("embedding_provider", "onnx_local")
+        api_key = self._get_api_key(provider) or ""
+        cache_key = (provider, model, api_key, dimensions)
+        cached = self._embedder_cache.get(cache_key)
+        if cached:
+            return cached
+
+        config = EmbeddingModelConfig(
+            provider=provider,
+            model=model,
+            api_key=api_key or None,
+            params=EmbeddingParams(dimensions=dimensions),
+        )
+        embedder = create_embedder(config)
+        self._embedder_cache[cache_key] = embedder
+        return embedder
+
+    def get_llm_router(self) -> LLMRouter:
+        provider = self._settings.get("llm_provider", "ollama")
+        model = self._settings.get("llm_model", "llama3.2:3b")
+        api_key = self._get_api_key(provider) or ""
+        cache_key = (provider, model, api_key)
+        cached = self._llm_router_cache.get(cache_key)
+        if cached:
+            return cached
+
+        primary = LLMModelConfig(
+            provider=provider,
+            model=model,
+            api_key=api_key or None,
+            params=LLMParams(temperature=0.7, max_tokens=800, top_p=0.95),
+            timeout=60,
+            max_retries=2,
+        )
+        fast = LLMModelConfig(
+            provider=provider,
+            model=model,
+            api_key=api_key or None,
+            params=LLMParams(temperature=0.3, max_tokens=300, top_p=0.9),
+        )
+        config = LLMConfig(primary=primary, fast=fast)
+        router = LLMRouter(config)
+        self._llm_router_cache[cache_key] = router
+        return router
+
+    async def get_orchestrator(self, kb_id: str) -> AgentOrchestrator:
+        cached = self._orchestrator_cache.get(kb_id)
+        if cached:
+            return cached
+        if not self.kb_manager:
+            raise RuntimeError("KnowledgeBaseManager not initialized")
+        kb = await self.kb_manager.get(kb_id)
+        if not kb:
+            raise ValueError(f"Knowledge base not found: {kb_id}")
+
+        embedder = self.get_embedder(kb.embedding_model, kb.embedding_dimensions)
+        vector_store = self.kb_manager.get_vector_store(kb_id)
+        retrieval = RetrievalEngine(default_retrieval_config(), vector_store, embedder)
+        orchestrator = AgentOrchestrator(
+            default_agents_config(),
+            retrieval,
+            self.get_llm_router(),
+            metrics_enabled=False,
+        )
+        self._orchestrator_cache[kb_id] = orchestrator
+        return orchestrator

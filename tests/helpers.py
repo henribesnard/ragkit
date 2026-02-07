@@ -106,6 +106,9 @@ class DummyVectorStore(BaseVectorStore):
     async def list_documents(self) -> list[str]:
         return []
 
+    async def list_chunks(self) -> list[Chunk]:
+        return [result.chunk for result in self._results]
+
 
 # ---------------------------------------------------------------------------
 # Retrieval / orchestrator test doubles

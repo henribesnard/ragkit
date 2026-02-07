@@ -50,7 +50,7 @@ function sleep(ms: number): Promise<void> {
  */
 function calculateDelay(attempt: number, config: RetryConfig): number {
   const delay = config.initialDelayMs * Math.pow(config.backoffMultiplier, attempt - 1);
-  // Add jitter (±10%)
+  // Add jitter (+/-10%)
   const jitter = delay * 0.1 * (Math.random() * 2 - 1);
   return Math.min(delay + jitter, config.maxDelayMs);
 }

@@ -1,7 +1,20 @@
-﻿export function createWebSocket(onMessage: (data: any) => void) {
-  const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  const host = window.location.host;
-  const socket = new WebSocket(`${protocol}://${host}/api/v1/admin/ws`);
+import { apiClient } from './client';
+
+export function createWebSocket(onMessage: (data: any) => void) {
+  const baseURL = apiClient.defaults.baseURL || '';
+  let wsUrl: string;
+
+  try {
+    const base = baseURL ? new URL(baseURL, window.location.origin) : new URL(window.location.origin);
+    const wsBase = new URL('/api/v1/admin/ws', base);
+    wsBase.protocol = base.protocol === 'https:' ? 'wss:' : 'ws:';
+    wsUrl = wsBase.toString();
+  } catch {
+    const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+    wsUrl = `${protocol}://${window.location.host}/api/v1/admin/ws`;
+  }
+
+  const socket = new WebSocket(wsUrl);
 
   socket.addEventListener('message', (event) => {
     try {

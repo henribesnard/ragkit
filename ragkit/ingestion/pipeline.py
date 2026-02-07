@@ -100,7 +100,7 @@ class IngestionPipeline:
                         )
                         stats.documents_parsed += 1
 
-                        chunks = self.chunker.chunk(parsed)
+                        chunks = await self.chunker.chunk_async(parsed)
                         stats.chunks_created += len(chunks)
 
                         if self.embedder:
@@ -120,9 +120,14 @@ class IngestionPipeline:
                                 max_retries=self.max_retries,
                                 delay=self.retry_delay,
                             )
-                            for chunk, embedding in zip(chunks, embeddings, strict=False):
+                            if len(embeddings) != len(chunks):
+                                raise IngestionError(
+                                    "Embedding count mismatch: "
+                                    f"{len(embeddings)} embeddings for {len(chunks)} chunks"
+                                )
+                            for chunk, embedding in zip(chunks, embeddings):
                                 chunk.embedding = embedding
-                            stats.chunks_embedded += len(chunks)
+                            stats.chunks_embedded += len(embeddings)
 
                         if self.vector_store:
                             vector_store = self.vector_store

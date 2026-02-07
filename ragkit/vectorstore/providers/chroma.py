@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any, cast
 
 from ragkit.config.schema import ChromaConfig
@@ -28,6 +29,9 @@ class ChromaVectorStore(BaseVectorStore):
         self.collection: Any = self.client.get_or_create_collection(self.collection_name)
         self.add_batch_size = config.add_batch_size
 
+    async def _run_sync(self, func: Any, *args: Any, **kwargs: Any) -> Any:
+        return await asyncio.to_thread(func, *args, **kwargs)
+
     async def add(self, chunks: list[Chunk]) -> None:
         if not chunks:
             return
@@ -43,7 +47,8 @@ class ChromaVectorStore(BaseVectorStore):
                     raise RetrievalError("All chunks must have embeddings before adding")
                 embeddings.append(chunk.embedding)
 
-            self.collection.add(
+            await self._run_sync(
+                self.collection.add,
                 ids=[chunk.id for chunk in batch],
                 documents=[chunk.content for chunk in batch],
                 metadatas=[_metadata_payload(chunk) for chunk in batch],
@@ -56,7 +61,8 @@ class ChromaVectorStore(BaseVectorStore):
         top_k: int,
         filters: dict | None = None,
     ) -> list[SearchResult]:
-        results = self.collection.query(
+        results = await self._run_sync(
+            self.collection.query,
             query_embeddings=cast(Any, [query_embedding]),
             n_results=top_k,
             where=filters,
@@ -66,14 +72,16 @@ class ChromaVectorStore(BaseVectorStore):
     async def delete(self, ids: list[str]) -> None:
         if not ids:
             return
-        self.collection.delete(ids=ids)
+        await self._run_sync(self.collection.delete, ids=ids)
 
     async def clear(self) -> None:
-        self.client.delete_collection(self.collection_name)
-        self.collection = self.client.get_or_create_collection(self.collection_name)
+        await self._run_sync(self.client.delete_collection, self.collection_name)
+        self.collection = await self._run_sync(
+            self.client.get_or_create_collection, self.collection_name
+        )
 
     async def count(self) -> int:
-        return int(self.collection.count())
+        return int(await self._run_sync(self.collection.count))
 
     async def stats(self) -> VectorStoreStats:
         count = await self.count()
@@ -93,7 +101,12 @@ class ChromaVectorStore(BaseVectorStore):
         offset = 0
         batch_size = 1000
         while offset < total:
-            result = self.collection.get(limit=batch_size, offset=offset, include=["metadatas"])
+            result = await self._run_sync(
+                self.collection.get,
+                limit=batch_size,
+                offset=offset,
+                include=["metadatas"],
+            )
             metadatas = result.get("metadatas", []) if isinstance(result, dict) else []
             if not metadatas:
                 break
@@ -102,6 +115,41 @@ class ChromaVectorStore(BaseVectorStore):
                     document_ids.add(str(metadata["document_id"]))
             offset += len(metadatas)
         return sorted(document_ids)
+
+    async def list_chunks(self) -> list[Chunk]:
+        total = await self.count()
+        chunks: list[Chunk] = []
+        offset = 0
+        batch_size = 1000
+        while offset < total:
+            result = await self._run_sync(
+                self.collection.get,
+                limit=batch_size,
+                offset=offset,
+                include=["documents", "metadatas", "ids"],
+            )
+            if not isinstance(result, dict):
+                break
+            ids = result.get("ids", []) or []
+            documents = result.get("documents", []) or []
+            metadatas = result.get("metadatas", []) or []
+            if not ids:
+                break
+            for chunk_id, content, metadata in zip(ids, documents, metadatas):
+                metadata = metadata or {}
+                doc_id = metadata.get("document_id", "")
+                cleaned_meta = {k: v for k, v in metadata.items() if k != "document_id"}
+                chunks.append(
+                    Chunk(
+                        id=str(chunk_id),
+                        document_id=str(doc_id),
+                        content=str(content) if content is not None else "",
+                        metadata=cleaned_meta,
+                        embedding=None,
+                    )
+                )
+            offset += len(ids)
+        return chunks
 
 
 def _metadata_payload(chunk: Chunk) -> dict[str, Any]:

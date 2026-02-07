@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 import re
 from collections.abc import Iterable
+import inspect
 from pathlib import Path
 
 from ragkit.config.schema import SemanticChunkingConfig
@@ -37,13 +38,30 @@ def _cosine_similarity(vec_a: list[float], vec_b: list[float]) -> float:
     return dot / (norm_a * norm_b)
 
 
-def _maybe_embed(embedder: object, texts: Iterable[str]) -> list[list[float]] | None:
+def _maybe_embed_sync(embedder: object, texts: Iterable[str]) -> list[list[float]] | None:
     if embedder is None:
         return None
-    embed_fn = getattr(embedder, "embed_texts", None)
-    if embed_fn is None:
+    embed_texts = getattr(embedder, "embed_texts", None)
+    if callable(embed_texts):
+        return embed_texts(list(texts))
+    embed = getattr(embedder, "embed", None)
+    if callable(embed) and not inspect.iscoroutinefunction(embed):
+        return embed(list(texts))
+    return None
+
+
+async def _maybe_embed_async(embedder: object, texts: Iterable[str]) -> list[list[float]] | None:
+    if embedder is None:
         return None
-    return embed_fn(list(texts))
+    embed = getattr(embedder, "embed", None)
+    if callable(embed):
+        if inspect.iscoroutinefunction(embed):
+            return await embed(list(texts))
+        return embed(list(texts))
+    embed_texts = getattr(embedder, "embed_texts", None)
+    if callable(embed_texts):
+        return embed_texts(list(texts))
+    return None
 
 
 class SemanticChunker(BaseChunker):
@@ -59,8 +77,24 @@ class SemanticChunker(BaseChunker):
         sentences = _split_sentences(document.content)
         if not sentences:
             return []
+        embeddings = _maybe_embed_sync(self.embedder, sentences)
+        return self._build_chunks(document, sentences, embeddings)
 
-        embeddings = _maybe_embed(self.embedder, sentences)
+    async def chunk_async(self, document: ParsedDocument) -> list[Chunk]:
+        sentences = _split_sentences(document.content)
+        if not sentences:
+            return []
+        embeddings = await _maybe_embed_async(self.embedder, sentences)
+        return self._build_chunks(document, sentences, embeddings)
+
+    def _build_chunks(
+        self,
+        document: ParsedDocument,
+        sentences: list[str],
+        embeddings: list[list[float]] | None,
+    ) -> list[Chunk]:
+        if embeddings is not None and len(embeddings) != len(sentences):
+            embeddings = None
 
         doc_id = _document_id(document)
         chunks: list[Chunk] = []

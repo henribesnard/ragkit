@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 import sqlite3
-import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
@@ -23,22 +22,9 @@ from ragkit.metrics.models import (
 class MetricsCollector:
     """Collects and stores metrics for RAGKIT operations."""
 
-    _instance: MetricsCollector | None = None
-    _lock = threading.Lock()
-
-    def __new__(cls, *args: Any, **kwargs: Any) -> MetricsCollector:
-        if cls._instance is None:
-            with cls._lock:
-                if cls._instance is None:
-                    cls._instance = super().__new__(cls)
-        return cls._instance
-
     def __init__(self, db_path: Path | None = None) -> None:
-        if hasattr(self, "_initialized"):
-            return
         self.db_path = db_path or Path(".ragkit") / "metrics.db"
         self._init_db()
-        self._initialized = True
 
     def _init_db(self) -> None:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)

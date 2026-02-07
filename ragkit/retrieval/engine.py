@@ -39,8 +39,10 @@ class RetrievalEngine:
             else None
         )
         self.lexical = LexicalRetriever(config.lexical) if config.lexical.enabled else None
+        self._lexical_indexed = False
         if self.lexical and lexical_chunks is not None:
             self.lexical.index(lexical_chunks)
+            self._lexical_indexed = True
 
         self.reranker: BaseReranker | None = None
         if config.rerank.enabled:
@@ -50,6 +52,31 @@ class RetrievalEngine:
         if not self.lexical:
             return
         self.lexical.index(chunks)
+        self._lexical_indexed = True
+
+    async def refresh_lexical_index(self) -> None:
+        if not self.lexical:
+            return
+        try:
+            chunks = await self.vector_store.list_chunks()
+        except Exception as exc:  # noqa: BLE001
+            self.logger.warning("lexical_index_refresh_failed", error=str(exc))
+            return
+        if chunks:
+            self.lexical.index(chunks)
+            self._lexical_indexed = True
+
+    async def _ensure_lexical_indexed(self) -> None:
+        if not self.lexical or self._lexical_indexed:
+            return
+        try:
+            chunks = await self.vector_store.list_chunks()
+        except Exception as exc:  # noqa: BLE001
+            self.logger.warning("lexical_index_load_failed", error=str(exc))
+            return
+        if chunks:
+            self.lexical.index(chunks)
+            self._lexical_indexed = True
 
     async def retrieve(self, query: str) -> list[RetrievalResult]:
         results_by_type: dict[str, list[RetrievalResult]] = {}
@@ -58,6 +85,7 @@ class RetrievalEngine:
             results_by_type["semantic"] = await self.semantic.retrieve(query)
 
         if self.lexical:
+            await self._ensure_lexical_indexed()
             results_by_type["lexical"] = self.lexical.retrieve(query)
 
         if not results_by_type:
