@@ -1,23 +1,45 @@
 # RAGKIT Desktop - Guide d'installation et d'utilisation
 
-## Telecharger l'application
+## État actuel
 
-Rendez-vous sur la page des releases du projet :
+⚠️ **Les releases binaires ne sont pas encore disponibles.**
 
+Pour l'instant, l'installation se fait depuis le code source. Des releases binaires seront publiées prochainement sur :
 https://github.com/henribesnard/ragkit/releases
-
-Telecharger le fichier correspondant a votre systeme :
-
-| Systeme | Fichier a telecharger |
-|---------|----------------------|
-| Windows | `RAGKIT-Desktop_x.x.x_x64-setup.exe` ou `.msi` |
-| macOS (Intel) | `RAGKIT-Desktop_x.x.x_x64.dmg` |
-| macOS (Apple Silicon) | `RAGKIT-Desktop_x.x.x_aarch64.dmg` |
-| Linux | `RAGKIT-Desktop_x.x.x_amd64.AppImage` ou `.deb` |
 
 ---
 
-## Installer
+## Installation depuis le code source
+
+### Prérequis
+
+- Python 3.11 ou supérieur
+- Node.js 18+ et npm
+- Rust et Cargo (pour Tauri)
+
+### Étapes
+
+1. **Cloner le dépôt**
+```bash
+git clone https://github.com/henribesnard/ragkit.git
+cd ragkit
+```
+
+2. **Installer les dépendances Python**
+```bash
+pip install -e .
+```
+
+3. **Construire et lancer le desktop**
+```bash
+cd desktop
+npm install
+npm run tauri dev
+```
+
+---
+
+## Installer (une fois les releases disponibles)
 
 ### Windows
 
