@@ -81,6 +81,9 @@ class InMemoryVectorStore(BaseVectorStore):
     async def list_documents(self) -> list[str]:
         return sorted({chunk.document_id for chunk in self._chunks})
 
+    async def list_chunks(self) -> list[Chunk]:
+        return list(self._chunks)
+
 
 class DummyLLM:
     def __init__(self, json_response=None, text_response="Paris"):

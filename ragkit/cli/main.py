@@ -30,11 +30,20 @@ def _display_host(host: str) -> str:
     return host
 
 
+def _safe_load_dotenv(path: Path | None) -> None:
+    for encoding in ("utf-8", "utf-16", "latin-1"):
+        try:
+            load_dotenv(dotenv_path=path, override=False, encoding=encoding)
+            return
+        except UnicodeDecodeError:
+            continue
+
+
 def _load_dotenv(config_path: Path) -> None:
     config_env = config_path.parent / ".env"
     if config_env.exists():
-        load_dotenv(dotenv_path=config_env, override=False)
-    load_dotenv(override=False)
+        _safe_load_dotenv(config_env)
+    _safe_load_dotenv(None)
 
 
 def _require_sections(cfg: Any, sections: list[str]) -> None:

@@ -73,6 +73,9 @@ class InMemoryVectorStore(BaseVectorStore):
     async def list_documents(self) -> list[str]:
         return sorted({chunk.document_id for chunk in self._chunks})
 
+    async def list_chunks(self) -> list[Chunk]:
+        return list(self._chunks)
+
 
 @pytest.mark.asyncio
 @pytest.mark.e2e
