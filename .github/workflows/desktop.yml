@@ -111,6 +111,29 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[desktop]"
+          pip install pyinstaller
+
+      - name: Build Python backend executable
+        run: |
+          pyinstaller ragkit-backend.spec --distpath desktop/src-tauri/binaries
+        env:
+          PYTHONOPTIMIZE: 1
+
+      - name: Rename backend binary for Tauri sidecar
+        shell: bash
+        run: |
+          cd desktop/src-tauri/binaries
+          if [ "${{ runner.os }}" == "Windows" ]; then
+            mv ragkit-backend.exe "ragkit-backend-x86_64-pc-windows-msvc.exe"
+          elif [ "${{ runner.os }}" == "Linux" ]; then
+            mv ragkit-backend "ragkit-backend-x86_64-unknown-linux-gnu"
+          elif [ "${{ runner.os }}" == "macOS" ]; then
+            if [ "${{ matrix.target }}" == "aarch64-apple-darwin" ]; then
+              mv ragkit-backend "ragkit-backend-aarch64-apple-darwin"
+            else
+              mv ragkit-backend "ragkit-backend-x86_64-apple-darwin"
+            fi
+          fi
 
       # Install frontend dependencies
       - name: Install frontend dependencies
