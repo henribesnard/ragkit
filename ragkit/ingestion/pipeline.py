@@ -125,7 +125,7 @@ class IngestionPipeline:
                                     "Embedding count mismatch: "
                                     f"{len(embeddings)} embeddings for {len(chunks)} chunks"
                                 )
-                            for chunk, embedding in zip(chunks, embeddings):
+                            for chunk, embedding in zip(chunks, embeddings, strict=True):
                                 chunk.embedding = embedding
                             stats.chunks_embedded += len(embeddings)
 

@@ -135,7 +135,7 @@ class ChromaVectorStore(BaseVectorStore):
             metadatas = result.get("metadatas", []) or []
             if not ids:
                 break
-            for chunk_id, content, metadata in zip(ids, documents, metadatas):
+            for chunk_id, content, metadata in zip(ids, documents, metadatas, strict=False):
                 metadata = metadata or {}
                 doc_id = metadata.get("document_id", "")
                 cleaned_meta = {k: v for k, v in metadata.items() if k != "document_id"}

@@ -126,7 +126,7 @@ async def _ingest_document(
         raise RuntimeError(
             f"Embedding count mismatch: {len(embeddings)} embeddings for {len(chunks)} chunks"
         )
-    for chunk, embedding in zip(chunks, embeddings):
+    for chunk, embedding in zip(chunks, embeddings, strict=True):
         chunk.embedding = embedding
 
     await vector_store.add(chunks)

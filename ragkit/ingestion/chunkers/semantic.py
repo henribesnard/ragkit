@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import inspect
 import math
 import re
 from collections.abc import Iterable
-import inspect
 from pathlib import Path
 
 from ragkit.config.schema import SemanticChunkingConfig
