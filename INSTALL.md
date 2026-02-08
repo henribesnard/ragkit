@@ -8,8 +8,10 @@ https://github.com/henribesnard/ragkit/releases/latest
 ### Windows
 
 1. Lancer le fichier `.exe` ou `.msi` telecharge
-2. Suivre l'assistant d'installation
+2. Suivre l'assistant d'installation (WebView2 sera installe automatiquement si necessaire)
 3. L'application est disponible dans le menu Demarrer
+
+> **L'application ne se lance pas ?** Verifier les logs dans `%USERPROFILE%\.ragkit\logs\`
 
 ### macOS
 

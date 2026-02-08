@@ -5,13 +5,67 @@ mod backend;
 mod commands;
 
 use tauri::Manager;
-use tracing_subscriber;
+
+/// Get the log directory path (~/.ragkit/logs/)
+fn get_log_dir() -> std::path::PathBuf {
+    #[cfg(target_os = "windows")]
+    let home = std::env::var("USERPROFILE").unwrap_or_else(|_| "C:\\".to_string());
+    #[cfg(not(target_os = "windows"))]
+    let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
+
+    std::path::PathBuf::from(home).join(".ragkit").join("logs")
+}
+
+/// Show a native error dialog on Windows (no dependencies needed)
+#[cfg(target_os = "windows")]
+fn show_error_dialog(title: &str, message: &str) {
+    use std::ffi::OsStr;
+    use std::iter::once;
+    use std::os::windows::ffi::OsStrExt;
+
+    extern "system" {
+        fn MessageBoxW(
+            hwnd: *mut std::ffi::c_void,
+            text: *const u16,
+            caption: *const u16,
+            utype: u32,
+        ) -> i32;
+    }
+
+    let text: Vec<u16> = OsStr::new(message).encode_wide().chain(once(0)).collect();
+    let caption: Vec<u16> = OsStr::new(title).encode_wide().chain(once(0)).collect();
+
+    unsafe {
+        // MB_ICONERROR = 0x10
+        MessageBoxW(std::ptr::null_mut(), text.as_ptr(), caption.as_ptr(), 0x10);
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn show_error_dialog(_title: &str, message: &str) {
+    eprintln!("{}", message);
+}
 
 fn main() {
-    // Initialize logging
-    tracing_subscriber::fmt::init();
+    // Initialize file-based logging (visible even in release mode on Windows)
+    let log_dir = get_log_dir();
+    let _ = std::fs::create_dir_all(&log_dir);
 
-    tauri::Builder::default()
+    let file_appender = tracing_appender::rolling::daily(&log_dir, "ragkit-desktop.log");
+
+    tracing_subscriber::fmt()
+        .with_writer(file_appender)
+        .with_ansi(false)
+        .init();
+
+    tracing::info!("=== RAGKIT Desktop starting ===");
+    tracing::info!("Version: {}", env!("CARGO_PKG_VERSION"));
+    tracing::info!(
+        "Log directory: {}",
+        log_dir.display()
+    );
+
+    let result = tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_dialog::init())
         .setup(|app| {
@@ -59,6 +113,19 @@ fn main() {
             commands::start_ollama_service,
             commands::get_install_instructions,
         ])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .run(tauri::generate_context!());
+
+    if let Err(e) = result {
+        let error_msg = format!(
+            "RAGKIT Desktop failed to start:\n\n{}\n\n\
+            Possible fixes:\n\
+            - Install Microsoft Edge WebView2 Runtime\n\
+            - Install Visual C++ Redistributable (x64)\n\
+            - Check logs at: {}",
+            e,
+            log_dir.display()
+        );
+        tracing::error!("{}", error_msg);
+        show_error_dialog("RAGKIT Desktop - Startup Error", &error_msg);
+    }
 }
