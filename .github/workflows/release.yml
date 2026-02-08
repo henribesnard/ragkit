@@ -137,6 +137,11 @@ jobs:
           name: RAGKIT Desktop ${{ github.ref_name }}
           draft: true
           prerelease: ${{ contains(github.ref_name, '-') }}
+          allowUpdates: true
           body_path: release_notes.md
           files: |
-            artifacts/**/*
+            artifacts/**/*.AppImage
+            artifacts/**/*.deb
+            artifacts/**/*.dmg
+            artifacts/**/*.msi
+            artifacts/**/*.exe
