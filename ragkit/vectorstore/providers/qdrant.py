@@ -294,12 +294,7 @@ def _extract_vector_size(info: Any) -> int | None:
         return int(size)
     if isinstance(info, dict):
         try:
-            return int(
-                info.get("config", {})
-                .get("params", {})
-                .get("vectors", {})
-                .get("size")
-            )
+            return int(info.get("config", {}).get("params", {}).get("vectors", {}).get("size"))
         except (TypeError, ValueError):
             return None
     return None
