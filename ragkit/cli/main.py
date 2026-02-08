@@ -116,9 +116,13 @@ def ingest(
     cfg = loader.load_with_env(config)
     _require_sections(cfg, ["embedding", "ingestion"])
 
-    embedder = create_embedder(cfg.embedding.document_model)
+    embedding = cfg.embedding
+    ingestion = cfg.ingestion
+    assert embedding is not None
+    assert ingestion is not None
+    embedder = create_embedder(embedding.document_model)
     vector_store = create_vector_store(cfg.vector_store)
-    pipeline = IngestionPipeline(cfg.ingestion, embedder=embedder, vector_store=vector_store)
+    pipeline = IngestionPipeline(ingestion, embedder=embedder, vector_store=vector_store)
 
     stats = asyncio.run(pipeline.run(incremental=incremental))
     typer.echo(f"Ingestion complete: {stats}")
@@ -135,12 +139,21 @@ def query(
     cfg = loader.load_with_env(config)
     _require_sections(cfg, ["embedding", "retrieval", "llm", "agents"])
 
-    embedder_query = create_embedder(cfg.embedding.query_model)
+    embedding = cfg.embedding
+    retrieval_cfg = cfg.retrieval
+    llm_cfg = cfg.llm
+    agents_cfg = cfg.agents
+    assert embedding is not None
+    assert retrieval_cfg is not None
+    assert llm_cfg is not None
+    assert agents_cfg is not None
+
+    embedder_query = create_embedder(embedding.query_model)
     vector_store = create_vector_store(cfg.vector_store)
-    retrieval = RetrievalEngine(cfg.retrieval, vector_store, embedder_query)
-    llm_router = LLMRouter(cfg.llm)
+    retrieval = RetrievalEngine(retrieval_cfg, vector_store, embedder_query)
+    llm_router = LLMRouter(llm_cfg)
     orchestrator = AgentOrchestrator(
-        cfg.agents,
+        agents_cfg,
         retrieval,
         llm_router,
         metrics_enabled=cfg.observability.metrics.enabled,
@@ -178,12 +191,21 @@ def serve(
 
     if not setup_mode:
         _require_sections(cfg, ["embedding", "retrieval", "llm", "agents"])
-        embedder = create_embedder(cfg.embedding.query_model)
+        embedding = cfg.embedding
+        retrieval_cfg = cfg.retrieval
+        llm_cfg = cfg.llm
+        agents_cfg = cfg.agents
+        assert embedding is not None
+        assert retrieval_cfg is not None
+        assert llm_cfg is not None
+        assert agents_cfg is not None
+
+        embedder = create_embedder(embedding.query_model)
         vector_store = create_vector_store(cfg.vector_store)
-        retrieval = RetrievalEngine(cfg.retrieval, vector_store, embedder)
-        llm_router = LLMRouter(cfg.llm)
+        retrieval = RetrievalEngine(retrieval_cfg, vector_store, embedder)
+        llm_router = LLMRouter(llm_cfg)
         orchestrator = AgentOrchestrator(
-            cfg.agents,
+            agents_cfg,
             retrieval,
             llm_router,
             metrics_enabled=cfg.observability.metrics.enabled,

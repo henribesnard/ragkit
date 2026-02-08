@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+from typing import Any, cast
 
 from ragkit.config.schema import ParsingConfig
 from ragkit.exceptions import IngestionError
@@ -16,13 +17,13 @@ def _extract_with_unstructured(raw_bytes: bytes, config: ParsingConfig) -> str |
     except Exception:
         return None
 
-    kwargs: dict[str, object] = {"file": io.BytesIO(raw_bytes)}
+    kwargs: dict[str, Any] = {"file": io.BytesIO(raw_bytes)}
     if config.ocr.enabled:
         if config.ocr.languages:
             kwargs["ocr_languages"] = config.ocr.languages
         kwargs["strategy"] = "ocr_only"
     try:
-        elements = partition_pdf(**kwargs)
+        elements = partition_pdf(**cast(Any, kwargs))
     except TypeError:
         elements = partition_pdf(file=io.BytesIO(raw_bytes))
     parts: list[str] = []
