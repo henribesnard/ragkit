@@ -1,5 +1,7 @@
 # RAGKIT
 
+[![Release](https://img.shields.io/github/v/release/henribesnard/ragkit)](https://github.com/henribesnard/ragkit/releases/latest)
+
 RAGKIT is a configuration-first agentic RAG framework. It lets you run an end-to-end RAG system with YAML config only, available as a CLI tool, web server, or desktop application.
 
 ## Features
@@ -44,6 +46,9 @@ pip install -e ".[dev]"
 ```
 
 ### Option 3: Desktop Application
+
+Prebuilt installers are available on GitHub Releases:
+https://github.com/henribesnard/ragkit/releases/latest
 
 1. **Install Prerequisites**
 
