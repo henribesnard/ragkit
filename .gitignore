@@ -53,3 +53,8 @@ ragkit-ui/dist/
 # OS files
 .DS_Store
 Thumbs.db
+
+# PyInstaller
+*.spec.bak
+desktop/src-tauri/binaries/ragkit-backend*
+!desktop/src-tauri/binaries/.gitkeep

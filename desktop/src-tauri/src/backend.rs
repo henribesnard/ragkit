@@ -1,115 +1,155 @@
-//! Backend lifecycle management for the Python sidecar process.
+//! Backend lifecycle management.
+//!
+//! In production: launches the bundled ragkit-backend sidecar (PyInstaller executable).
+//! In development: launches `python -m ragkit.desktop.main` directly.
 
 use anyhow::{anyhow, Result};
 use std::sync::atomic::{AtomicU16, Ordering};
 use std::time::Duration;
-use tauri::{AppHandle, Manager};
-use tokio::process::{Child, Command};
+use tauri::AppHandle;
 use tokio::sync::Mutex;
 use tokio::time::sleep;
 
 // Global state for backend process
 static BACKEND_PORT: AtomicU16 = AtomicU16::new(0);
-static BACKEND_PROCESS: Mutex<Option<Child>> = Mutex::const_new(None);
 
-/// Get the backend API base URL
+/// Holds either a sidecar child or a tokio process child.
+enum BackendChild {
+    Sidecar(tauri_plugin_shell::process::CommandChild),
+    Process(tokio::process::Child),
+}
+
+static BACKEND_CHILD: Mutex<Option<BackendChild>> = Mutex::const_new(None);
+
+/// Get the backend API base URL.
 pub fn get_backend_url() -> String {
     let port = BACKEND_PORT.load(Ordering::Relaxed);
     format!("http://127.0.0.1:{}", port)
 }
 
-/// Start the Python backend process
+/// Start the Python backend process.
 pub async fn start_backend(app: &AppHandle) -> Result<()> {
-    // Find an available port
     let port = find_available_port().await?;
     BACKEND_PORT.store(port, Ordering::Relaxed);
 
-    tracing::info!("Starting Python backend on port {}", port);
+    tracing::info!("Starting backend on port {}", port);
 
-    // Get the path to the Python executable
-    // In development, we use the system Python
-    // In production, we bundle Python as a sidecar
-    let python_cmd = if cfg!(debug_assertions) {
-        "python".to_string()
+    let child = if cfg!(debug_assertions) {
+        start_dev_backend(port).await?
     } else {
-        // Look for bundled Python in resources
-        let resource_path = app.path().resource_dir()
-            .map_err(|e| anyhow!("Failed to get resource dir: {}", e))?;
-
-        #[cfg(target_os = "windows")]
-        let python_path = resource_path.join("python").join("python.exe");
-        #[cfg(not(target_os = "windows"))]
-        let python_path = resource_path.join("python").join("bin").join("python3");
-
-        python_path.to_string_lossy().to_string()
+        start_sidecar_backend(app, port)?
     };
 
-    // Start the backend process
-    let child = Command::new(&python_cmd)
-        .args([
-            "-m",
-            "ragkit.desktop.main",
-            "--port",
-            &port.to_string(),
-        ])
-        .kill_on_drop(true)
-        .spawn()
-        .map_err(|e| anyhow!("Failed to spawn backend process: {}", e))?;
-
-    // Store the process handle
     {
-        let mut process = BACKEND_PROCESS.lock().await;
-        *process = Some(child);
+        let mut guard = BACKEND_CHILD.lock().await;
+        *guard = Some(child);
     }
 
-    // Wait for backend to be ready
     wait_for_backend(port, Duration::from_secs(30)).await?;
-
-    tracing::info!("Python backend started successfully");
+    tracing::info!("Backend started successfully on port {}", port);
     Ok(())
 }
 
-/// Stop the Python backend process
+/// Development mode: launch via system Python.
+async fn start_dev_backend(port: u16) -> Result<BackendChild> {
+    tracing::info!("DEV MODE: launching python -m ragkit.desktop.main");
+    let child = tokio::process::Command::new("python")
+        .args(["-m", "ragkit.desktop.main", "--port", &port.to_string()])
+        .kill_on_drop(true)
+        .spawn()
+        .map_err(|e| anyhow!("Failed to spawn dev backend: {}", e))?;
+    Ok(BackendChild::Process(child))
+}
+
+/// Production mode: launch the bundled sidecar executable.
+fn start_sidecar_backend(app: &AppHandle, port: u16) -> Result<BackendChild> {
+    use tauri_plugin_shell::ShellExt;
+
+    tracing::info!("PRODUCTION: launching ragkit-backend sidecar");
+
+    let sidecar_cmd = app
+        .shell()
+        .sidecar("ragkit-backend")
+        .map_err(|e| anyhow!("Failed to create sidecar command: {}", e))?
+        .args(["--port", &port.to_string()]);
+
+    let (mut rx, child) = sidecar_cmd
+        .spawn()
+        .map_err(|e| anyhow!("Failed to spawn sidecar: {}", e))?;
+
+    // Log sidecar output in a background task
+    tauri::async_runtime::spawn(async move {
+        use tauri_plugin_shell::process::CommandEvent;
+        while let Some(event) = rx.recv().await {
+            match event {
+                CommandEvent::Stdout(line) => {
+                    tracing::info!("[backend stdout] {}", String::from_utf8_lossy(&line));
+                }
+                CommandEvent::Stderr(line) => {
+                    tracing::warn!("[backend stderr] {}", String::from_utf8_lossy(&line));
+                }
+                CommandEvent::Terminated(payload) => {
+                    tracing::info!("[backend] terminated with code: {:?}", payload.code);
+                    break;
+                }
+                CommandEvent::Error(err) => {
+                    tracing::error!("[backend] error: {}", err);
+                    break;
+                }
+                _ => {}
+            }
+        }
+    });
+
+    Ok(BackendChild::Sidecar(child))
+}
+
+/// Stop the backend process.
 pub async fn stop_backend(_app: &AppHandle) {
-    tracing::info!("Stopping Python backend");
+    tracing::info!("Stopping backend");
 
-    let mut process = BACKEND_PROCESS.lock().await;
-    if let Some(mut child) = process.take() {
-        // Try graceful shutdown first
-        let port = BACKEND_PORT.load(Ordering::Relaxed);
+    // Try graceful HTTP shutdown first
+    let port = BACKEND_PORT.load(Ordering::Relaxed);
+    if port > 0 {
         let shutdown_url = format!("http://127.0.0.1:{}/shutdown", port);
-
         if let Ok(client) = reqwest::Client::builder()
             .timeout(Duration::from_secs(5))
             .build()
         {
             let _ = client.post(&shutdown_url).send().await;
         }
-
-        // Give it a moment to shut down gracefully
         sleep(Duration::from_millis(500)).await;
+    }
 
-        // Force kill if still running
-        let _ = child.kill().await;
+    // Force kill
+    let mut guard = BACKEND_CHILD.lock().await;
+    if let Some(child) = guard.take() {
+        match child {
+            BackendChild::Sidecar(c) => {
+                let _ = c.kill();
+            }
+            BackendChild::Process(mut c) => {
+                let _ = c.kill().await;
+            }
+        }
     }
 
     BACKEND_PORT.store(0, Ordering::Relaxed);
-    tracing::info!("Python backend stopped");
+    tracing::info!("Backend stopped");
 }
 
-/// Find an available port for the backend
+/// Find an available port.
 async fn find_available_port() -> Result<u16> {
-    // Try ports in range 8100-8199
     for port in 8100..8200 {
         let addr = format!("127.0.0.1:{}", port);
         if tokio::net::TcpListener::bind(&addr).await.is_ok() {
             return Ok(port);
         }
     }
-    Err(anyhow!("No available port found"))
+    Err(anyhow!("No available port found in range 8100-8199"))
 }
 
-/// Wait for the backend to be ready
+/// Wait for the backend /health endpoint to respond.
 async fn wait_for_backend(port: u16, timeout: Duration) -> Result<()> {
     let health_url = format!("http://127.0.0.1:{}/health", port);
     let client = reqwest::Client::builder()
@@ -117,22 +157,20 @@ async fn wait_for_backend(port: u16, timeout: Duration) -> Result<()> {
         .build()?;
 
     let start = std::time::Instant::now();
-
     while start.elapsed() < timeout {
         match client.get(&health_url).send().await {
-            Ok(resp) if resp.status().is_success() => {
-                return Ok(());
-            }
-            _ => {
-                sleep(Duration::from_millis(250)).await;
-            }
+            Ok(resp) if resp.status().is_success() => return Ok(()),
+            _ => sleep(Duration::from_millis(250)).await,
         }
     }
 
-    Err(anyhow!("Backend failed to start within {} seconds", timeout.as_secs()))
+    Err(anyhow!(
+        "Backend failed to respond within {} seconds. Check logs at ~/.ragkit/logs/",
+        timeout.as_secs()
+    ))
 }
 
-/// Make an HTTP request to the backend
+/// Make an HTTP request to the backend.
 pub async fn backend_request<T: serde::de::DeserializeOwned>(
     method: reqwest::Method,
     path: &str,
@@ -142,12 +180,13 @@ pub async fn backend_request<T: serde::de::DeserializeOwned>(
     let client = reqwest::Client::new();
 
     let mut request = client.request(method, &url);
-
     if let Some(body) = body {
         request = request.json(&body);
     }
 
-    let response = request.send().await
+    let response = request
+        .send()
+        .await
         .map_err(|e| anyhow!("Request failed: {}", e))?;
 
     if !response.status().is_success() {
@@ -156,6 +195,8 @@ pub async fn backend_request<T: serde::de::DeserializeOwned>(
         return Err(anyhow!("Backend error ({}): {}", status, text));
     }
 
-    response.json::<T>().await
+    response
+        .json::<T>()
+        .await
         .map_err(|e| anyhow!("Failed to parse response: {}", e))
 }
