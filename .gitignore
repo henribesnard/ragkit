@@ -55,6 +55,10 @@ ragkit-ui/dist/
 .DS_Store
 Thumbs.db
 
+# Local-only artifacts
+loko.md
+desktop/src-tauri/gen/
+
 # PyInstaller
 *.spec.bak
 desktop/src-tauri/binaries/ragkit-backend*
