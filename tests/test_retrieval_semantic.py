@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-import numpy as np
 import pytest
+
+pytest.importorskip("torch")
+pytest.importorskip("sentence_transformers")
 
 from ragkit.config.schema_v2 import EmbeddingConfigV2, RetrievalConfigV2, VectorDBConfigV2
 from ragkit.embedding.advanced_embedder import AdvancedEmbedder
@@ -50,9 +52,7 @@ class TestSemanticRetrieval:
                 content="Java is also a popular programming language",
                 metadata={"source": "doc2"},
             ),
-            Chunk(
-                id="3", content="Cats are cute animals", metadata={"source": "doc3"}
-            ),
+            Chunk(id="3", content="Cats are cute animals", metadata={"source": "doc3"}),
         ]
 
         # Embed and index
@@ -154,9 +154,7 @@ class TestMetadataFiltering:
         await vectordb.insert_batch(chunks, embeddings)
 
         # Search with filter
-        results = await retriever.search(
-            "Python", top_k=10, filters={"source": "manual.pdf"}
-        )
+        results = await retriever.search("Python", top_k=10, filters={"source": "manual.pdf"})
 
         # Should only return docs from manual.pdf
         assert all(r.chunk.metadata["source"] == "manual.pdf" for r in results)

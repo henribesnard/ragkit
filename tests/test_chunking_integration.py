@@ -78,17 +78,13 @@ class TestChunkingPipeline:
                 "Python is widely used in web development, data science, and automation. "
                 "Popular frameworks include Django and Flask. "
             ),
-            metadata={"title": "Python Guide", "author": "Test"}
+            metadata={"title": "Python Guide", "author": "Test"},
         )
 
     @pytest.mark.asyncio
     async def test_fixed_size_chunking_pipeline(self, sample_document):
         """Test complete pipeline with fixed size chunking."""
-        config = ChunkingConfigV2(
-            strategy="fixed_size",
-            chunk_size=100,
-            chunk_overlap=20
-        )
+        config = ChunkingConfigV2(strategy="fixed_size", chunk_size=100, chunk_overlap=20)
 
         chunker = ChunkerFactory.create(config)
         chunks = await chunker.chunk_async(sample_document)
@@ -109,7 +105,7 @@ class TestChunkingPipeline:
             strategy="parent_child",
             parent_chunk_size=200,
             child_chunk_size=50,
-            parent_child_overlap=10
+            parent_child_overlap=10,
         )
 
         chunker = ChunkerFactory.create(config)
@@ -128,9 +124,7 @@ class TestChunkingPipeline:
     async def test_sliding_window_chunking_pipeline(self, sample_document):
         """Test complete pipeline with sliding window chunking."""
         config = ChunkingConfigV2(
-            strategy="sliding_window",
-            sentence_window_size=2,
-            window_stride=1
+            strategy="sliding_window", sentence_window_size=2, window_stride=1
         )
 
         chunker = ChunkerFactory.create(config)
@@ -148,10 +142,7 @@ class TestChunkingPipeline:
     async def test_recursive_chunking_pipeline(self, sample_document):
         """Test complete pipeline with recursive chunking."""
         config = ChunkingConfigV2(
-            strategy="recursive",
-            chunk_size=100,
-            chunk_overlap=20,
-            separators=["\n\n", "\n", ". "]
+            strategy="recursive", chunk_size=100, chunk_overlap=20, separators=["\n\n", "\n", ". "]
         )
 
         chunker = ChunkerFactory.create(config)
@@ -175,11 +166,7 @@ class TestConvenienceFunction:
 
     def test_create_chunker_parent_child(self):
         """Test create_chunker for parent-child."""
-        chunker = create_chunker(
-            "parent_child",
-            parent_chunk_size=2000,
-            child_chunk_size=400
-        )
+        chunker = create_chunker("parent_child", parent_chunk_size=2000, child_chunk_size=400)
 
         assert chunker is not None
 
@@ -188,10 +175,7 @@ class TestConvenienceFunction:
         """Test create_chunker end-to-end."""
         chunker = create_chunker("fixed_size", chunk_size=100, chunk_overlap=20)
 
-        document = ParsedDocument(
-            content="This is a test. " * 50,
-            metadata={}
-        )
+        document = ParsedDocument(content="This is a test. " * 50, metadata={})
 
         chunks = await chunker.chunk_async(document)
 
@@ -210,35 +194,23 @@ class TestStrategyComparison:
             content.append("This is a paragraph about section {i}. " * 20)
             content.append("\n\n")
 
-        return ParsedDocument(
-            content="".join(content),
-            metadata={"title": "Long Doc"}
-        )
+        return ParsedDocument(content="".join(content), metadata={"title": "Long Doc"})
 
     @pytest.mark.asyncio
     async def test_strategy_comparison(self, long_document):
         """Compare chunk counts across strategies."""
         strategies = {
-            "fixed_size": ChunkingConfigV2(
-                strategy="fixed_size",
-                chunk_size=200,
-                chunk_overlap=50
-            ),
+            "fixed_size": ChunkingConfigV2(strategy="fixed_size", chunk_size=200, chunk_overlap=50),
             "parent_child": ChunkingConfigV2(
                 strategy="parent_child",
                 parent_chunk_size=500,
                 child_chunk_size=200,
             ),
             "sliding_window": ChunkingConfigV2(
-                strategy="sliding_window",
-                sentence_window_size=3,
-                window_stride=1
+                strategy="sliding_window", sentence_window_size=3, window_stride=1
             ),
             "recursive": ChunkingConfigV2(
-                strategy="recursive",
-                chunk_size=200,
-                chunk_overlap=50,
-                separators=["\n\n", ". "]
+                strategy="recursive", chunk_size=200, chunk_overlap=50, separators=["\n\n", ". "]
             ),
         }
 
@@ -275,15 +247,11 @@ class TestMetadataPreservation:
                 "title": "Test Document",
                 "author": "John Doe",
                 "date": "2024-01-01",
-                "source": "test.pdf"
-            }
+                "source": "test.pdf",
+            },
         )
 
-        config = ChunkingConfigV2(
-            strategy="fixed_size",
-            chunk_size=100,
-            add_document_title=True
-        )
+        config = ChunkingConfigV2(strategy="fixed_size", chunk_size=100, add_document_title=True)
 
         chunker = ChunkerFactory.create(config)
         chunks = await chunker.chunk_async(document)

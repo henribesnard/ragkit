@@ -1,4 +1,4 @@
-﻿"""Image extraction utilities for advanced parsing."""
+"""Image extraction utilities for advanced parsing."""
 
 from __future__ import annotations
 
@@ -62,8 +62,9 @@ class ImageProcessor:
             self._caption_model = BlipForConditionalGeneration.from_pretrained(model_name)
 
         try:
-            from PIL import Image
             import io
+
+            from PIL import Image
         except Exception as exc:  # noqa: BLE001
             logger.warning("Pillow not available for captioning: %s", exc)
             return ""

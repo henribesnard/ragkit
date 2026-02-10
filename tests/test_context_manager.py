@@ -28,8 +28,7 @@ def test_context_truncation_respects_token_budget():
     )
     manager = ContextManager(config, tokenizer=SimpleTokenizer())
     docs = [
-        Document(id=str(i), content="word " * 40, metadata={"source": f"doc{i}"})
-        for i in range(3)
+        Document(id=str(i), content="word " * 40, metadata={"source": f"doc{i}"}) for i in range(3)
     ]
     context = manager.prepare_context(docs)
     token_count = len(manager.tokenizer.encode(context))

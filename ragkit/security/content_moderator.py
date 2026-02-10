@@ -62,9 +62,7 @@ class ContentModerator:
             scores = model.predict(text)
             toxicity = float(scores.get("toxicity", 0.0))
             if toxicity > self.config.toxicity_threshold:
-                raise ToxicContentException(
-                    f"Toxic content detected (score: {toxicity:.2f})"
-                )
+                raise ToxicContentException(f"Toxic content detected (score: {toxicity:.2f})")
             return {k: float(v) for k, v in scores.items()}
 
         lowered = text.lower()

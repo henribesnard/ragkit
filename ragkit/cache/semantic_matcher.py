@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
-from typing import Any, Awaitable, Callable
 
 from ragkit.config.schema_v2 import CacheConfigV2
 
@@ -37,7 +37,11 @@ class SemanticMatcher:
         best_key = None
         best_score = 0.0
         async with self._lock:
-            expired = [key for key, entry in self._store.items() if entry.expires_at and entry.expires_at < now]
+            expired = [
+                key
+                for key, entry in self._store.items()
+                if entry.expires_at and entry.expires_at < now
+            ]
             for key in expired:
                 self._store.pop(key, None)
 
@@ -75,7 +79,7 @@ def _cosine_similarity(a: list[float], b: list[float]) -> float:
         return 0.0
     if len(a) != len(b):
         return 0.0
-    dot = sum(x * y for x, y in zip(a, b))
+    dot = sum(x * y for x, y in zip(a, b, strict=False))
     norm_a = sum(x * x for x in a) ** 0.5
     norm_b = sum(y * y for y in b) ** 0.5
     if norm_a == 0 or norm_b == 0:

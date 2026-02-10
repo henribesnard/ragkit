@@ -46,8 +46,7 @@ class PromptBuilder:
 
         if self.config.output_format == "json" and self.config.json_schema:
             prompt_parts.append(
-                "- Return ONLY valid JSON matching this schema:\n"
-                f"{self.config.json_schema}"
+                f"- Return ONLY valid JSON matching this schema:\n{self.config.json_schema}"
             )
         elif self.config.output_format == "markdown":
             prompt_parts.append("- Format the response in Markdown")

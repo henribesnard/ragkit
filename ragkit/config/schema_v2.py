@@ -1,8 +1,9 @@
-﻿"""Pydantic models for RAGKIT v2 configuration."""
+"""Pydantic models for RAGKIT v2 configuration."""
 
 from __future__ import annotations
 
-from typing import Any, Callable, Literal, TypeVar, cast
+from collections.abc import Callable
+from typing import Any, Literal, TypeVar, cast
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -417,7 +418,8 @@ class LLMGenerationConfigV2(BaseModel):
 
     system_prompt: str = (
         "You are a helpful assistant. Answer the question based ONLY on the provided context. "
-        "If the context does not contain enough information, say 'I do not have enough information.'"
+        "If the context does not contain enough information, say "
+        "'I do not have enough information.'"
     )
     few_shot_examples: list[dict[str, Any]] = Field(default_factory=list)
     chain_of_thought: bool = False
@@ -587,7 +589,9 @@ class RAGKitConfigV2(BaseModel):
 
     wizard: WizardProfileConfig | None = None
     parsing: DocumentParsingConfig = Field(default_factory=_model_factory(DocumentParsingConfig))
-    preprocessing: TextPreprocessingConfig = Field(default_factory=_model_factory(TextPreprocessingConfig))
+    preprocessing: TextPreprocessingConfig = Field(
+        default_factory=_model_factory(TextPreprocessingConfig)
+    )
     chunking: ChunkingConfigV2 = Field(default_factory=_model_factory(ChunkingConfigV2))
     embedding: EmbeddingConfigV2 = Field(default_factory=_model_factory(EmbeddingConfigV2))
     vector_db: VectorDBConfigV2 = Field(default_factory=_model_factory(VectorDBConfigV2))

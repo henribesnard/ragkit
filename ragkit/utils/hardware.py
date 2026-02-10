@@ -1,4 +1,4 @@
-﻿"""Hardware detection utilities for the wizard."""
+"""Hardware detection utilities for the wizard."""
 
 from __future__ import annotations
 

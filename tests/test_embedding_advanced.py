@@ -5,6 +5,9 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
+pytest.importorskip("torch")
+pytest.importorskip("sentence_transformers")
+
 from ragkit.config.schema_v2 import EmbeddingConfigV2
 from ragkit.embedding.advanced_embedder import AdvancedEmbedder
 
@@ -49,11 +52,13 @@ class TestEmbeddingCaching:
         await embedder.embed_batch(["Text A", "Text B"])
 
         # Embed 3 texts: 2 cached, 1 new
-        embeddings = await embedder.embed_batch([
-            "Text A",  # Cache hit
-            "Text C",  # Cache miss
-            "Text B",  # Cache hit
-        ])
+        embeddings = await embedder.embed_batch(
+            [
+                "Text A",  # Cache hit
+                "Text C",  # Cache miss
+                "Text B",  # Cache hit
+            ]
+        )
 
         # Verify dimensions
         assert embeddings.shape == (3, 384)  # all-MiniLM-L6-v2 = 384 dims
@@ -78,7 +83,7 @@ class TestRateLimiter:
         start = time.time()
 
         # Make 4 requests
-        for i in range(4):
+        for _i in range(4):
             await limiter.acquire(tokens=100)
 
         elapsed = time.time() - start

@@ -43,9 +43,7 @@ def maximal_marginal_relevance(
         raise ValueError("Number of results must match number of embeddings")
 
     # Compute relevance scores (similarity to query)
-    relevance_scores = [
-        cosine_similarity(query_embedding, emb) for emb in embeddings
-    ]
+    relevance_scores = [cosine_similarity(query_embedding, emb) for emb in embeddings]
 
     # Initialize
     selected_indices = []
@@ -147,8 +145,7 @@ def diversify_results(
     for i in range(1, len(results)):
         # Check similarity with all selected documents
         similarities = [
-            cosine_similarity(embeddings[i], sel_emb)
-            for sel_emb in selected_embeddings
+            cosine_similarity(embeddings[i], sel_emb) for sel_emb in selected_embeddings
         ]
 
         # If not too similar to any selected doc, add it

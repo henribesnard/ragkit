@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import pytest
 
+pytest.importorskip("torch")
+pytest.importorskip("sentence_transformers")
+
 from ragkit.config.schema_v2 import EmbeddingConfigV2, RetrievalConfigV2, VectorDBConfigV2
 from ragkit.embedding.advanced_embedder import AdvancedEmbedder
 from ragkit.models import Chunk
@@ -130,8 +133,6 @@ class TestFusionMethods:
         # Create mock results
         chunk1 = Chunk(id="1", content="Doc 1", metadata={})
         chunk2 = Chunk(id="2", content="Doc 2", metadata={})
-        chunk3 = Chunk(id="3", content="Doc 3", metadata={})
-
         semantic_results = [
             SearchResult(chunk=chunk1, score=0.95, metadata={}),
             SearchResult(chunk=chunk2, score=0.50, metadata={}),

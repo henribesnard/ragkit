@@ -135,7 +135,7 @@ class AdvancedEmbedder:
             # Step 7: Cache store
             if self.cache is not None:
                 new_idx = 0
-                for i, cache_key in enumerate(cache_keys):
+                for _i, cache_key in enumerate(cache_keys):
                     if cache_key is not None:
                         self.cache[cache_key] = new_embeddings[new_idx]
                         new_idx += 1
@@ -320,9 +320,10 @@ class AdvancedEmbedder:
         n_samples, n_features = embeddings.shape
         effective_dims = min(target_dims, n_samples, n_features)
 
-        if self._reduction_model is None or getattr(
-            self._reduction_model, "n_components", None
-        ) != effective_dims:
+        if (
+            self._reduction_model is None
+            or getattr(self._reduction_model, "n_components", None) != effective_dims
+        ):
             if self.config.dimensionality_reduction == "pca":
                 from sklearn.decomposition import PCA
 

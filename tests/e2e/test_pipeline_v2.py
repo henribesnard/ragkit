@@ -16,8 +16,6 @@ import time
 
 import pytest
 
-from ragkit.models import Chunk
-
 
 class TestFullRAGPipelineV2:
     """Test complete RAG pipeline end-to-end with V2 components."""
@@ -91,14 +89,12 @@ class TestFullRAGPipelineV2:
 
             # Check scores are descending
             for i in range(len(reranked_results) - 1):
-                assert (
-                    reranked_results[i].score >= reranked_results[i + 1].score
-                ), "Scores should be descending"
+                assert reranked_results[i].score >= reranked_results[i + 1].score, (
+                    "Scores should be descending"
+                )
 
             # Check relevance (at least one expected doc in top 5)
-            top_parent_ids = {
-                r.chunk.metadata.get("parent_id") for r in reranked_results
-            }
+            top_parent_ids = {r.chunk.metadata.get("parent_id") for r in reranked_results}
             overlap = len(set(expected_docs) & top_parent_ids)
             assert overlap >= 1, f"Expected at least one relevant doc, got {top_parent_ids}"
 
@@ -106,7 +102,8 @@ class TestFullRAGPipelineV2:
             print("\nTop 5 reranked results:")
             for result in reranked_results:
                 parent_id = result.chunk.metadata.get("parent_id", "unknown")
-                print(f"  {result.rank}. [{result.score:.3f}] {parent_id}: {result.chunk.content[:60]}...")
+                preview = result.chunk.content[:60]
+                print(f"  {result.rank}. [{result.score:.3f}] {parent_id}: {preview}...")
 
             # Total latency
             total_latency = (retrieval_time + rerank_time) * 1000
@@ -225,7 +222,9 @@ class TestFullRAGPipelineV2:
         linear_parent_ids = {r.chunk.metadata.get("parent_id") for r in linear_results}
 
         # Both should find doc_1 (API security)
-        assert "doc_1" in rrf_parent_ids or "doc_1" in linear_parent_ids, "Should find API security doc"
+        assert "doc_1" in rrf_parent_ids or "doc_1" in linear_parent_ids, (
+            "Should find API security doc"
+        )
 
 
 class TestPipelineLatency:
@@ -265,7 +264,7 @@ class TestPipelineLatency:
 
         total_latency = (time.time() - start) * 1000
 
-        print(f"\n=== Latency Breakdown ===")
+        print("\n=== Latency Breakdown ===")
         print(f"Total E2E latency: {total_latency:.0f}ms")
 
         # Assertions (realistic latency for CPU)
@@ -298,17 +297,17 @@ class TestPipelineLatency:
         queries = [q["query"] for q in sample_queries]
 
         start = time.time()
-        results_list = await asyncio.gather(
-            *[hybrid.search(q, top_k=5) for q in queries]
-        )
+        results_list = await asyncio.gather(*[hybrid.search(q, top_k=5) for q in queries])
         elapsed = time.time() - start
 
-        print(f"\n=== Concurrent Queries ===")
+        print("\n=== Concurrent Queries ===")
         print(f"Processed {len(queries)} queries in {elapsed:.2f}s")
         print(f"QPS: {len(queries) / elapsed:.1f}")
 
         # All queries should return results
-        assert all(len(results) > 0 for results in results_list), "All queries should return results"
+        assert all(len(results) > 0 for results in results_list), (
+            "All queries should return results"
+        )
 
         # Check QPS is reasonable
         qps = len(queries) / elapsed

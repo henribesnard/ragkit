@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import numpy as np
-
 from ragkit.config.schema_v2 import RetrievalConfigV2
 from ragkit.embedding.advanced_embedder import AdvancedEmbedder
 from ragkit.models import Chunk
@@ -99,9 +97,7 @@ class SemanticRetriever(BaseRetriever):
 
         # 6. Filter by score threshold
         if self.config.score_threshold > 0:
-            search_results = [
-                r for r in search_results if r.score >= self.config.score_threshold
-            ]
+            search_results = [r for r in search_results if r.score >= self.config.score_threshold]
 
         return search_results
 

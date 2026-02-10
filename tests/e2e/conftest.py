@@ -9,6 +9,9 @@ from typing import Any
 
 import pytest
 
+pytest.importorskip("torch")
+pytest.importorskip("sentence_transformers")
+
 from ragkit.config.schema_v2 import (
     EmbeddingConfigV2,
     RerankingConfigV2,
@@ -22,7 +25,6 @@ from ragkit.retrieval.hybrid_retriever import HybridRetriever
 from ragkit.retrieval.lexical_retriever import LexicalRetriever
 from ragkit.retrieval.semantic_retriever import SemanticRetriever
 from ragkit.vectorstore.chromadb_adapter import ChromaDBAdapter
-
 
 # E2E fixtures are also inherited from tests/conftest.py (sample_docs, etc.)
 
@@ -212,7 +214,7 @@ async def rag_pipeline_components():
     # Cleanup
     try:
         await vectordb.delete_collection()
-    except:
+    except Exception:  # noqa: BLE001
         pass
 
 
@@ -275,7 +277,7 @@ def load_baseline(filename: str, output_dir: Path = None) -> dict:
             "precision_at_5": 0.70,
         }
 
-    with open(baseline_path, "r") as f:
+    with open(baseline_path) as f:
         return json.load(f)
 
 

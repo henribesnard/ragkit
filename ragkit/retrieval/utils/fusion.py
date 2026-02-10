@@ -86,7 +86,11 @@ def linear_fusion(
             normalized_sem = normalize_scores(sem_score_list, method=normalization_method)
             sem_scores = {
                 chunk_id: norm_score
-                for chunk_id, norm_score in zip(sem_scores.keys(), normalized_sem)
+                for chunk_id, norm_score in zip(
+                    sem_scores.keys(),
+                    normalized_sem,
+                    strict=False,
+                )
             }
 
         if lex_scores:
@@ -94,7 +98,11 @@ def linear_fusion(
             normalized_lex = normalize_scores(lex_score_list, method=normalization_method)
             lex_scores = {
                 chunk_id: norm_score
-                for chunk_id, norm_score in zip(lex_scores.keys(), normalized_lex)
+                for chunk_id, norm_score in zip(
+                    lex_scores.keys(),
+                    normalized_lex,
+                    strict=False,
+                )
             }
 
     # Combine scores
@@ -167,7 +175,14 @@ def weighted_sum_fusion(
         if normalize and scores:
             score_list = list(scores.values())
             normalized = normalize_scores(score_list, method=normalization_method)
-            scores = {chunk_id: norm for chunk_id, norm in zip(scores.keys(), normalized)}
+            scores = {
+                chunk_id: norm
+                for chunk_id, norm in zip(
+                    scores.keys(),
+                    normalized,
+                    strict=False,
+                )
+            }
 
         score_maps.append(scores)
 
@@ -186,7 +201,7 @@ def weighted_sum_fusion(
         # Weighted sum
         combined_score = sum(
             weight * score_map.get(chunk_id, 0.0)
-            for weight, score_map in zip(weights, score_maps)
+            for weight, score_map in zip(weights, score_maps, strict=False)
         )
 
         merged.append(

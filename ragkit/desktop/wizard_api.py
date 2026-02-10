@@ -1,4 +1,4 @@
-﻿"""API endpoints for the configuration wizard."""
+"""API endpoints for the configuration wizard."""
 
 from __future__ import annotations
 

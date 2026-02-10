@@ -102,14 +102,16 @@ class SlidingWindowChunker(BaseChunker):
 
             # Create chunk
             metadata = dict(document.metadata)
-            metadata.update({
-                "chunk_index": len(chunks),
-                "window_center": center_idx,
-                "window_start": start_idx,
-                "window_end": end_idx,
-                "window_size": self.window_size,
-                "num_sentences": len(window_sentences),
-            })
+            metadata.update(
+                {
+                    "chunk_index": len(chunks),
+                    "window_center": center_idx,
+                    "window_start": start_idx,
+                    "window_end": end_idx,
+                    "window_size": self.window_size,
+                    "num_sentences": len(window_sentences),
+                }
+            )
 
             # Enrich metadata
             if self.config.add_document_title and "title" in document.metadata:

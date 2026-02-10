@@ -1,4 +1,4 @@
-﻿"""Text preprocessing utilities for ingestion."""
+"""Text preprocessing utilities for ingestion."""
 
 from __future__ import annotations
 
@@ -61,9 +61,7 @@ class TextPreprocessor:
             text = "".join(ch for ch in text if ch.isalnum() or ch.isspace())
 
         if self.config.remove_control_characters:
-            text = "".join(
-                char for char in text if unicodedata.category(char)[0] != "C"
-            )
+            text = "".join(char for char in text if unicodedata.category(char)[0] != "C")
 
         if self.config.remove_extra_newlines:
             text = re.sub(r"\n{3,}", "\n\n", text)

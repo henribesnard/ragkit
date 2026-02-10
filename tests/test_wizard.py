@@ -1,4 +1,4 @@
-﻿"""Tests for the wizard profile logic and API endpoints."""
+"""Tests for the wizard profile logic and API endpoints."""
 
 import pytest
 from fastapi import FastAPI

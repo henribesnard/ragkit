@@ -51,7 +51,9 @@ class TestParentChildChunking:
         chunker = ParentChildChunker(config)
 
         # Document with distinct sections
-        section1 = "Introduction to AI. Artificial Intelligence is a field of computer science. " * 50
+        section1 = (
+            "Introduction to AI. Artificial Intelligence is a field of computer science. " * 50
+        )
         section2 = "Machine Learning basics. ML is a subset of AI. " * 50
 
         text = section1 + section2
@@ -83,7 +85,9 @@ class TestParentChildChunking:
             assert "total_children_in_parent" in chunk.metadata
 
             # Index must be < total
-            assert chunk.metadata["child_index_in_parent"] < chunk.metadata["total_children_in_parent"]
+            assert (
+                chunk.metadata["child_index_in_parent"] < chunk.metadata["total_children_in_parent"]
+            )
 
     @pytest.mark.asyncio
     async def test_metadata_inheritance(self, config):
@@ -91,8 +95,7 @@ class TestParentChildChunking:
         chunker = ParentChildChunker(config)
 
         document = ParsedDocument(
-            content="Test. " * 500,
-            metadata={"title": "My Document", "author": "John Doe"}
+            content="Test. " * 500, metadata={"title": "My Document", "author": "John Doe"}
         )
 
         chunks = await chunker.chunk_async(document)
@@ -195,11 +198,7 @@ class TestParentChildChunkingEdgeCases:
         )
 
         # Override with kwargs
-        chunker = ParentChildChunker(
-            config,
-            parent_chunk_size=500,
-            child_chunk_size=150
-        )
+        chunker = ParentChildChunker(config, parent_chunk_size=500, child_chunk_size=150)
 
         text = "Test. " * 100
         document = ParsedDocument(content=text, metadata={})

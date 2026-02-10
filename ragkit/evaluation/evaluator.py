@@ -77,17 +77,17 @@ def _extract_doc_id(doc: Any) -> str:
     if doc is None:
         return ""
     if hasattr(doc, "id"):
-        return str(getattr(doc, "id"))
+        return str(doc.id)
     if hasattr(doc, "document_id"):
-        return str(getattr(doc, "document_id"))
+        return str(doc.document_id)
     if hasattr(doc, "chunk"):
-        chunk = getattr(doc, "chunk")
+        chunk = doc.chunk
         if hasattr(chunk, "document_id"):
-            return str(getattr(chunk, "document_id"))
+            return str(chunk.document_id)
         if hasattr(chunk, "id"):
-            return str(getattr(chunk, "id"))
+            return str(chunk.id)
     if hasattr(doc, "metadata"):
-        metadata = getattr(doc, "metadata") or {}
+        metadata = doc.metadata or {}
         if isinstance(metadata, dict):
             for key in ("document_id", "doc_id", "id", "source_id"):
                 if key in metadata:

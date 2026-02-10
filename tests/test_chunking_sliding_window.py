@@ -117,10 +117,7 @@ class TestSlidingWindowChunking:
         """Test metadata enrichment."""
         chunker = SlidingWindowChunker(config)
 
-        document = ParsedDocument(
-            content="First. Second. Third.",
-            metadata={"title": "Test Doc"}
-        )
+        document = ParsedDocument(content="First. Second. Third.", metadata={"title": "Test Doc"})
 
         chunks = await chunker.chunk_async(document)
 
@@ -192,11 +189,7 @@ class TestSlidingWindowChunkingEdgeCases:
         )
 
         # Override with kwargs
-        chunker = SlidingWindowChunker(
-            config,
-            sentence_window_size=2,
-            window_stride=2
-        )
+        chunker = SlidingWindowChunker(config, sentence_window_size=2, window_stride=2)
 
         text = "A. B. C. D. E. F."
         document = ParsedDocument(content=text, metadata={})

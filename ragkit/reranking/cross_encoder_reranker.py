@@ -71,11 +71,11 @@ class CrossEncoderReranker(BaseReranker):
 
         try:
             from sentence_transformers import CrossEncoder
-        except ImportError:
+        except ImportError as exc:
             raise ImportError(
                 "sentence-transformers is required for cross-encoder reranking. "
                 "Install with: pip install sentence-transformers"
-            )
+            ) from exc
 
         # Determine device
         if self.config.use_gpu:
@@ -154,9 +154,7 @@ class CrossEncoderReranker(BaseReranker):
         pairs = [(query, chunk.content) for chunk in candidates]
 
         # Score all pairs in batches
-        logger.debug(
-            f"Scoring {len(pairs)} pairs with batch_size={self.config.rerank_batch_size}"
-        )
+        logger.debug(f"Scoring {len(pairs)} pairs with batch_size={self.config.rerank_batch_size}")
 
         try:
             scores = self.model.predict(
@@ -174,14 +172,12 @@ class CrossEncoderReranker(BaseReranker):
             scores = scores.tolist()
 
         # Combine chunks with scores
-        scored_chunks = list(zip(candidates, scores))
+        scored_chunks = list(zip(candidates, scores, strict=False))
 
         # Filter by threshold
         if self.config.rerank_threshold > 0.0:
             before_filter = len(scored_chunks)
-            scored_chunks = self._filter_by_threshold(
-                scored_chunks, self.config.rerank_threshold
-            )
+            scored_chunks = self._filter_by_threshold(scored_chunks, self.config.rerank_threshold)
             logger.debug(
                 f"Filtered {before_filter - len(scored_chunks)} results below threshold "
                 f"{self.config.rerank_threshold}"
@@ -193,9 +189,7 @@ class CrossEncoderReranker(BaseReranker):
         # Build final results
         results = self._build_results(scored_chunks, top_k)
 
-        logger.info(
-            f"Reranked {len(candidates)} candidates, returning top {len(results)}"
-        )
+        logger.info(f"Reranked {len(candidates)} candidates, returning top {len(results)}")
 
         return results
 

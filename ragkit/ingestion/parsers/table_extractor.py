@@ -1,4 +1,4 @@
-﻿"""Table extraction utilities for advanced parsing."""
+"""Table extraction utilities for advanced parsing."""
 
 from __future__ import annotations
 
@@ -43,9 +43,7 @@ class TableExtractor:
 
             if extracted_table and len(extracted_table[0]) > self.config.table_max_columns:
                 logger.warning("Table %s exceeds max columns; truncating", idx)
-                extracted_table = [
-                    row[: self.config.table_max_columns] for row in extracted_table
-                ]
+                extracted_table = [row[: self.config.table_max_columns] for row in extracted_table]
 
             if strategy == "markdown":
                 results.append(
@@ -86,10 +84,7 @@ class TableExtractor:
 
         header = "| " + " | ".join(str(cell) for cell in table[0]) + " |"
         separator = "| " + " | ".join("---" for _ in table[0]) + " |"
-        rows = [
-            "| " + " | ".join(str(cell) for cell in row) + " |"
-            for row in table[1:]
-        ]
+        rows = ["| " + " | ".join(str(cell) for cell in row) + " |" for row in table[1:]]
 
         return "\n".join([header, separator] + rows)
 

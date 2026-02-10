@@ -63,16 +63,10 @@ class ParentChildChunker(BaseChunker):
         overlap = kwargs.get("parent_child_overlap", self.config.parent_child_overlap)
 
         # Chunker for creating parents
-        self.parent_chunker = FixedChunker(
-            chunk_size=parent_size,
-            chunk_overlap=overlap
-        )
+        self.parent_chunker = FixedChunker(chunk_size=parent_size, chunk_overlap=overlap)
 
         # Chunker for creating children
-        self.child_chunker = FixedChunker(
-            chunk_size=child_size,
-            chunk_overlap=overlap
-        )
+        self.child_chunker = FixedChunker(chunk_size=child_size, chunk_overlap=overlap)
 
     def chunk(self, document: ParsedDocument) -> list[Chunk]:
         """Create parent-child chunks (sync).
@@ -101,10 +95,7 @@ class ParentChildChunker(BaseChunker):
             parent_id = self._generate_parent_id(parent, parent_idx, doc_id)
 
             # Create temporary document from parent
-            parent_doc = ParsedDocument(
-                content=parent.content,
-                metadata=parent.metadata.copy()
-            )
+            parent_doc = ParsedDocument(content=parent.content, metadata=parent.metadata.copy())
 
             # Split parent into children
             child_chunks = self.child_chunker.chunk(parent_doc)
@@ -120,14 +111,16 @@ class ParentChildChunker(BaseChunker):
                 # Update child metadata
                 child.id = child_id
                 child.document_id = doc_id
-                child.metadata.update({
-                    "chunk_id": child_id,
-                    "parent_id": parent_id,
-                    "parent_content": parent_content,  # EXTENDED CONTEXT
-                    "chunk_type": "child",
-                    "child_index_in_parent": child_idx,
-                    "total_children_in_parent": len(child_chunks),
-                })
+                child.metadata.update(
+                    {
+                        "chunk_id": child_id,
+                        "parent_id": parent_id,
+                        "parent_content": parent_content,  # EXTENDED CONTEXT
+                        "chunk_type": "child",
+                        "child_index_in_parent": child_idx,
+                        "total_children_in_parent": len(child_chunks),
+                    }
+                )
 
                 # Copy document metadata if configured
                 if self.config.add_document_title and "title" in document.metadata:
@@ -166,8 +159,6 @@ class ParentChildChunker(BaseChunker):
             Unique ID (hash MD5 of first 100 chars + index)
         """
         # Hash content for uniqueness
-        content_hash = hashlib.md5(
-            parent.content[:100].encode('utf-8')
-        ).hexdigest()[:8]
+        content_hash = hashlib.md5(parent.content[:100].encode("utf-8")).hexdigest()[:8]
 
         return f"{doc_id}_parent_{parent_idx}_{content_hash}"

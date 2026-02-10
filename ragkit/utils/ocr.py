@@ -1,4 +1,4 @@
-﻿"""Wrapper for OCR engines (Tesseract, EasyOCR, Doctr)."""
+"""Wrapper for OCR engines (Tesseract, EasyOCR, Doctr)."""
 
 from __future__ import annotations
 
@@ -53,9 +53,7 @@ class OCREngine:
         lang = "+".join(self.languages) if self.languages else "eng"
         text = pytesseract.image_to_string(image, lang=lang)
 
-        data = pytesseract.image_to_data(
-            image, lang=lang, output_type=pytesseract.Output.DICT
-        )
+        data = pytesseract.image_to_data(image, lang=lang, output_type=pytesseract.Output.DICT)
         confidences = [int(conf) for conf in data.get("conf", []) if conf != "-1"]
         avg_confidence = sum(confidences) / len(confidences) if confidences else 0.0
 

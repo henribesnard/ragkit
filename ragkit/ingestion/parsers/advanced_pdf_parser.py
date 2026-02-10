@@ -1,4 +1,4 @@
-﻿"""Advanced PDF parser with OCR, tables, and images."""
+"""Advanced PDF parser with OCR, tables, and images."""
 
 from __future__ import annotations
 

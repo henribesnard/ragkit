@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import hashlib
-from typing import Any
 
 from ragkit.cache.backends import build_backend
 from ragkit.cache.backends.base import CacheBackend

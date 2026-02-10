@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import pytest
 
+pytest.importorskip("torch")
+pytest.importorskip("sentence_transformers")
+
 from ragkit.config.schema_v2 import (
     EmbeddingConfigV2,
     RerankingConfigV2,
@@ -68,7 +71,10 @@ class TestRetrievalReranking:
         chunks = [
             Chunk(
                 id="1",
-                content="Best practices for securing API endpoints with authentication and authorization",
+                content=(
+                    "Best practices for securing API endpoints with authentication and "
+                    "authorization"
+                ),
                 metadata={"source": "security_guide.pdf"},
             ),
             Chunk(

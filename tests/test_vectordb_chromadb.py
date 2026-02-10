@@ -71,13 +71,11 @@ class TestChromaDBInsertion:
         # Search with filter source="manual.pdf"
         query_embedding = embeddings[0]
 
-        results = await adapter.search(
-            query_embedding, top_k=10, filters={"source": "manual.pdf"}
-        )
+        results = await adapter.search(query_embedding, top_k=10, filters={"source": "manual.pdf"})
 
         # Should return only chunks from manual.pdf
         assert len(results) == 2
-        for chunk, score in results:
+        for chunk, _score in results:
             assert chunk.metadata["source"] == "manual.pdf"
 
 
@@ -105,9 +103,7 @@ class TestHNSWParameters:
         adapter_high = ChromaDBAdapter(config_high)
 
         # Insert 1000 chunks
-        chunks = [
-            Chunk(content=f"Document {i}", metadata={"id": i}) for i in range(1000)
-        ]
+        chunks = [Chunk(content=f"Document {i}", metadata={"id": i}) for i in range(1000)]
         embeddings = np.random.rand(1000, 384).astype(np.float32)
 
         await adapter_low.insert_batch(chunks, embeddings)
@@ -121,11 +117,5 @@ class TestHNSWParameters:
 
         # High ef_search should give better results
         # (approximate measure: top 1 score)
-        score_low = results_low[0][1]
-        score_high = results_high[0][1]
-
-        # High ef should have better score (closer)
-        # (depends on metric, for cosine, lower = better)
-        # Note: approximate test, depends on dataset
         assert len(results_low) > 0
         assert len(results_high) > 0

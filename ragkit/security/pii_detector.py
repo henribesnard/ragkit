@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass
 from typing import Any
-
-import re
 
 from ragkit.config.schema_v2 import SecurityConfigV2
 from ragkit.security.exceptions import PIIDetectedException

@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 from ragkit.config.schema import ParsingConfig
+from ragkit.ingestion.parsers.advanced_pdf_parser import AdvancedPDFParser
+from ragkit.ingestion.parsers.advanced_pdf_parser import ParsedDocument as AdvancedParsedDocument
 from ragkit.ingestion.parsers.base import BaseParser, ParsedDocument
 from ragkit.ingestion.parsers.docx import DOCXParser
+from ragkit.ingestion.parsers.image_processor import ImageProcessor
 from ragkit.ingestion.parsers.markdown import MarkdownParser
 from ragkit.ingestion.parsers.pdf import PDFParser
-from ragkit.ingestion.parsers.advanced_pdf_parser import AdvancedPDFParser, ParsedDocument as AdvancedParsedDocument
 from ragkit.ingestion.parsers.table_extractor import TableExtractor
-from ragkit.ingestion.parsers.image_processor import ImageProcessor
 from ragkit.ingestion.parsers.text import TextParser
 from ragkit.ingestion.sources.base import RawDocument
 

@@ -164,9 +164,7 @@ class TestBM25Parameters:
 
         retriever.index_documents(chunks)
 
-        results = await retriever.search(
-            "Python", top_k=10, filters={"source": "manual.pdf"}
-        )
+        results = await retriever.search("Python", top_k=10, filters={"source": "manual.pdf"})
 
         # Should only return doc from manual.pdf
         assert len(results) == 1

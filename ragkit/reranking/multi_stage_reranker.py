@@ -124,8 +124,7 @@ class MultiStageReranker(BaseReranker):
         candidates = chunks[: self.config.rerank_top_n]
 
         logger.info(
-            f"Multi-stage reranking: {len(candidates)} → "
-            f"{self.config.stage_1_keep_top} → {top_k}"
+            f"Multi-stage reranking: {len(candidates)} → {self.config.stage_1_keep_top} → {top_k}"
         )
 
         # Stage 1: Fast filter
@@ -139,9 +138,7 @@ class MultiStageReranker(BaseReranker):
         # Extract chunks from stage 1 results
         filtered_chunks = [result.chunk for result in stage_1_results]
 
-        logger.debug(
-            f"Stage 1 complete: {len(candidates)} → {len(filtered_chunks)} chunks"
-        )
+        logger.debug(f"Stage 1 complete: {len(candidates)} → {len(filtered_chunks)} chunks")
 
         # Stage 2: Precise reranking
         logger.debug(f"Stage 2: Precise reranking to top {top_k}")
@@ -151,9 +148,7 @@ class MultiStageReranker(BaseReranker):
             top_k=top_k,
         )
 
-        logger.info(
-            f"Multi-stage complete: returned {len(stage_2_results)} final results"
-        )
+        logger.info(f"Multi-stage complete: returned {len(stage_2_results)} final results")
 
         return stage_2_results
 

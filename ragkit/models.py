@@ -23,7 +23,7 @@ class Chunk(BaseModel):
     embedding: list[float] | None = None
 
     @model_validator(mode="after")
-    def _ensure_document_id(self) -> "Chunk":
+    def _ensure_document_id(self) -> Chunk:
         if not self.document_id:
             self.document_id = self.id
         return self

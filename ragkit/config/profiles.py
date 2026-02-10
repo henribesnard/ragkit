@@ -1,9 +1,8 @@
-﻿"""Predefined configuration profiles for the wizard."""
+"""Predefined configuration profiles for the wizard."""
 
 from __future__ import annotations
 
 from typing import Any
-
 
 PROFILES: dict[str, dict[str, Any]] = {
     "technical_documentation": {

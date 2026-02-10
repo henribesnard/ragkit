@@ -289,9 +289,7 @@ async def add_documents(request: Request, kb_id: str, body: AddDocumentsRequest)
 
 
 @router.post("/knowledge-bases/{kb_id}/folders")
-async def add_folder(
-    request: Request, kb_id: str, body: AddFolderRequest
-) -> dict[str, Any]:
+async def add_folder(request: Request, kb_id: str, body: AddFolderRequest) -> dict[str, Any]:
     """Add all documents from a folder to a knowledge base."""
     state = get_state(request)
 

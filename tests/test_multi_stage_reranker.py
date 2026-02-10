@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import pytest
 
+pytest.importorskip("torch")
+pytest.importorskip("sentence_transformers")
+
 from ragkit.config.schema_v2 import RerankingConfigV2
 from ragkit.models import Chunk
 from ragkit.reranking.multi_stage_reranker import MultiStageReranker
@@ -109,10 +112,7 @@ class TestMultiStageReranker:
     async def test_multi_stage_with_few_candidates(self, config):
         """Test multi-stage with fewer candidates than stage_1_keep_top."""
         # Only 5 chunks, but stage_1_keep_top=10
-        few_chunks = [
-            Chunk(id=f"{i}", content=f"document {i}", metadata={})
-            for i in range(5)
-        ]
+        few_chunks = [Chunk(id=f"{i}", content=f"document {i}", metadata={}) for i in range(5)]
 
         reranker = MultiStageReranker(config)
 
@@ -177,8 +177,10 @@ class TestMultiStageConfiguration:
         reranker = MultiStageReranker(config)
 
         # Verify models are different
-        assert reranker.stage_1_reranker.config.reranker_model != \
-               reranker.stage_2_reranker.config.reranker_model
+        assert (
+            reranker.stage_1_reranker.config.reranker_model
+            != reranker.stage_2_reranker.config.reranker_model
+        )
 
 
 class TestMultiStageVsSingleStage:

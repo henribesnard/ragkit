@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Any, Iterable, Protocol
+from typing import Any, Protocol
 
 from ragkit.config.schema_v2 import LLMGenerationConfigV2
 from ragkit.generation.citation_formatter import CitationFormatter
@@ -16,11 +17,9 @@ logger = logging.getLogger(__name__)
 class Tokenizer(Protocol):
     """Minimal tokenizer protocol used for context sizing."""
 
-    def encode(self, text: str) -> list[Any]:
-        ...
+    def encode(self, text: str) -> list[Any]: ...
 
-    def decode(self, tokens: list[Any]) -> str:
-        ...
+    def decode(self, tokens: list[Any]) -> str: ...
 
 
 class SimpleTokenizer:
@@ -88,11 +87,11 @@ class ContextManager:
             return "", {}
 
         if hasattr(doc, "chunk"):
-            chunk = getattr(doc, "chunk")
+            chunk = doc.chunk
             metadata = getattr(chunk, "metadata", {}) or {}
             metadata = dict(metadata)
             if hasattr(doc, "score"):
-                metadata["score"] = getattr(doc, "score")
+                metadata["score"] = doc.score
             return getattr(chunk, "content", ""), metadata
 
         if hasattr(doc, "content"):

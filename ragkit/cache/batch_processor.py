@@ -64,7 +64,7 @@ class BatchProcessor:
 
             try:
                 results = await self.process_batch_fn(batch)
-                for fut, result in zip(futures, results):
+                for fut, result in zip(futures, results, strict=False):
                     if not fut.cancelled():
                         fut.set_result(result)
             except Exception as exc:  # noqa: BLE001

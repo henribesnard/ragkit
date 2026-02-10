@@ -37,10 +37,7 @@ class ChunkerFactory:
         strategy = config.strategy
 
         if strategy == "fixed_size":
-            return FixedChunker(
-                chunk_size=config.chunk_size,
-                chunk_overlap=config.chunk_overlap
-            )
+            return FixedChunker(chunk_size=config.chunk_size, chunk_overlap=config.chunk_overlap)
 
         elif strategy == "semantic":
             # Import SemanticChunkingConfig for compatibility
@@ -104,10 +101,7 @@ class ChunkerFactory:
 
 
 def create_chunker(
-    strategy: str,
-    chunk_size: int = 512,
-    chunk_overlap: int = 50,
-    **kwargs
+    strategy: str, chunk_size: int = 512, chunk_overlap: int = 50, **kwargs
 ) -> BaseChunker:
     """Convenience function to create a chunker with minimal configuration.
 
@@ -139,10 +133,7 @@ def create_chunker(
         )
     """
     config = ChunkingConfigV2(
-        strategy=strategy,
-        chunk_size=chunk_size,
-        chunk_overlap=chunk_overlap,
-        **kwargs
+        strategy=strategy, chunk_size=chunk_size, chunk_overlap=chunk_overlap, **kwargs
     )
 
     embedder = kwargs.get("embedder")

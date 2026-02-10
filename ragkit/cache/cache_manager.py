@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import inspect
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
-from typing import Any, Awaitable, Callable
+from typing import Any
 
 from ragkit.cache.embedding_cache import EmbeddingCache
 from ragkit.cache.query_cache import QueryCache
@@ -15,6 +16,10 @@ from ragkit.config.schema_v2 import CacheConfigV2
 ComputeFn = Callable[..., Awaitable[Any]]
 EmbedFn = Callable[[str], Awaitable[list[float]]]
 RetrieveFn = Callable[[list[float]], Awaitable[Any]]
+BatchEmbedFn = Callable[
+    [list[str]],
+    Awaitable[list[list[float]]] | list[list[float]],
+]
 
 
 @dataclass
@@ -62,14 +67,19 @@ class CacheManager:
     def __init__(
         self,
         config: CacheConfigV2,
-        embedder: Callable[[list[str]], Awaitable[list[list[float]]] | list[list[float]]] | None = None,
+        embedder: BatchEmbedFn | None = None,
     ) -> None:
         self.config = config
         self.metrics = CacheMetrics()
-        self.semantic_matcher = (
-            SemanticMatcher(config, embedder=embedder) if embedder and config.cache_key_strategy == "semantic" else None
+        if embedder and config.cache_key_strategy == "semantic":
+            self.semantic_matcher = SemanticMatcher(config, embedder=embedder)
+        else:
+            self.semantic_matcher = None
+        self.query_cache = (
+            QueryCache(config, semantic_matcher=self.semantic_matcher)
+            if config.query_cache_enabled
+            else None
         )
-        self.query_cache = QueryCache(config, semantic_matcher=self.semantic_matcher) if config.query_cache_enabled else None
         self.embedding_cache = EmbeddingCache(config) if config.embedding_cache_enabled else None
         self.result_cache = ResultCache(config) if config.result_cache_enabled else None
 

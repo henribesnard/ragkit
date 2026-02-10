@@ -149,9 +149,7 @@ class HybridRetriever(BaseRetriever):
             lex_score = lex_scores.get(chunk_id, 0.0)
 
             # Weighted combination
-            combined_score = (
-                self.config.alpha * sem_score + (1 - self.config.alpha) * lex_score
-            )
+            combined_score = self.config.alpha * sem_score + (1 - self.config.alpha) * lex_score
 
             merged.append(
                 SearchResult(

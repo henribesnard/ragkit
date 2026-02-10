@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import re
-from typing import Iterable
 
 
 async def compute_faithfulness(response: str, context: str, query: str) -> float:

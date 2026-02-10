@@ -51,10 +51,7 @@ class AlertManager:
             )
 
         faithfulness = normalized.get("faithfulness_avg")
-        if (
-            faithfulness is not None
-            and faithfulness < self.config.alert_faithfulness_threshold
-        ):
+        if faithfulness is not None and faithfulness < self.config.alert_faithfulness_threshold:
             alerts.append(
                 Alert(
                     name="faithfulness_avg",

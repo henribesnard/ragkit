@@ -1,4 +1,4 @@
-﻿"""Wizard logic and shared models."""
+"""Wizard logic and shared models."""
 
 from __future__ import annotations
 

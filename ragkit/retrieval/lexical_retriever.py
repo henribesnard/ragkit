@@ -45,9 +45,7 @@ class LexicalRetriever(BaseRetriever):
         self.chunks = chunks
 
         # Tokenize all documents
-        self.tokenized_docs = [
-            self.tokenizer.tokenize(chunk.content) for chunk in chunks
-        ]
+        self.tokenized_docs = [self.tokenizer.tokenize(chunk.content) for chunk in chunks]
 
         # Create BM25 index
         if self.config.bm25_delta > 0:
@@ -118,9 +116,7 @@ class LexicalRetriever(BaseRetriever):
 
         return results[:top_k]
 
-    def _apply_filters(
-        self, results: list[SearchResult], filters: dict
-    ) -> list[SearchResult]:
+    def _apply_filters(self, results: list[SearchResult], filters: dict) -> list[SearchResult]:
         """Apply metadata filters to results.
 
         Args:

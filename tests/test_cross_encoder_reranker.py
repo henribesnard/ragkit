@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import pytest
 
+pytest.importorskip("sentence_transformers")
+
 from ragkit.config.schema_v2 import RerankingConfigV2
 from ragkit.models import Chunk
 from ragkit.reranking.cross_encoder_reranker import CrossEncoderReranker
@@ -166,7 +168,7 @@ class TestCrossEncoderReranker:
         assert ids_1 == ids_8
 
         # Scores should be very close (allowing small float differences)
-        for r1, r8 in zip(results_1, results_8):
+        for r1, r8 in zip(results_1, results_8, strict=False):
             assert abs(r1.score - r8.score) < 0.01
 
     @pytest.mark.asyncio

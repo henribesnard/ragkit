@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Any
-
 from ragkit.cache.backends.base import CacheBackend
 from ragkit.cache.backends.hybrid_backend import HybridBackend
 from ragkit.cache.backends.memory_backend import MemoryBackend

@@ -60,11 +60,10 @@ class CohereReranker(BaseReranker):
 
         try:
             import cohere
-        except ImportError:
+        except ImportError as exc:
             raise ImportError(
-                "cohere package is required for Cohere reranking. "
-                "Install with: pip install cohere"
-            )
+                "cohere package is required for Cohere reranking. Install with: pip install cohere"
+            ) from exc
 
         self.client = cohere.Client(api_key)
         logger.info("Initialized Cohere reranker with API key")
@@ -129,9 +128,7 @@ class CohereReranker(BaseReranker):
                 )
             )
 
-        logger.info(
-            f"Cohere reranking complete: {len(candidates)} → {len(results)} results"
-        )
+        logger.info(f"Cohere reranking complete: {len(candidates)} → {len(results)} results")
 
         return results
 
@@ -168,7 +165,7 @@ class CohereReranker(BaseReranker):
 
             except Exception as e:
                 if attempt < max_retries - 1:
-                    wait_time = 2 ** attempt  # Exponential backoff: 1s, 2s, 4s
+                    wait_time = 2**attempt  # Exponential backoff: 1s, 2s, 4s
                     logger.warning(
                         f"Cohere API call failed (attempt {attempt + 1}/{max_retries}): {e}. "
                         f"Retrying in {wait_time}s..."

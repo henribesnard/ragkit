@@ -10,7 +10,11 @@ import logging
 from pathlib import Path
 
 from ragkit.agents import AgentOrchestrator
-from ragkit.config.defaults import default_agents_config, default_ingestion_config, default_retrieval_config
+from ragkit.config.defaults import (
+    default_agents_config,
+    default_ingestion_config,
+    default_retrieval_config,
+)
 from ragkit.config.schema import (
     EmbeddingModelConfig,
     EmbeddingParams,
@@ -113,12 +117,8 @@ class AppState:
 
         # Load settings with explicit type conversions for safety
         self._settings = {
-            "embedding_provider": str(
-                self.db.get_setting("embedding_provider", "onnx_local")
-            ),
-            "embedding_model": str(
-                self.db.get_setting("embedding_model", "all-MiniLM-L6-v2")
-            ),
+            "embedding_provider": str(self.db.get_setting("embedding_provider", "onnx_local")),
+            "embedding_model": str(self.db.get_setting("embedding_model", "all-MiniLM-L6-v2")),
             "embedding_chunk_strategy": str(
                 self.db.get_setting(
                     "embedding_chunk_strategy", ingestion_defaults.chunking.strategy
@@ -135,42 +135,26 @@ class AppState:
                 )
             ),
             "retrieval_architecture": str(
-                self.db.get_setting(
-                    "retrieval_architecture", retrieval_defaults.architecture
-                )
+                self.db.get_setting("retrieval_architecture", retrieval_defaults.architecture)
             ),
             "retrieval_top_k": int(
-                self.db.get_setting(
-                    "retrieval_top_k", retrieval_defaults.semantic.top_k
-                )
+                self.db.get_setting("retrieval_top_k", retrieval_defaults.semantic.top_k)
             ),
             "retrieval_semantic_weight": float(
-                self.db.get_setting(
-                    "retrieval_semantic_weight", retrieval_defaults.semantic.weight
-                )
+                self.db.get_setting("retrieval_semantic_weight", retrieval_defaults.semantic.weight)
             ),
             "retrieval_lexical_weight": float(
-                self.db.get_setting(
-                    "retrieval_lexical_weight", retrieval_defaults.lexical.weight
-                )
+                self.db.get_setting("retrieval_lexical_weight", retrieval_defaults.lexical.weight)
             ),
-            "retrieval_rerank_weight": float(
-                self.db.get_setting("retrieval_rerank_weight", 0.0)
-            ),
+            "retrieval_rerank_weight": float(self.db.get_setting("retrieval_rerank_weight", 0.0)),
             "retrieval_rerank_enabled": bool(
-                self.db.get_setting(
-                    "retrieval_rerank_enabled", retrieval_defaults.rerank.enabled
-                )
+                self.db.get_setting("retrieval_rerank_enabled", retrieval_defaults.rerank.enabled)
             ),
             "retrieval_rerank_provider": str(
-                self.db.get_setting(
-                    "retrieval_rerank_provider", retrieval_defaults.rerank.provider
-                )
+                self.db.get_setting("retrieval_rerank_provider", retrieval_defaults.rerank.provider)
             ),
             "retrieval_max_chunks": int(
-                self.db.get_setting(
-                    "retrieval_max_chunks", retrieval_defaults.context.max_chunks
-                )
+                self.db.get_setting("retrieval_max_chunks", retrieval_defaults.context.max_chunks)
             ),
             "llm_provider": str(self.db.get_setting("llm_provider", "ollama")),
             "llm_model": str(self.db.get_setting("llm_model", "llama3.2:3b")),

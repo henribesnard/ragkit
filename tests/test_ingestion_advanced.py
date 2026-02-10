@@ -1,4 +1,4 @@
-﻿"""Tests for advanced ingestion parsing and preprocessing."""
+"""Tests for advanced ingestion parsing and preprocessing."""
 
 import builtins
 import sys
@@ -6,13 +6,13 @@ import types
 
 import pytest
 
-ORIGINAL_IMPORT = builtins.__import__
-
 from ragkit.config.schema_v2 import DocumentParsingConfig, TextPreprocessingConfig
 from ragkit.ingestion.parsers.advanced_pdf_parser import AdvancedPDFParser
 from ragkit.ingestion.parsers.image_processor import ImageProcessor
 from ragkit.ingestion.parsers.table_extractor import TableExtractor
 from ragkit.ingestion.preprocessing import TextPreprocessor
+
+ORIGINAL_IMPORT = builtins.__import__
 
 
 class TestAdvancedPDFParser:
@@ -71,9 +71,7 @@ class TestAdvancedPDFParser:
             height = 200
 
             def __init__(self):
-                self.images = [
-                    {"bbox": (0, 0, 10, 10), "width": 10, "height": 10, "object_id": 1}
-                ]
+                self.images = [{"bbox": (0, 0, 10, 10), "width": 10, "height": 10, "object_id": 1}]
 
             def extract_text(self):
                 return "Header\nBody text"
@@ -96,7 +94,9 @@ class TestAdvancedPDFParser:
         assert "main content" in cleaned
 
     def test_footer_removal_keeps_long_footer(self, parser):
-        text_with_footer = "Content line\nThis footer line is definitely longer than fifty characters."
+        text_with_footer = (
+            "Content line\nThis footer line is definitely longer than fifty characters."
+        )
         cleaned = parser._remove_footer(text_with_footer)
         assert cleaned == text_with_footer
 
@@ -389,16 +389,11 @@ class TestTextPreprocessing:
         existing = ["This is a test document for deduplication"]
 
         assert (
-            preprocessor.check_duplicate(
-                "This is a test document for deduplicaton", existing
-            )
+            preprocessor.check_duplicate("This is a test document for deduplicaton", existing)
             is True
         )
 
-        assert (
-            preprocessor.check_duplicate("Completely different text here", existing)
-            is False
-        )
+        assert preprocessor.check_duplicate("Completely different text here", existing) is False
 
     def test_deduplication_semantic(self):
         import numpy as np
@@ -409,7 +404,9 @@ class TestTextPreprocessing:
         )
 
         def embedder(texts):
-            return [np.array([1.0, 0.0]) if i == 0 else np.array([1.0, 0.0]) for i in range(len(texts))]
+            return [
+                np.array([1.0, 0.0]) if i == 0 else np.array([1.0, 0.0]) for i in range(len(texts))
+            ]
 
         preprocessor = TextPreprocessor(config, embedder=embedder)
         assert preprocessor.check_duplicate("test", ["test"]) is True
@@ -787,6 +784,7 @@ class TestOCREngine:
     @pytest.mark.asyncio
     async def test_easyocr_backend(self, monkeypatch):
         import numpy as np
+
         from ragkit.utils.ocr import OCREngine
 
         class DummyReader:
@@ -819,6 +817,7 @@ class TestOCREngine:
     @pytest.mark.asyncio
     async def test_easyocr_uninitialized_instance(self):
         import numpy as np
+
         from ragkit.utils.ocr import OCREngine
 
         engine = OCREngine(engine="easyocr", languages=["en"], preprocessing=False)
@@ -829,6 +828,7 @@ class TestOCREngine:
     @pytest.mark.asyncio
     async def test_doctr_backend(self, monkeypatch):
         import numpy as np
+
         from ragkit.utils.ocr import OCREngine
 
         class DummyResult:
@@ -868,6 +868,7 @@ class TestOCREngine:
     @pytest.mark.asyncio
     async def test_doctr_uninitialized_instance(self):
         import numpy as np
+
         from ragkit.utils.ocr import OCREngine
 
         engine = OCREngine(engine="doctr", languages=["en"], preprocessing=False)

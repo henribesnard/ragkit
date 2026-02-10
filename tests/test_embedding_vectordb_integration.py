@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import pytest
 
-from ragkit.config.schema_v2 import ChunkingConfigV2, EmbeddingConfigV2, VectorDBConfigV2
+pytest.importorskip("torch")
+pytest.importorskip("sentence_transformers")
+
+from ragkit.config.schema_v2 import EmbeddingConfigV2, VectorDBConfigV2
 from ragkit.embedding.advanced_embedder import AdvancedEmbedder
 from ragkit.ingestion.chunkers.factory import create_chunker
 from ragkit.ingestion.parsers.base import ParsedDocument
@@ -38,9 +41,6 @@ class TestCompletePipeline:
     async def test_chunk_embed_insert_search(self, sample_document):
         """Test complete pipeline: chunk -> embed -> insert -> search."""
         # Step 1: Chunking
-        chunking_config = ChunkingConfigV2(
-            strategy="fixed_size", chunk_size=100, chunk_overlap=20
-        )
         chunker = create_chunker("fixed_size", chunk_size=100, chunk_overlap=20)
         chunks = await chunker.chunk_async(sample_document)
 
@@ -162,13 +162,11 @@ class TestCompletePipeline:
         query = "Python documentation"
         query_embedding = await embedder.embed_query(query)
 
-        results = await adapter.search(
-            query_embedding, top_k=10, filters={"source": "manual.pdf"}
-        )
+        results = await adapter.search(query_embedding, top_k=10, filters={"source": "manual.pdf"})
 
         # Should only return chunks from manual.pdf
         assert len(results) == 2
-        for chunk, score in results:
+        for chunk, _score in results:
             assert chunk.metadata["source"] == "manual.pdf"
 
     @pytest.mark.asyncio
@@ -180,14 +178,7 @@ class TestCompletePipeline:
         )
 
         # Use parent-child chunking
-        chunking_config = ChunkingConfigV2(
-            strategy="parent_child",
-            parent_chunk_size=1000,
-            child_chunk_size=300,
-        )
-        chunker = create_chunker(
-            "parent_child", parent_chunk_size=1000, child_chunk_size=300
-        )
+        chunker = create_chunker("parent_child", parent_chunk_size=1000, child_chunk_size=300)
 
         chunks = await chunker.chunk_async(document)
 

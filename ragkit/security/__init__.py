@@ -1,6 +1,6 @@
 """Security utilities for RAGKIT."""
 
-from ragkit.security.audit_logger import AuditLogger, AuditLogEntry
+from ragkit.security.audit_logger import AuditLogEntry, AuditLogger
 from ragkit.security.content_moderator import ContentModerator, ModerationResult
 from ragkit.security.exceptions import (
     AuditLogError,

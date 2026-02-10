@@ -45,9 +45,7 @@ class QueryExpander:
         else:
             raise ValueError(f"Unknown expansion strategy: {strategy}")
 
-    def expand_with_synonyms(
-        self, query: str, max_expansions: int = 3
-    ) -> list[str]:
+    def expand_with_synonyms(self, query: str, max_expansions: int = 3) -> list[str]:
         """Expand query by adding synonyms using WordNet.
 
         Args:
@@ -85,11 +83,9 @@ class QueryExpander:
                 if expanded not in expanded_queries:
                     expanded_queries.append(expanded)
 
-        return expanded_queries[:max_expansions + 1]
+        return expanded_queries[: max_expansions + 1]
 
-    async def expand_with_llm(
-        self, query: str, num_variants: int = 3
-    ) -> list[str]:
+    async def expand_with_llm(self, query: str, num_variants: int = 3) -> list[str]:
         """Expand query by generating variants using LLM.
 
         Args:

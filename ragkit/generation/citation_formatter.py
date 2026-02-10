@@ -7,7 +7,6 @@ from typing import Any
 
 from ragkit.config.schema_v2 import LLMGenerationConfigV2
 
-
 _SUPERSCRIPTS = {
     0: "⁰",
     1: "¹",

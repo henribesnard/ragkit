@@ -172,7 +172,8 @@ class RecursiveChunker(BaseChunker):
             if split_length > self.chunk_size and remaining_separators:
                 # First, flush current chunk
                 if current_chunk:
-                    result.append("".join(current_chunk) if separator == "" else "".join(current_chunk))
+                    chunk_text = "".join(current_chunk)
+                    result.append(chunk_text)
                     current_chunk = []
                     current_length = 0
 
@@ -184,13 +185,14 @@ class RecursiveChunker(BaseChunker):
             # Check if adding this split exceeds chunk_size
             if current_length + split_length > self.chunk_size and current_chunk:
                 # Flush current chunk
-                result.append("".join(current_chunk) if separator == "" else "".join(current_chunk))
+                chunk_text = "".join(current_chunk)
+                result.append(chunk_text)
 
                 # Start new chunk with overlap
                 overlap_tokens = min(self.chunk_overlap, current_length)
                 if overlap_tokens > 0:
                     # Get last N tokens from current chunk for overlap
-                    overlap_text = "".join(current_chunk) if separator == "" else "".join(current_chunk)
+                    overlap_text = "".join(current_chunk)
                     overlap_tok, overlap_enc = _tokenize(overlap_text)
                     if len(overlap_tok) > overlap_tokens:
                         overlap_tok = overlap_tok[-overlap_tokens:]

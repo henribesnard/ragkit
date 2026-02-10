@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from ragkit.config.schema import ChunkingConfig
 from ragkit.ingestion.chunkers.base import BaseChunker
-from ragkit.ingestion.chunkers.factory import ChunkerFactory, create_chunker as create_chunker_v2
+from ragkit.ingestion.chunkers.factory import ChunkerFactory
+from ragkit.ingestion.chunkers.factory import create_chunker as create_chunker_v2
 from ragkit.ingestion.chunkers.fixed import FixedChunker
 from ragkit.ingestion.chunkers.parent_child import ParentChildChunker
 from ragkit.ingestion.chunkers.recursive import RecursiveChunker

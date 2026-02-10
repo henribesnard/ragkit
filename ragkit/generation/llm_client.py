@@ -8,8 +8,8 @@ import json
 import logging
 import os
 import time
+from collections.abc import AsyncIterator
 from dataclasses import dataclass
-from typing import Any, AsyncIterator
 
 from ragkit.config.schema_v2 import LLMGenerationConfigV2
 from ragkit.exceptions import LLMError
@@ -73,9 +73,7 @@ class LLMClient:
                 await asyncio.sleep(delay)
         raise LLMError("LLM generation failed") from last_exc
 
-    async def _call_stream(
-        self, prompt: str, system_prompt: str | None
-    ) -> AsyncIterator[str]:
+    async def _call_stream(self, prompt: str, system_prompt: str | None) -> AsyncIterator[str]:
         """Provider-specific streaming support."""
         provider = self.config.provider
         if provider == "openai":
@@ -139,9 +137,7 @@ class LLMClient:
         )
         return response.choices[0].message.content or ""
 
-    async def _openai_stream(
-        self, prompt: str, system_prompt: str | None
-    ) -> AsyncIterator[str]:
+    async def _openai_stream(self, prompt: str, system_prompt: str | None) -> AsyncIterator[str]:
         try:
             from openai import AsyncOpenAI
         except Exception as exc:  # noqa: BLE001
@@ -185,9 +181,7 @@ class LLMClient:
         )
         return response.content[0].text if response.content else ""
 
-    async def _anthropic_stream(
-        self, prompt: str, system_prompt: str | None
-    ) -> AsyncIterator[str]:
+    async def _anthropic_stream(self, prompt: str, system_prompt: str | None) -> AsyncIterator[str]:
         try:
             from anthropic import AsyncAnthropic
         except Exception as exc:  # noqa: BLE001
@@ -232,9 +226,7 @@ class LLMClient:
             data = response.json()
             return data.get("response", "")
 
-    async def _ollama_stream(
-        self, prompt: str, system_prompt: str | None
-    ) -> AsyncIterator[str]:
+    async def _ollama_stream(self, prompt: str, system_prompt: str | None) -> AsyncIterator[str]:
         try:
             import httpx
         except Exception as exc:  # noqa: BLE001
