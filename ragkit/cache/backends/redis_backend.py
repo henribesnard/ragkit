@@ -13,7 +13,7 @@ class RedisBackend:
         self.url = url
         self.compress = compress
         self.algorithm = algorithm
-        self._client = None
+        self._client: Any | None = None
 
     async def get(self, key: str) -> Any | None:
         client = await self._get_client()
@@ -40,10 +40,10 @@ class RedisBackend:
         client = await self._get_client()
         await client.flushdb()
 
-    async def _get_client(self):
+    async def _get_client(self) -> Any:
         if self._client is None:
             try:
-                import redis.asyncio as redis  # type: ignore
+                import redis.asyncio as redis
             except Exception as exc:  # noqa: BLE001
                 raise RuntimeError("redis package is required for RedisBackend") from exc
             self._client = redis.from_url(self.url)
@@ -59,13 +59,13 @@ def _compress(data: bytes, enabled: bool, algorithm: str) -> bytes:
         return gzip.compress(data)
     if algorithm == "zstd":
         try:
-            import zstandard as zstd  # type: ignore
+            import zstandard as zstd
         except Exception:  # noqa: BLE001
             return data
         return zstd.ZstdCompressor().compress(data)
     if algorithm == "lz4":
         try:
-            import lz4.frame  # type: ignore
+            import lz4.frame
         except Exception:  # noqa: BLE001
             return data
         return lz4.frame.compress(data)
@@ -81,13 +81,13 @@ def _decompress(data: bytes, enabled: bool, algorithm: str) -> bytes:
         return gzip.decompress(data)
     if algorithm == "zstd":
         try:
-            import zstandard as zstd  # type: ignore
+            import zstandard as zstd
         except Exception:  # noqa: BLE001
             return data
         return zstd.ZstdDecompressor().decompress(data)
     if algorithm == "lz4":
         try:
-            import lz4.frame  # type: ignore
+            import lz4.frame
         except Exception:  # noqa: BLE001
             return data
         return lz4.frame.decompress(data)

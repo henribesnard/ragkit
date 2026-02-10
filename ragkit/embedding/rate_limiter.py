@@ -18,7 +18,7 @@ class RateLimiter:
         await limiter.acquire(tokens=500)  # Waits if quota exceeded
     """
 
-    def __init__(self, rpm: int | None, tpm: int | None):
+    def __init__(self, rpm: int | None, tpm: int | None) -> None:
         """Initialize the rate limiter.
 
         Args:
@@ -35,7 +35,7 @@ class RateLimiter:
         self.token_count = 0
         self.last_reset = time.time()
 
-    async def acquire(self, tokens: int = 1):
+    async def acquire(self, tokens: int = 1) -> None:
         """Wait if necessary to respect RPM/TPM limits.
 
         Args:

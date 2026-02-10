@@ -21,7 +21,7 @@ class LexicalRetriever(BaseRetriever):
     - Stopword removal
     """
 
-    def __init__(self, config: RetrievalConfigV2):
+    def __init__(self, config: RetrievalConfigV2) -> None:
         """Initialize lexical retriever.
 
         Args:
@@ -29,9 +29,9 @@ class LexicalRetriever(BaseRetriever):
         """
         self.config = config
         self.tokenizer = create_tokenizer(config)
-        self.bm25 = None
-        self.chunks = []
-        self.tokenized_docs = []
+        self.bm25: BM25Okapi | BM25Plus | None = None
+        self.chunks: list[Chunk] = []
+        self.tokenized_docs: list[list[str]] = []
 
     def index_documents(self, chunks: list[Chunk]) -> None:
         """Index documents for BM25 search.
@@ -116,7 +116,11 @@ class LexicalRetriever(BaseRetriever):
 
         return results[:top_k]
 
-    def _apply_filters(self, results: list[SearchResult], filters: dict) -> list[SearchResult]:
+    def _apply_filters(
+        self,
+        results: list[SearchResult],
+        filters: dict[str, object],
+    ) -> list[SearchResult]:
         """Apply metadata filters to results.
 
         Args:

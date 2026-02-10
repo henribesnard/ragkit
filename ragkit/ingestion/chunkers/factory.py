@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from ragkit.config.schema_v2 import ChunkingConfigV2
 from ragkit.ingestion.chunkers.base import BaseChunker
 from ragkit.ingestion.chunkers.fixed import FixedChunker
@@ -64,10 +66,12 @@ class ChunkerFactory:
             # For now, use sliding window with stride=1 as approximation
             from ragkit.config.schema_v2 import ChunkingConfigV2
 
-            sentence_config = ChunkingConfigV2(
-                strategy="sliding_window",
-                sentence_window_size=1,
-                window_stride=1,
+            sentence_config = ChunkingConfigV2.model_validate(
+                {
+                    "strategy": "sliding_window",
+                    "sentence_window_size": 1,
+                    "window_stride": 1,
+                }
             )
             return SlidingWindowChunker(config=sentence_config)
 
@@ -76,11 +80,13 @@ class ChunkerFactory:
             # For now, use recursive with "\n\n" separator
             from ragkit.config.schema_v2 import ChunkingConfigV2
 
-            paragraph_config = ChunkingConfigV2(
-                strategy="recursive",
-                separators=["\n\n", "\n"],
-                chunk_size=config.chunk_size,
-                chunk_overlap=config.chunk_overlap,
+            paragraph_config = ChunkingConfigV2.model_validate(
+                {
+                    "strategy": "recursive",
+                    "separators": ["\n\n", "\n"],
+                    "chunk_size": config.chunk_size,
+                    "chunk_overlap": config.chunk_overlap,
+                }
             )
             return RecursiveChunker(config=paragraph_config)
 
@@ -101,7 +107,10 @@ class ChunkerFactory:
 
 
 def create_chunker(
-    strategy: str, chunk_size: int = 512, chunk_overlap: int = 50, **kwargs
+    strategy: str,
+    chunk_size: int = 512,
+    chunk_overlap: int = 50,
+    **kwargs: Any,
 ) -> BaseChunker:
     """Convenience function to create a chunker with minimal configuration.
 
@@ -132,9 +141,13 @@ def create_chunker(
             embedder=my_embedder
         )
     """
-    config = ChunkingConfigV2(
-        strategy=strategy, chunk_size=chunk_size, chunk_overlap=chunk_overlap, **kwargs
-    )
+    data: dict[str, Any] = {
+        "strategy": strategy,
+        "chunk_size": chunk_size,
+        "chunk_overlap": chunk_overlap,
+        **kwargs,
+    }
+    config = ChunkingConfigV2.model_validate(data)
 
     embedder = kwargs.get("embedder")
     return ChunkerFactory.create(config, embedder=embedder)

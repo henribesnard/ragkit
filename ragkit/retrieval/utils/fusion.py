@@ -25,8 +25,8 @@ def reciprocal_rank_fusion(
     Returns:
         Merged and sorted results
     """
-    rrf_scores = defaultdict(float)
-    doc_map = {}  # Map chunk ID to SearchResult
+    rrf_scores: dict[str, float] = defaultdict(float)
+    doc_map: dict[str, SearchResult] = {}  # Map chunk ID to SearchResult
 
     for results in results_lists:
         for rank, result in enumerate(results, start=1):
@@ -106,8 +106,8 @@ def linear_fusion(
             }
 
     # Combine scores
-    all_chunk_ids = set(sem_scores.keys()) | set(lex_scores.keys())
-    doc_map = {}
+    all_chunk_ids: set[str] = set(sem_scores.keys()) | set(lex_scores.keys())
+    doc_map: dict[str, SearchResult] = {}
 
     # Build document map
     for result in semantic_results + lexical_results:
@@ -165,8 +165,8 @@ def weighted_sum_fusion(
         raise ValueError("Weights must sum to 1.0")
 
     # Collect all scores
-    score_maps = []
-    doc_map = {}
+    score_maps: list[dict[str, float]] = []
+    doc_map: dict[str, SearchResult] = {}
 
     for results in results_lists:
         scores = {r.chunk.id: r.score for r in results}
@@ -192,7 +192,7 @@ def weighted_sum_fusion(
                 doc_map[result.chunk.id] = result
 
     # Combine scores
-    all_chunk_ids = set()
+    all_chunk_ids: set[str] = set()
     for scores in score_maps:
         all_chunk_ids.update(scores.keys())
 

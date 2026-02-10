@@ -188,9 +188,11 @@ def _source_name(result: RetrievalResult, mode: str = "basename") -> str:
     return _sanitize_source(source, mode)
 
 
-def _sanitize_source(source: str, mode: str) -> str:
+def _sanitize_source(source: object | None, mode: str) -> str:
     if source is None:
         return ""
+    if not isinstance(source, str):
+        source = str(source)
     if mode == "full":
         return source
     if mode == "basename":

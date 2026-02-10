@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
+from typing import Any
 
 from ragkit.config.schema_v2 import ChunkingConfigV2
 from ragkit.ingestion.chunkers.base import BaseChunker
@@ -48,14 +49,14 @@ class ParentChildChunker(BaseChunker):
         Total: 13 children indexed, each with parent in metadata
     """
 
-    def __init__(self, config: ChunkingConfigV2 | None = None, **kwargs):
+    def __init__(self, config: ChunkingConfigV2 | None = None, **kwargs: Any) -> None:
         """Initialize the chunker.
 
         Args:
             config: Chunking configuration with parent_chunk_size and child_chunk_size
             **kwargs: Optional override for parent_chunk_size, child_chunk_size, overlap
         """
-        self.config = config or ChunkingConfigV2()
+        self.config = config or ChunkingConfigV2.model_validate({})
 
         # Allow kwargs override
         parent_size = kwargs.get("parent_chunk_size", self.config.parent_chunk_size)
@@ -87,7 +88,7 @@ class ParentChildChunker(BaseChunker):
         if not parent_chunks:
             return []
 
-        all_children = []
+        all_children: list[Chunk] = []
         doc_id = _document_id(document)
 
         # Step 2: For each parent, create children

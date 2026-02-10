@@ -66,7 +66,7 @@ class BaseReranker(ABC):
         """
         pass
 
-    def _validate_inputs(self, query: str, chunks: list[Chunk], top_k: int):
+    def _validate_inputs(self, query: str, chunks: list[Chunk], top_k: int) -> None:
         """Validate reranking inputs.
 
         Args:

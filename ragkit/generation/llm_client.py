@@ -10,6 +10,7 @@ import os
 import time
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
+from typing import Any, cast
 
 from ragkit.config.schema_v2 import LLMGenerationConfigV2
 from ragkit.exceptions import LLMError
@@ -117,23 +118,23 @@ class LLMClient:
 
         api_key = os.getenv("OPENAI_API_KEY")
         client = AsyncOpenAI(api_key=api_key)
-        messages = [
+        messages: list[dict[str, str]] = [
             {"role": "system", "content": system_prompt or self.config.system_prompt},
             {"role": "user", "content": prompt},
         ]
-        response_format = None
+        response_format: dict[str, str] | None = None
         if self.config.output_format == "json":
             response_format = {"type": "json_object"}
 
         response = await client.chat.completions.create(
             model=self.config.model,
-            messages=messages,
+            messages=cast(Any, messages),
             temperature=self.config.temperature,
             max_tokens=self.config.max_tokens,
             top_p=self.config.top_p,
             frequency_penalty=self.config.frequency_penalty,
             presence_penalty=self.config.presence_penalty,
-            response_format=response_format,
+            response_format=cast(Any, response_format),
         )
         return response.choices[0].message.content or ""
 
@@ -145,13 +146,13 @@ class LLMClient:
 
         api_key = os.getenv("OPENAI_API_KEY")
         client = AsyncOpenAI(api_key=api_key)
-        messages = [
+        messages: list[dict[str, str]] = [
             {"role": "system", "content": system_prompt or self.config.system_prompt},
             {"role": "user", "content": prompt},
         ]
         response = await client.chat.completions.create(
             model=self.config.model,
-            messages=messages,
+            messages=cast(Any, messages),
             temperature=self.config.temperature,
             max_tokens=self.config.max_tokens,
             top_p=self.config.top_p,
@@ -159,7 +160,7 @@ class LLMClient:
             presence_penalty=self.config.presence_penalty,
             stream=True,
         )
-        async for chunk in response:
+        async for chunk in cast(Any, response):
             delta = chunk.choices[0].delta if chunk.choices else None
             if delta and delta.content:
                 yield delta.content
@@ -274,13 +275,13 @@ class LLMClient:
             azure_endpoint=endpoint,
             api_version=api_version,
         )
-        messages = [
+        messages: list[dict[str, str]] = [
             {"role": "system", "content": system_prompt or self.config.system_prompt},
             {"role": "user", "content": prompt},
         ]
         response = await client.chat.completions.create(
             model=self.config.model,
-            messages=messages,
+            messages=cast(Any, messages),
             temperature=self.config.temperature,
             max_tokens=self.config.max_tokens,
             top_p=self.config.top_p,

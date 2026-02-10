@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import Any
 
 from ragkit.config.schema_v2 import ChunkingConfigV2
 from ragkit.ingestion.chunkers.base import BaseChunker
@@ -57,14 +58,14 @@ class SlidingWindowChunker(BaseChunker):
         Chunk 4: ["S4", "S5"] (center=4)
     """
 
-    def __init__(self, config: ChunkingConfigV2 | None = None, **kwargs):
+    def __init__(self, config: ChunkingConfigV2 | None = None, **kwargs: Any) -> None:
         """Initialize the chunker.
 
         Args:
             config: Configuration with sentence_window_size and window_stride
             **kwargs: Optional override for window_size, stride
         """
-        self.config = config or ChunkingConfigV2()
+        self.config = config or ChunkingConfigV2.model_validate({})
 
         # Allow kwargs override
         self.window_size = kwargs.get("sentence_window_size", self.config.sentence_window_size)
@@ -85,7 +86,7 @@ class SlidingWindowChunker(BaseChunker):
         if not sentences:
             return []
 
-        chunks = []
+        chunks: list[Chunk] = []
         doc_id = _document_id(document)
 
         # Sliding window

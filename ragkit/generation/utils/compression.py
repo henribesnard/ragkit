@@ -11,7 +11,7 @@ def compress_context(text: str, ratio: float = 0.5, tokenizer: Any | None = None
         return text
 
     try:
-        from llmlingua import PromptCompressor  # type: ignore
+        from llmlingua import PromptCompressor
 
         compressor = PromptCompressor()
         target_tokens = int(_token_count(text, tokenizer) * ratio)

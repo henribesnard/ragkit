@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 
 class QueryExpander:
     """Query expander with multiple expansion strategies.
@@ -12,7 +14,7 @@ class QueryExpander:
     - HyDE: Generate hypothetical document and search for similar docs
     """
 
-    def __init__(self, llm_client=None):
+    def __init__(self, llm_client: Any | None = None) -> None:
         """Initialize query expander.
 
         Args:

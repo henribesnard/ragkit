@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import re
 from pathlib import Path
+from typing import Any
 
 from ragkit.config.schema_v2 import ChunkingConfigV2
 from ragkit.ingestion.chunkers.base import BaseChunker
@@ -58,14 +59,14 @@ class RecursiveChunker(BaseChunker):
         Will first split on "\\n\\n" (paragraphs), creating coherent chunks.
     """
 
-    def __init__(self, config: ChunkingConfigV2 | None = None, **kwargs):
+    def __init__(self, config: ChunkingConfigV2 | None = None, **kwargs: Any) -> None:
         """Initialize the chunker.
 
         Args:
             config: Configuration with chunk_size, chunk_overlap, separators
             **kwargs: Optional override for chunk_size, chunk_overlap, separators
         """
-        self.config = config or ChunkingConfigV2()
+        self.config = config or ChunkingConfigV2.model_validate({})
 
         # Allow kwargs override
         self.chunk_size = kwargs.get("chunk_size", self.config.chunk_size)
@@ -75,7 +76,7 @@ class RecursiveChunker(BaseChunker):
 
         # Use custom regex if provided
         if self.config.separator_regex:
-            self.separator_regex = re.compile(self.config.separator_regex)
+            self.separator_regex: re.Pattern[str] | None = re.compile(self.config.separator_regex)
         else:
             self.separator_regex = None
 
@@ -153,8 +154,8 @@ class RecursiveChunker(BaseChunker):
             splits = text.split(separator)
 
         # Rejoin splits with overlap
-        result = []
-        current_chunk = []
+        result: list[str] = []
+        current_chunk: list[str] = []
         current_length = 0
 
         for i, split in enumerate(splits):

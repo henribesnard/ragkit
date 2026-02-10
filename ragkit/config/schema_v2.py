@@ -366,21 +366,24 @@ class RetrievalConfigV2(BaseModel):
     query_classifier_enabled: bool = False
 
 
+RerankerModel = Literal[
+    "cross-encoder/ms-marco-MiniLM-L-6-v2",
+    "cross-encoder/ms-marco-TinyBERT-L-2-v2",
+    "BAAI/bge-reranker-v2-m3",
+    "cross-encoder/ms-marco-electra-base",
+    "cohere-rerank-v3",
+    "llm-based",
+    "colbert",
+]
+
+
 class RerankingConfigV2(BaseModel):
     """Reranking configuration for cross-encoders."""
 
     model_config = ConfigDict(extra="forbid")
 
     reranker_enabled: bool = False
-    reranker_model: Literal[
-        "cross-encoder/ms-marco-MiniLM-L-6-v2",
-        "cross-encoder/ms-marco-TinyBERT-L-2-v2",
-        "BAAI/bge-reranker-v2-m3",
-        "cross-encoder/ms-marco-electra-base",
-        "cohere-rerank-v3",
-        "llm-based",
-        "colbert",
-    ] = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    reranker_model: RerankerModel = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
     rerank_top_n: int = 100
     rerank_batch_size: int = 16
@@ -389,8 +392,8 @@ class RerankingConfigV2(BaseModel):
     return_scores: bool = True
 
     multi_stage_reranking: bool = False
-    stage_1_model: str = "cross-encoder/ms-marco-TinyBERT-L-2-v2"
-    stage_2_model: str = "BAAI/bge-reranker-v2-m3"
+    stage_1_model: RerankerModel = "cross-encoder/ms-marco-TinyBERT-L-2-v2"
+    stage_2_model: RerankerModel = "BAAI/bge-reranker-v2-m3"
     stage_1_keep_top: int = 50
 
     use_gpu: bool = True

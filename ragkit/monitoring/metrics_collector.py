@@ -50,7 +50,7 @@ class MonitoringMetricsCollector:
         self.retrieval_gauges: dict[str, Any] = {}
 
         try:
-            from prometheus_client import Counter, Gauge, Histogram  # type: ignore
+            from prometheus_client import Counter, Gauge, Histogram
         except Exception:
             return
 

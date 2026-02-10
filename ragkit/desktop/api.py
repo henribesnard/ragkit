@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 import time
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal, cast
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
@@ -120,7 +120,7 @@ async def _ingest_document(
 ) -> int:
     ingestion_defaults = default_ingestion_config()
     chunking_config = ChunkingConfig(
-        strategy=chunk_strategy,
+        strategy=cast(Literal["fixed", "semantic"], chunk_strategy),
         fixed=FixedChunkingConfig(
             chunk_size=chunk_size,
             chunk_overlap=chunk_overlap,

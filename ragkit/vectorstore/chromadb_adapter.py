@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import chromadb
 import numpy as np
 from chromadb.config import Settings
@@ -40,7 +42,7 @@ class ChromaDBAdapter:
         # Collection
         self.collection = self._get_or_create_collection()
 
-    def _get_or_create_collection(self):
+    def _get_or_create_collection(self) -> Any:
         """Retrieve or create the ChromaDB collection.
 
         Returns:
@@ -72,7 +74,7 @@ class ChromaDBAdapter:
         self,
         chunks: list[Chunk],
         embeddings: np.ndarray,
-    ):
+    ) -> None:
         """Insert a batch of chunks with their embeddings.
 
         Args:
@@ -180,7 +182,7 @@ class ChromaDBAdapter:
         content_hash = hashlib.md5(chunk.content.encode()).hexdigest()[:8]
         return f"chunk_{index}_{content_hash}"
 
-    def _convert_filters(self, filters: dict) -> dict:
+    def _convert_filters(self, filters: dict) -> dict[str, Any]:
         """Convert filters to ChromaDB format.
 
         Args:

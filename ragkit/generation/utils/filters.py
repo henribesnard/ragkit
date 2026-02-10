@@ -18,7 +18,7 @@ async def check_filter(text: str, filter_type: str) -> bool:
 
 def _contains_toxicity(text: str) -> bool:
     try:
-        from detoxify import Detoxify  # type: ignore
+        from detoxify import Detoxify
 
         model = Detoxify("original")
         scores = model.predict(text)

@@ -46,11 +46,11 @@ def maximal_marginal_relevance(
     relevance_scores = [cosine_similarity(query_embedding, emb) for emb in embeddings]
 
     # Initialize
-    selected_indices = []
-    remaining_indices = list(range(len(results)))
+    selected_indices: list[int] = []
+    remaining_indices: list[int] = list(range(len(results)))
 
     # Step 1: Select most relevant document
-    first_idx = np.argmax(relevance_scores)
+    first_idx = int(np.argmax(relevance_scores))
     selected_indices.append(first_idx)
     remaining_indices.remove(first_idx)
 

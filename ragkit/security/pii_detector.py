@@ -10,8 +10,8 @@ from ragkit.config.schema_v2 import SecurityConfigV2
 from ragkit.security.exceptions import PIIDetectedException
 
 try:  # Optional dependency
-    from presidio_analyzer import AnalyzerEngine  # type: ignore
-    from presidio_anonymizer import AnonymizerEngine  # type: ignore
+    from presidio_analyzer import AnalyzerEngine
+    from presidio_anonymizer import AnonymizerEngine
 except Exception:  # pragma: no cover - optional dependency fallback
     AnalyzerEngine = None
     AnonymizerEngine = None

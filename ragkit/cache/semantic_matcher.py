@@ -6,6 +6,7 @@ import asyncio
 import time
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
+from typing import cast
 
 from ragkit.config.schema_v2 import CacheConfigV2
 
@@ -69,9 +70,10 @@ class SemanticMatcher:
         result = self.embedder([query])
         if asyncio.iscoroutine(result):
             result = await result
-        if not result:
+        result_list = cast(list[list[float]], result)
+        if not result_list:
             return []
-        return list(result[0])
+        return list(result_list[0])
 
 
 def _cosine_similarity(a: list[float], b: list[float]) -> float:

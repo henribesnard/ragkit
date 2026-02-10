@@ -24,7 +24,7 @@ class TextPreprocessor:
     ) -> None:
         self.config = config
         self._embedder = embedder
-        self._language_detector = None
+        self._language_detector: Any | None = None
 
     def process(self, text: str) -> str:
         """Apply preprocessing steps to input text."""
@@ -139,7 +139,11 @@ class TextPreprocessor:
                 model_path = "lid.176.bin"
                 self._language_detector = fasttext.load_model(model_path)
 
-            prediction = self._language_detector.predict(text, k=1)
+            detector = self._language_detector
+            if detector is None:
+                return self.config.fallback_language
+
+            prediction = detector.predict(text, k=1)
             label = prediction[0][0]
             return label.replace("__label__", "")
 
@@ -156,6 +160,9 @@ class TextPreprocessor:
             import numpy as np
         except Exception as exc:  # noqa: BLE001
             logger.warning("Numpy required for semantic deduplication: %s", exc)
+            return False
+
+        if self._embedder is None:
             return False
 
         embeddings = self._embedder([text] + existing_texts)

@@ -118,7 +118,7 @@ class ContentModerator:
             return self._toxicity_model
 
         try:
-            from detoxify import Detoxify  # type: ignore
+            from detoxify import Detoxify
 
             self._toxicity_model = Detoxify("original")
             self._detoxify_available = True

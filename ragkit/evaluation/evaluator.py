@@ -143,13 +143,13 @@ async def _evaluate_with_ragas(
     config: MonitoringConfigV2,
 ) -> dict[str, float] | None:
     try:
-        from ragas import evaluate  # type: ignore
+        from ragas import evaluate
         from ragas.metrics import (
             answer_relevancy,
             context_precision,
             context_recall,
             faithfulness,
-        )  # type: ignore
+        )
     except Exception:
         return None
 

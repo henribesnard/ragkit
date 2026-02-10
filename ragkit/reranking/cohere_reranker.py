@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import time
+from typing import Any
 
 from ragkit.config.schema_v2 import RerankingConfigV2
 from ragkit.models import Chunk
@@ -45,7 +46,7 @@ class CohereReranker(BaseReranker):
         results = await reranker.rerank(query, candidates)
     """
 
-    def __init__(self, config: RerankingConfigV2, api_key: str):
+    def __init__(self, config: RerankingConfigV2, api_key: str) -> None:
         """Initialize Cohere reranker.
 
         Args:
@@ -138,7 +139,7 @@ class CohereReranker(BaseReranker):
         documents: list[str],
         top_n: int,
         max_retries: int = 3,
-    ):
+    ) -> Any:
         """Call Cohere API with exponential backoff retry.
 
         Args:

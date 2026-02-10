@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from typing import Any
 
 import numpy as np
 from openai import AsyncOpenAI
@@ -43,12 +44,15 @@ class OpenAIEmbeddingProvider:
             texts = [f"{self.config.document_instruction_prefix}{t}" for t in texts]
 
         # API call
-        response = await self.client.embeddings.create(
-            model=self.config.model,
-            input=texts,
-            dimensions=self.config.dimensions,
-            encoding_format="float",  # or "base64" for less bandwidth
-        )
+        payload: dict[str, Any] = {
+            "model": self.config.model,
+            "input": texts,
+            "encoding_format": "float",  # or "base64" for less bandwidth
+        }
+        if self.config.dimensions is not None:
+            payload["dimensions"] = self.config.dimensions
+
+        response = await self.client.embeddings.create(**payload)
 
         # Extract embeddings
         embeddings = [item.embedding for item in response.data]

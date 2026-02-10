@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Literal
+from typing import Any, Literal
 
 from PIL import Image
 
@@ -24,7 +24,7 @@ class OCREngine:
         self.languages = languages
         self.dpi = dpi
         self.preprocessing = preprocessing
-        self._ocr_instance = None
+        self._ocr_instance: Any | None = None
 
     async def extract_text(self, image: Image.Image) -> tuple[str, float]:
         """Extract text from an image with confidence score."""
@@ -97,7 +97,7 @@ class OCREngine:
         text = result.render()
         return text, 0.9
 
-    def _init_ocr(self):
+    def _init_ocr(self) -> Any | None:
         """Initialize the OCR backend lazily."""
         if self.engine == "easyocr":
             try:

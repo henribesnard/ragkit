@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from ragkit.config.schema_v2 import RerankingConfigV2
 from ragkit.models import Chunk
@@ -41,17 +42,17 @@ class CrossEncoderReranker(BaseReranker):
         - Precision gain: +15-25% over retrieval alone
     """
 
-    def __init__(self, config: RerankingConfigV2):
+    def __init__(self, config: RerankingConfigV2) -> None:
         """Initialize cross-encoder reranker.
 
         Args:
             config: Reranking configuration
         """
         self.config = config
-        self.model = None
-        self._device = None
+        self.model: Any | None = None
+        self._device: str | None = None
 
-    def _load_model(self):
+    def _load_model(self) -> None:
         """Load cross-encoder model with optimizations.
 
         Lazy loading: model is loaded on first use, not at initialization.
@@ -96,16 +97,17 @@ class CrossEncoderReranker(BaseReranker):
             logger.info("Using CPU for cross-encoder (use_gpu=False)")
 
         # Load model
-        self.model = CrossEncoder(
+        model = CrossEncoder(
             self.config.reranker_model,
             device=self._device,
             max_length=512,  # Truncate long documents
         )
+        self.model = model
 
         # Apply half-precision on GPU
         if self.config.half_precision and self._device == "cuda":
             try:
-                self.model.model.half()
+                model.model.half()
                 logger.info("Using FP16 half-precision")
             except Exception as e:
                 logger.warning(f"Failed to enable half-precision: {e}")
@@ -150,6 +152,11 @@ class CrossEncoderReranker(BaseReranker):
         # Load model (lazy loading)
         self._load_model()
 
+        if self.model is None:
+            raise RuntimeError("Cross-encoder model failed to load.")
+
+        model = self.model
+
         # Prepare (query, document) pairs
         pairs = [(query, chunk.content) for chunk in candidates]
 
@@ -157,7 +164,7 @@ class CrossEncoderReranker(BaseReranker):
         logger.debug(f"Scoring {len(pairs)} pairs with batch_size={self.config.rerank_batch_size}")
 
         try:
-            scores = self.model.predict(
+            scores = model.predict(
                 pairs,
                 batch_size=self.config.rerank_batch_size,
                 show_progress_bar=False,
@@ -193,7 +200,7 @@ class CrossEncoderReranker(BaseReranker):
 
         return results
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Cleanup model on deletion if not caching."""
         if not self.config.cache_model and self.model is not None:
             logger.debug("Releasing cross-encoder model")

@@ -158,7 +158,7 @@ def _lost_in_middle_ordering(
     if not documents:
         return []
 
-    ordered = [None] * len(documents)
+    ordered: list[NormalizedDocument | None] = [None] * len(documents)
     left = 0
     right = len(documents) - 1
     for idx, doc in enumerate(documents):
@@ -174,7 +174,7 @@ def _lost_in_middle_ordering(
 
 def _default_tokenizer() -> Tokenizer:
     try:
-        import tiktoken  # type: ignore
+        import tiktoken
 
         encoding = tiktoken.get_encoding("cl100k_base")
 

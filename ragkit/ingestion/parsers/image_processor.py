@@ -15,8 +15,8 @@ class ImageProcessor:
 
     def __init__(self, config: DocumentParsingConfig) -> None:
         self.config = config
-        self._caption_model = None
-        self._caption_processor = None
+        self._caption_model: Any | None = None
+        self._caption_processor: Any | None = None
 
     async def extract_images(self, page: Any, page_num: int) -> list[dict[str, Any]]:
         """Extract images from a pdfplumber page.
@@ -50,7 +50,7 @@ class ImageProcessor:
         if not image_data:
             return ""
 
-        if self._caption_model is None:
+        if self._caption_model is None or self._caption_processor is None:
             try:
                 from transformers import BlipForConditionalGeneration, BlipProcessor
             except Exception as exc:  # noqa: BLE001
@@ -60,6 +60,11 @@ class ImageProcessor:
             model_name = self.config.image_captioning_model or "blip-base"
             self._caption_processor = BlipProcessor.from_pretrained(model_name)
             self._caption_model = BlipForConditionalGeneration.from_pretrained(model_name)
+
+        processor = self._caption_processor
+        model = self._caption_model
+        if processor is None or model is None:
+            return ""
 
         try:
             import io
@@ -75,7 +80,7 @@ class ImageProcessor:
             logger.warning("Failed to load image for captioning: %s", exc)
             return ""
 
-        inputs = self._caption_processor(image, return_tensors="pt")
-        output = self._caption_model.generate(**inputs, max_new_tokens=30)
-        caption = self._caption_processor.decode(output[0], skip_special_tokens=True)
+        inputs = processor(image, return_tensors="pt")
+        output = model.generate(**inputs, max_new_tokens=30)
+        caption = processor.decode(output[0], skip_special_tokens=True)
         return caption

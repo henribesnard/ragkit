@@ -8,8 +8,8 @@ import re
 async def compute_faithfulness(response: str, context: str, query: str) -> float:
     """Compute faithfulness score (best-effort)."""
     try:
-        from ragas import evaluate  # type: ignore
-        from ragas.metrics import faithfulness  # type: ignore
+        from ragas import evaluate
+        from ragas.metrics import faithfulness
 
         result = evaluate(
             data={

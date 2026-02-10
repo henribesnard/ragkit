@@ -71,6 +71,7 @@ class CacheManager:
     ) -> None:
         self.config = config
         self.metrics = CacheMetrics()
+        self.semantic_matcher: SemanticMatcher | None
         if embedder and config.cache_key_strategy == "semantic":
             self.semantic_matcher = SemanticMatcher(config, embedder=embedder)
         else:

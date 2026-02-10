@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
-from typing import Protocol
+from typing import Any, Protocol, cast
 
 import numpy as np
 
@@ -56,10 +56,10 @@ class AdvancedEmbedder:
         )
 
         # Cache
-        self.cache: dict[str, np.ndarray] = {} if config.cache_embeddings else None
+        self.cache: dict[str, np.ndarray] | None = {} if config.cache_embeddings else None
 
         # Dimensionality reduction model (lazy init)
-        self._reduction_model = None
+        self._reduction_model: Any | None = None
 
         # Provider (lazy init)
         self._provider: EmbeddingProvider | None = None
@@ -92,9 +92,9 @@ class AdvancedEmbedder:
         processed_texts = [self._truncate_text(t) for t in processed_texts]
 
         # Step 3: Cache lookup
-        embeddings = []
-        texts_to_embed = []
-        cache_keys = []
+        embeddings: list[np.ndarray | None] = []
+        texts_to_embed: list[str] = []
+        cache_keys: list[str | None] = []
 
         for text in processed_texts:
             cache_key = self._get_cache_key(text)
@@ -135,9 +135,9 @@ class AdvancedEmbedder:
             # Step 7: Cache store
             if self.cache is not None:
                 new_idx = 0
-                for _i, cache_key in enumerate(cache_keys):
-                    if cache_key is not None:
-                        self.cache[cache_key] = new_embeddings[new_idx]
+                for _i, key in enumerate(cache_keys):
+                    if key is not None:
+                        self.cache[key] = new_embeddings[new_idx]
                         new_idx += 1
 
             # Combine with cache
@@ -147,7 +147,9 @@ class AdvancedEmbedder:
                     embeddings[i] = new_embeddings[new_idx]
                     new_idx += 1
 
-        return np.array(embeddings)
+        if any(item is None for item in embeddings):
+            raise RuntimeError("Embedding pipeline failed to resolve all embeddings.")
+        return np.array(cast(list[np.ndarray], embeddings))
 
     async def embed_query(self, query: str) -> np.ndarray:
         """Embed a query (can use a different model).
@@ -341,7 +343,11 @@ class AdvancedEmbedder:
                 # UMAP requires fit
                 self._reduction_model.fit(embeddings)
 
-        reduced = self._reduction_model.transform(embeddings)
+        reduction_model = self._reduction_model
+        if reduction_model is None:
+            return embeddings
+
+        reduced = reduction_model.transform(embeddings)
         if effective_dims < target_dims:
             reduced = np.pad(
                 reduced,
