@@ -10,13 +10,14 @@ import logging
 from pathlib import Path
 
 from ragkit.agents import AgentOrchestrator
-from ragkit.config.defaults import default_agents_config, default_retrieval_config
+from ragkit.config.defaults import default_agents_config, default_ingestion_config, default_retrieval_config
 from ragkit.config.schema import (
     EmbeddingModelConfig,
     EmbeddingParams,
     LLMConfig,
     LLMModelConfig,
     LLMParams,
+    RetrievalConfig,
 )
 from ragkit.embedding import create_embedder
 from ragkit.embedding.base import BaseEmbedder
@@ -107,12 +108,73 @@ class AppState:
         if not self.db:
             return
 
+        ingestion_defaults = default_ingestion_config()
+        retrieval_defaults = default_retrieval_config()
+
+        # Load settings with explicit type conversions for safety
         self._settings = {
-            "embedding_provider": self.db.get_setting("embedding_provider", "onnx_local"),
-            "embedding_model": self.db.get_setting("embedding_model", "all-MiniLM-L6-v2"),
-            "llm_provider": self.db.get_setting("llm_provider", "ollama"),
-            "llm_model": self.db.get_setting("llm_model", "llama3.2:3b"),
-            "theme": self.db.get_setting("theme", "system"),
+            "embedding_provider": str(
+                self.db.get_setting("embedding_provider", "onnx_local")
+            ),
+            "embedding_model": str(
+                self.db.get_setting("embedding_model", "all-MiniLM-L6-v2")
+            ),
+            "embedding_chunk_strategy": str(
+                self.db.get_setting(
+                    "embedding_chunk_strategy", ingestion_defaults.chunking.strategy
+                )
+            ),
+            "embedding_chunk_size": int(
+                self.db.get_setting(
+                    "embedding_chunk_size", ingestion_defaults.chunking.fixed.chunk_size
+                )
+            ),
+            "embedding_chunk_overlap": int(
+                self.db.get_setting(
+                    "embedding_chunk_overlap", ingestion_defaults.chunking.fixed.chunk_overlap
+                )
+            ),
+            "retrieval_architecture": str(
+                self.db.get_setting(
+                    "retrieval_architecture", retrieval_defaults.architecture
+                )
+            ),
+            "retrieval_top_k": int(
+                self.db.get_setting(
+                    "retrieval_top_k", retrieval_defaults.semantic.top_k
+                )
+            ),
+            "retrieval_semantic_weight": float(
+                self.db.get_setting(
+                    "retrieval_semantic_weight", retrieval_defaults.semantic.weight
+                )
+            ),
+            "retrieval_lexical_weight": float(
+                self.db.get_setting(
+                    "retrieval_lexical_weight", retrieval_defaults.lexical.weight
+                )
+            ),
+            "retrieval_rerank_weight": float(
+                self.db.get_setting("retrieval_rerank_weight", 0.0)
+            ),
+            "retrieval_rerank_enabled": bool(
+                self.db.get_setting(
+                    "retrieval_rerank_enabled", retrieval_defaults.rerank.enabled
+                )
+            ),
+            "retrieval_rerank_provider": str(
+                self.db.get_setting(
+                    "retrieval_rerank_provider", retrieval_defaults.rerank.provider
+                )
+            ),
+            "retrieval_max_chunks": int(
+                self.db.get_setting(
+                    "retrieval_max_chunks", retrieval_defaults.context.max_chunks
+                )
+            ),
+            "llm_provider": str(self.db.get_setting("llm_provider", "ollama")),
+            "llm_model": str(self.db.get_setting("llm_model", "llama3.2:3b")),
+            "theme": str(self.db.get_setting("theme", "system")),
         }
 
     def get_settings(self) -> dict:
@@ -194,6 +256,67 @@ class AppState:
         self._llm_router_cache[cache_key] = router
         return router
 
+    def _build_retrieval_config(self) -> RetrievalConfig:
+        settings = self._settings
+        config = default_retrieval_config()
+
+        architecture = settings.get("retrieval_architecture", config.architecture)
+        if architecture not in {"semantic", "lexical", "hybrid", "hybrid_rerank"}:
+            architecture = config.architecture
+        config.architecture = architecture
+
+        config.semantic.enabled = architecture in {"semantic", "hybrid", "hybrid_rerank"}
+        config.lexical.enabled = architecture in {"lexical", "hybrid", "hybrid_rerank"}
+
+        top_k = settings.get("retrieval_top_k", config.semantic.top_k)
+        try:
+            top_k = int(top_k)
+        except (TypeError, ValueError):
+            top_k = config.semantic.top_k
+        if top_k < 1:
+            top_k = 1
+
+        config.semantic.top_k = top_k
+        config.lexical.top_k = top_k
+
+        try:
+            config.semantic.weight = float(
+                settings.get("retrieval_semantic_weight", config.semantic.weight)
+            )
+        except (TypeError, ValueError):
+            pass
+        try:
+            config.lexical.weight = float(
+                settings.get("retrieval_lexical_weight", config.lexical.weight)
+            )
+        except (TypeError, ValueError):
+            pass
+
+        rerank_enabled = bool(settings.get("retrieval_rerank_enabled", config.rerank.enabled))
+        if architecture == "hybrid_rerank":
+            rerank_enabled = True
+        config.rerank.enabled = rerank_enabled
+        provider = settings.get("retrieval_rerank_provider", config.rerank.provider)
+        if provider not in {"none", "cohere"}:
+            provider = config.rerank.provider
+        config.rerank.provider = provider
+
+        if config.rerank.provider == "cohere":
+            config.rerank.api_key = self._get_api_key("cohere")
+        else:
+            config.rerank.api_key = None
+
+        max_chunks = settings.get("retrieval_max_chunks", config.context.max_chunks)
+        try:
+            max_chunks = int(max_chunks)
+        except (TypeError, ValueError):
+            max_chunks = config.context.max_chunks
+        if max_chunks < 1:
+            max_chunks = 1
+        config.context.max_chunks = max_chunks
+
+        return config
+
     async def get_orchestrator(self, kb_id: str) -> AgentOrchestrator:
         cached = self._orchestrator_cache.get(kb_id)
         if cached:
@@ -206,7 +329,8 @@ class AppState:
 
         embedder = self.get_embedder(kb.embedding_model, kb.embedding_dimensions)
         vector_store = self.kb_manager.get_vector_store(kb_id)
-        retrieval = RetrievalEngine(default_retrieval_config(), vector_store, embedder)
+        retrieval_config = self._build_retrieval_config()
+        retrieval = RetrievalEngine(retrieval_config, vector_store, embedder)
         orchestrator = AgentOrchestrator(
             default_agents_config(),
             retrieval,

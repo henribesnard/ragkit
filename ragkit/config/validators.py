@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 
 from ragkit.config.schema import RAGKitConfig
 
-_HOSTED_LLM_PROVIDERS = {"openai", "anthropic", "deepseek", "groq", "mistral"}
+_HOSTED_LLM_PROVIDERS = {"openai", "anthropic", "deepseek", "groq", "mistral", "gemini"}
 _HOSTED_EMBEDDING_PROVIDERS = {"openai", "cohere"}
 
 

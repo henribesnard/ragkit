@@ -93,6 +93,7 @@ fn main() {
             commands::create_knowledge_base,
             commands::delete_knowledge_base,
             commands::add_documents,
+            commands::add_folder,
             commands::list_conversations,
             commands::create_conversation,
             commands::delete_conversation,
@@ -103,6 +104,8 @@ fn main() {
             commands::set_api_key,
             commands::has_api_key,
             commands::delete_api_key,
+            commands::analyze_wizard_profile,
+            commands::detect_environment,
             // Ollama commands
             commands::get_ollama_status,
             commands::list_ollama_models,

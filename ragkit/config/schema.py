@@ -264,7 +264,15 @@ class LLMParams(BaseModel):
 class LLMModelConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    provider: Literal["openai", "anthropic", "ollama", "deepseek", "groq", "mistral"]
+    provider: Literal[
+        "openai",
+        "anthropic",
+        "ollama",
+        "deepseek",
+        "groq",
+        "mistral",
+        "gemini",
+    ]
     model: str
     api_key: str | None = None
     api_key_env: str | None = None

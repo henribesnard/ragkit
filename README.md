@@ -143,6 +143,15 @@ The desktop app supports:
 
 Main config file: `ragkit.yaml` (see `templates/` for examples).
 
+### Table Extraction Strategies
+
+Use these parsing strategies when configuring advanced ingestion:
+
+- `preserve`: Keep the raw table structure for downstream processing.
+- `markdown`: Convert tables to Markdown for LLM-friendly ingestion.
+- `separate`: Emit tables as standalone chunks.
+- `vision`: Use a vision model for complex tables (slower, more accurate).
+
 ### Environment Variables
 
 - `.env` files are auto-loaded

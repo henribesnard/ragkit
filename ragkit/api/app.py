@@ -15,6 +15,7 @@ from starlette.responses import JSONResponse, Response
 from ragkit.agents import AgentOrchestrator
 from ragkit.api.routes.admin import admin_router
 from ragkit.api.routes.admin.websocket import router as ws_router
+from ragkit.api.routes.feedback import router as feedback_router
 from ragkit.api.routes.health import router as health_router
 from ragkit.api.routes.query import router as query_router
 from ragkit.api.routes.status import router as status_router
@@ -104,6 +105,7 @@ def create_app(
         )
 
     app.include_router(query_router, prefix="/api/v1")
+    app.include_router(feedback_router, prefix="/api/v1")
     app.include_router(health_router)
     app.include_router(admin_router, prefix="/api/v1")
     app.include_router(ws_router, prefix="/api/v1/admin")

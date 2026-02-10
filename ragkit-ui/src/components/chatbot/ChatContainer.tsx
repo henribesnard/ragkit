@@ -1,11 +1,12 @@
-﻿import { ChatInput } from './ChatInput';
+
+import { ChatInput } from './ChatInput';
 import { ChatMessage } from './ChatMessage';
 
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  sources?: string[];
+  sources?: Array<string | Record<string, any>>;
   isStreaming?: boolean;
 }
 
@@ -22,9 +23,7 @@ export function ChatContainer({ messages, onSend, isLoading }: ChatContainerProp
         {messages.length === 0 ? (
           <p className="text-sm text-muted">Start a conversation to test your RAG.</p>
         ) : (
-          messages.map((message) => (
-            <ChatMessage key={message.id} {...message} />
-          ))
+          messages.map((message) => <ChatMessage key={message.id} {...message} />)
         )}
       </div>
       <ChatInput onSend={onSend} isLoading={isLoading} />

@@ -1,4 +1,5 @@
-﻿import { useState } from 'react';
+
+import { useState } from 'react';
 import { ChatContainer } from '@/components/chatbot/ChatContainer';
 import { DebugPanel } from '@/components/chatbot/DebugPanel';
 import { queryRag, queryRagStream } from '@/api/query';
@@ -7,7 +8,7 @@ interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
-  sources?: string[];
+  sources?: Array<string | Record<string, any>>;
   isStreaming?: boolean;
   debug?: {
     intent?: string;

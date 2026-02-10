@@ -64,12 +64,44 @@ pub struct QueryResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct AddFolderFailure {
+    pub path: String,
+    pub error: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AddFolderResponse {
+    pub added: Vec<String>,
+    pub failed: Vec<AddFolderFailure>,
+    pub total_processed: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Settings {
     pub embedding_provider: String,
     pub embedding_model: String,
+    pub embedding_chunk_strategy: String,
+    pub embedding_chunk_size: i32,
+    pub embedding_chunk_overlap: i32,
+    pub retrieval_architecture: String,
+    pub retrieval_top_k: i32,
+    pub retrieval_semantic_weight: f64,
+    pub retrieval_lexical_weight: f64,
+    pub retrieval_rerank_weight: f64,
+    pub retrieval_rerank_enabled: bool,
+    pub retrieval_rerank_provider: String,
+    pub retrieval_max_chunks: i32,
     pub llm_provider: String,
     pub llm_model: String,
     pub theme: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WizardProfileResponse {
+    pub profile_name: String,
+    pub description: String,
+    pub config_summary: serde_json::Value,
+    pub full_config: serde_json::Value,
 }
 
 // ============================================================================
@@ -88,6 +120,26 @@ pub struct QueryParams {
     pub kb_id: String,
     pub conversation_id: String,
     pub question: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AddFolderParams {
+    pub kb_id: String,
+    pub folder_path: String,
+    pub recursive: bool,
+    pub file_types: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct WizardAnswers {
+    pub kb_type: String,
+    pub has_tables_diagrams: bool,
+    pub needs_multi_document: bool,
+    pub large_documents: bool,
+    pub needs_precision: bool,
+    pub frequent_updates: bool,
+    pub cite_page_numbers: bool,
 }
 
 // ============================================================================
@@ -149,6 +201,22 @@ pub async fn add_documents(kb_id: String, paths: Vec<String>) -> Result<(), Stri
     )
     .await
     .map(|_| ())
+    .map_err(|e| e.to_string())
+}
+
+/// Add a folder to a knowledge base
+#[tauri::command]
+pub async fn add_folder(params: AddFolderParams) -> Result<AddFolderResponse, String> {
+    backend_request(
+        Method::POST,
+        &format!("/api/knowledge-bases/{}/folders", params.kb_id),
+        Some(json!({
+            "folder_path": params.folder_path,
+            "recursive": params.recursive,
+            "file_types": params.file_types,
+        })),
+    )
+    .await
     .map_err(|e| e.to_string())
 }
 
@@ -230,6 +298,32 @@ pub async fn update_settings(settings: Settings) -> Result<Settings, String> {
     )
     .await
     .map_err(|e| e.to_string())
+}
+
+// ============================================================================
+// Wizard Commands
+// ============================================================================
+
+/// Analyze wizard answers and return a profile recommendation
+#[tauri::command]
+pub async fn analyze_wizard_profile(
+    params: WizardAnswers,
+) -> Result<WizardProfileResponse, String> {
+    backend_request(
+        Method::POST,
+        "/api/wizard/analyze-profile",
+        Some(serde_json::to_value(&params).unwrap()),
+    )
+    .await
+    .map_err(|e| e.to_string())
+}
+
+/// Detect environment (GPU, Ollama)
+#[tauri::command]
+pub async fn detect_environment() -> Result<serde_json::Value, String> {
+    backend_request(Method::GET, "/api/wizard/environment-detection", None)
+        .await
+        .map_err(|e| e.to_string())
 }
 
 /// Set an API key

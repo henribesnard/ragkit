@@ -15,6 +15,8 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from ragkit.config.defaults import default_ingestion_config
+from ragkit.config.schema import ChunkingConfig, FixedChunkingConfig
+from ragkit.desktop.wizard_api import router as wizard_router
 from ragkit.ingestion.chunkers import create_chunker
 from ragkit.ingestion.parsers import create_parser
 from ragkit.ingestion.sources.base import RawDocument
@@ -22,6 +24,7 @@ from ragkit.ingestion.sources.base import RawDocument
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api")
+router.include_router(wizard_router)
 
 
 # ============================================================================
@@ -39,6 +42,12 @@ class AddDocumentsRequest(BaseModel):
     paths: list[str]
 
 
+class AddFolderRequest(BaseModel):
+    folder_path: str
+    recursive: bool = True
+    file_types: list[str] = ["pdf", "txt", "md", "docx", "doc"]
+
+
 class CreateConversationRequest(BaseModel):
     kb_id: str | None = None
     title: str | None = None
@@ -53,6 +62,17 @@ class QueryRequest(BaseModel):
 class SettingsModel(BaseModel):
     embedding_provider: str
     embedding_model: str
+    embedding_chunk_strategy: str = "fixed"
+    embedding_chunk_size: int = 512
+    embedding_chunk_overlap: int = 50
+    retrieval_architecture: str = "semantic"
+    retrieval_top_k: int = 10
+    retrieval_semantic_weight: float = 1.0
+    retrieval_lexical_weight: float = 0.0
+    retrieval_rerank_weight: float = 0.0
+    retrieval_rerank_enabled: bool = False
+    retrieval_rerank_provider: str = "none"
+    retrieval_max_chunks: int = 4
     llm_provider: str
     llm_model: str
     theme: str
@@ -94,10 +114,20 @@ async def _ingest_document(
     document_id: str,
     embedder: Any,
     vector_store: Any,
+    chunk_strategy: str = "fixed",
+    chunk_size: int = 512,
+    chunk_overlap: int = 50,
 ) -> int:
     ingestion_defaults = default_ingestion_config()
+    chunking_config = ChunkingConfig(
+        strategy=chunk_strategy,
+        fixed=FixedChunkingConfig(
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+        ),
+    )
     parser = create_parser(ingestion_defaults.parsing)
-    chunker = create_chunker(ingestion_defaults.chunking, embedder=embedder)
+    chunker = create_chunker(chunking_config, embedder=embedder)
 
     file_type = _detect_file_type(path)
     stat = path.stat()
@@ -216,6 +246,7 @@ async def add_documents(request: Request, kb_id: str, body: AddDocumentsRequest)
 
     embedder = state.get_embedder(kb.embedding_model, kb.embedding_dimensions)
     vector_store = state.kb_manager.get_vector_store(kb_id)
+    settings = state.get_settings()
 
     # Add each document
     added = []
@@ -229,6 +260,9 @@ async def add_documents(request: Request, kb_id: str, body: AddDocumentsRequest)
                 document_id=doc.id,
                 embedder=embedder,
                 vector_store=vector_store,
+                chunk_strategy=settings.get("embedding_chunk_strategy", "fixed"),
+                chunk_size=settings.get("embedding_chunk_size", 512),
+                chunk_overlap=settings.get("embedding_chunk_overlap", 50),
             )
             await state.kb_manager.update_document_status(
                 doc.id,
@@ -252,6 +286,83 @@ async def add_documents(request: Request, kb_id: str, body: AddDocumentsRequest)
         pass
 
     return {"added": added}
+
+
+@router.post("/knowledge-bases/{kb_id}/folders")
+async def add_folder(
+    request: Request, kb_id: str, body: AddFolderRequest
+) -> dict[str, Any]:
+    """Add all documents from a folder to a knowledge base."""
+    state = get_state(request)
+
+    # Verify KB exists
+    kb = await state.kb_manager.get(kb_id)
+    if not kb:
+        raise HTTPException(status_code=404, detail="Knowledge base not found")
+
+    folder_path = Path(body.folder_path)
+    if not folder_path.exists() or not folder_path.is_dir():
+        raise HTTPException(status_code=400, detail="Invalid folder path")
+
+    embedder = state.get_embedder(kb.embedding_model, kb.embedding_dimensions)
+    vector_store = state.kb_manager.get_vector_store(kb_id)
+    settings = state.get_settings()
+
+    file_types = [t.lower().lstrip(".") for t in body.file_types if t]
+    file_types = list(dict.fromkeys(file_types)) if file_types else []
+
+    files_to_add: list[Path] = []
+    glob_pattern = "**/*" if body.recursive else "*"
+    if file_types:
+        for file_type in file_types:
+            pattern = f"{glob_pattern}.{file_type}"
+            files_to_add.extend(folder_path.glob(pattern))
+    else:
+        files_to_add = [p for p in folder_path.glob(glob_pattern) if p.is_file()]
+
+    added: list[str] = []
+    failed: list[dict[str, str]] = []
+    for file_path in files_to_add:
+        doc = None
+        try:
+            doc = await state.kb_manager.add_document(kb_id, str(file_path))
+            added.append(doc.id)
+            chunk_count = await _ingest_document(
+                path=file_path,
+                document_id=doc.id,
+                embedder=embedder,
+                vector_store=vector_store,
+                chunk_strategy=settings.get("embedding_chunk_strategy", "fixed"),
+                chunk_size=settings.get("embedding_chunk_size", 512),
+                chunk_overlap=settings.get("embedding_chunk_overlap", 50),
+            )
+            await state.kb_manager.update_document_status(
+                doc.id,
+                status="indexed",
+                chunk_count=chunk_count,
+            )
+        except Exception as e:  # noqa: BLE001
+            logger.warning(f"Failed to ingest document {file_path}: {e}")
+            failed.append({"path": str(file_path), "error": str(e)})
+            if doc is not None:
+                await state.kb_manager.update_document_status(
+                    doc.id,
+                    status="error",
+                    error_message=str(e),
+                )
+
+    await state.kb_manager.update_stats(kb_id)
+    try:
+        orchestrator = await state.get_orchestrator(kb_id)
+        await orchestrator.retrieval.refresh_lexical_index()
+    except Exception:  # noqa: BLE001
+        pass
+
+    return {
+        "added": added,
+        "failed": failed,
+        "total_processed": len(files_to_add),
+    }
 
 
 # ============================================================================
@@ -399,6 +510,38 @@ async def get_settings(request: Request) -> dict[str, Any]:
 async def update_settings(request: Request, settings: SettingsModel) -> dict[str, Any]:
     """Update application settings."""
     state = get_state(request)
+
+    if settings.embedding_chunk_size < 50 or settings.embedding_chunk_size > 2000:
+        raise HTTPException(
+            status_code=400,
+            detail="Chunk size must be between 50 and 2000",
+        )
+    if settings.embedding_chunk_overlap >= settings.embedding_chunk_size:
+        raise HTTPException(
+            status_code=400,
+            detail="Chunk overlap must be less than chunk size",
+        )
+    if settings.retrieval_top_k < 1 or settings.retrieval_top_k > 50:
+        raise HTTPException(
+            status_code=400,
+            detail="Top K must be between 1 and 50",
+        )
+    if settings.retrieval_max_chunks < 1 or settings.retrieval_max_chunks > 50:
+        raise HTTPException(
+            status_code=400,
+            detail="Max chunks must be between 1 and 50",
+        )
+    for weight_value, name in (
+        (settings.retrieval_semantic_weight, "Semantic weight"),
+        (settings.retrieval_lexical_weight, "Lexical weight"),
+        (settings.retrieval_rerank_weight, "Rerank weight"),
+    ):
+        if weight_value < 0 or weight_value > 1:
+            raise HTTPException(
+                status_code=400,
+                detail=f"{name} must be between 0 and 1",
+            )
+
     updated = state.update_settings(settings.model_dump())
     return updated
 

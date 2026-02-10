@@ -1,37 +1,59 @@
-﻿import { useEffect, useState } from 'react';
+
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useConfig, useUpdateConfig } from '@/hooks/useConfig';
-import { GeneralConfig } from '@/components/config/sections/GeneralConfig';
-import { IngestionConfigSection } from '@/components/config/sections/IngestionConfig';
-import { EmbeddingConfigSection } from '@/components/config/sections/EmbeddingConfig';
-import { RetrievalConfigSection } from '@/components/config/sections/RetrievalConfig';
-import { LLMConfigSection } from '@/components/config/sections/LLMConfig';
-import { AgentsConfigSection } from '@/components/config/sections/AgentsConfig';
-import { VectorStoreConfigSection } from '@/components/config/sections/VectorStoreConfig';
-import { ConversationConfigSection } from '@/components/config/sections/ConversationConfig';
-import { ObservabilityConfigSection } from '@/components/config/sections/ObservabilityConfig';
+import { validateConfig } from '@/api/config';
+import { AdvancedConfigTabs } from '@/components/config/AdvancedConfigTabs';
+import { ExpertiseLevelSelector } from '@/components/settings/ExpertiseLevelSelector';
+import { ProfileSelector } from '@/components/settings/ProfileSelector';
+import { IntermediateSettings } from '@/components/settings/IntermediateSettings';
+import { ExpertJsonEditor } from '@/components/settings/ExpertJsonEditor';
+import { applyProfilePatch } from '@/data/profiles';
+import { useConfigStore } from '@/stores/configStore';
 
 export function Config() {
   const { data, isLoading } = useConfig();
   const { mutate: updateConfig, isPending } = useUpdateConfig();
-  const [localConfig, setLocalConfig] = useState<any>({});
-  const [hasChanges, setHasChanges] = useState(false);
+  const { config, expertiseLevel, jsonDraft, jsonError, setConfig, setExpertiseLevel, setJsonDraft } =
+    useConfigStore();
+  const [serverSnapshot, setServerSnapshot] = useState('');
+  const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
+  const [validationMessage, setValidationMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (data?.config) {
-      setLocalConfig(data.config);
-      setHasChanges(false);
+      setConfig(data.config);
+      setServerSnapshot(JSON.stringify(data.config ?? {}));
     }
-  }, [data]);
+  }, [data, setConfig]);
+
+  const hasChanges = useMemo(() => {
+    if (!serverSnapshot) {
+      return false;
+    }
+    return JSON.stringify(config ?? {}) !== serverSnapshot;
+  }, [config, serverSnapshot]);
 
   const handleSave = () => {
-    updateConfig({ config: localConfig, validateOnly: false });
-    setHasChanges(false);
+    updateConfig({ config, validateOnly: false });
+    setValidationMessage(null);
   };
 
   const handleExport = () => {
     window.location.href = '/api/v1/admin/config/export';
+  };
+
+  const handleValidate = async () => {
+    try {
+      const result = await validateConfig(config);
+      if (result?.valid) {
+        setValidationMessage('Configuration is valid.');
+      } else {
+        setValidationMessage(result?.errors?.join(' | ') || 'Configuration has errors.');
+      }
+    } catch (error: any) {
+      setValidationMessage(error?.message || 'Unable to validate configuration.');
+    }
   };
 
   if (isLoading) {
@@ -55,101 +77,62 @@ export function Config() {
         </div>
       </div>
 
-      <Tabs defaultValue="general">
-        <TabsList>
-          <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="ingestion">Ingestion</TabsTrigger>
-          <TabsTrigger value="embedding">Embedding</TabsTrigger>
-          <TabsTrigger value="retrieval">Retrieval</TabsTrigger>
-          <TabsTrigger value="llm">LLM</TabsTrigger>
-          <TabsTrigger value="agents">Agents</TabsTrigger>
-          <TabsTrigger value="vector-store">Vector Store</TabsTrigger>
-          <TabsTrigger value="conversation">Conversation</TabsTrigger>
-          <TabsTrigger value="observability">Observability</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="general">
-          <GeneralConfig
-            config={localConfig}
-            onChange={(value) => {
-              setLocalConfig(value);
-              setHasChanges(true);
-            }}
-          />
-        </TabsContent>
-        <TabsContent value="ingestion">
-          <IngestionConfigSection
-            config={localConfig}
-            onChange={(value) => {
-              setLocalConfig(value);
-              setHasChanges(true);
-            }}
-          />
-        </TabsContent>
-        <TabsContent value="embedding">
-          <EmbeddingConfigSection
-            config={localConfig}
-            onChange={(value) => {
-              setLocalConfig(value);
-              setHasChanges(true);
-            }}
-          />
-        </TabsContent>
-        <TabsContent value="retrieval">
-          <RetrievalConfigSection
-            config={localConfig}
-            onChange={(value) => {
-              setLocalConfig(value);
-              setHasChanges(true);
-            }}
-          />
-        </TabsContent>
-        <TabsContent value="llm">
-          <LLMConfigSection
-            config={localConfig}
-            onChange={(value) => {
-              setLocalConfig(value);
-              setHasChanges(true);
-            }}
-          />
-        </TabsContent>
-        <TabsContent value="agents">
-          <AgentsConfigSection
-            config={localConfig}
-            onChange={(value) => {
-              setLocalConfig(value);
-              setHasChanges(true);
-            }}
-          />
-        </TabsContent>
-        <TabsContent value="vector-store">
-          <VectorStoreConfigSection
-            config={localConfig}
-            onChange={(value) => {
-              setLocalConfig(value);
-              setHasChanges(true);
-            }}
-          />
-        </TabsContent>
-        <TabsContent value="conversation">
-          <ConversationConfigSection
-            config={localConfig}
-            onChange={(value) => {
-              setLocalConfig(value);
-              setHasChanges(true);
-            }}
-          />
-        </TabsContent>
-        <TabsContent value="observability">
-          <ObservabilityConfigSection
-            config={localConfig}
-            onChange={(value) => {
-              setLocalConfig(value);
-              setHasChanges(true);
-            }}
-          />
-        </TabsContent>
-      </Tabs>
+      <div className="grid gap-6 xl:grid-cols-[320px_1fr]">
+        <ExpertiseLevelSelector value={expertiseLevel} onChange={setExpertiseLevel} />
+        <div className="space-y-6">
+          {expertiseLevel === 'simple' ? (
+            <ProfileSelector
+              selectedId={selectedProfile}
+              onSelect={(profile) => {
+                setSelectedProfile(profile.id);
+                const nextConfig = applyProfilePatch(config, profile);
+                setConfig(nextConfig);
+              }}
+            />
+          ) : null}
+          {expertiseLevel === 'intermediate' ? (
+            <IntermediateSettings
+              config={config}
+              onChange={(next) => {
+                setConfig(next);
+              }}
+            />
+          ) : null}
+          {expertiseLevel === 'expert' ? (
+            <div className="space-y-6">
+              <ExpertJsonEditor
+                jsonDraft={jsonDraft}
+                error={jsonError}
+                onChange={(value) => setJsonDraft(value)}
+                onFormat={() => {
+                  try {
+                    const formatted = JSON.stringify(JSON.parse(jsonDraft || '{}'), null, 2);
+                    setJsonDraft(formatted);
+                  } catch {
+                    setValidationMessage('Unable to format JSON: fix errors first.');
+                  }
+                }}
+                onValidate={handleValidate}
+              />
+              <div className="rounded-3xl bg-white/60 p-6 shadow-soft">
+                <div className="mb-4">
+                  <h3 className="text-lg font-display">Full configuration</h3>
+                  <p className="text-xs text-muted">Use the form view for quick edits.</p>
+                </div>
+                <AdvancedConfigTabs
+                  config={config}
+                  onChange={(next) => {
+                    setConfig(next);
+                  }}
+                />
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </div>
+      {validationMessage ? (
+        <p className="rounded-2xl bg-slate-900/90 p-4 text-xs text-white">{validationMessage}</p>
+      ) : null}
     </div>
   );
 }

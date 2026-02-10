@@ -19,6 +19,12 @@ interface QueryResponse {
   latency_ms: number;
 }
 
+interface AddFolderResponse {
+  added: string[];
+  failed: { path: string; error: string }[];
+  total_processed: number;
+}
+
 interface Source {
   filename: string;
   chunk: string;
@@ -57,9 +63,52 @@ interface Message {
 interface Settings {
   embedding_provider: string;
   embedding_model: string;
+  embedding_chunk_strategy: string;
+  embedding_chunk_size: number;
+  embedding_chunk_overlap: number;
+  retrieval_architecture: string;
+  retrieval_top_k: number;
+  retrieval_semantic_weight: number;
+  retrieval_lexical_weight: number;
+  retrieval_rerank_weight: number;
+  retrieval_rerank_enabled: boolean;
+  retrieval_rerank_provider: string;
+  retrieval_max_chunks: number;
   llm_provider: string;
   llm_model: string;
   theme: "light" | "dark" | "system";
+}
+
+interface WizardAnswers {
+  kb_type: string;
+  has_tables_diagrams: boolean;
+  needs_multi_document: boolean;
+  large_documents: boolean;
+  needs_precision: boolean;
+  frequent_updates: boolean;
+  cite_page_numbers: boolean;
+}
+
+interface WizardProfileResponse {
+  profile_name: string;
+  description: string;
+  config_summary: Record<string, string>;
+  full_config: Record<string, any>;
+}
+
+interface EnvironmentDetection {
+  gpu: {
+    detected: boolean;
+    name: string | null;
+    vram_total_gb: number | null;
+    vram_free_gb: number | null;
+  };
+  ollama: {
+    installed: boolean;
+    running: boolean;
+    version: string | null;
+    models: string[];
+  };
 }
 
 // Ollama types
@@ -129,6 +178,15 @@ export const ipc = {
 
   async addDocuments(kbId: string, paths: string[]): Promise<void> {
     return invoke("add_documents", { kbId, paths });
+  },
+
+  async addFolder(params: {
+    kbId: string;
+    folderPath: string;
+    recursive: boolean;
+    fileTypes: string[];
+  }): Promise<AddFolderResponse> {
+    return invoke<AddFolderResponse>("add_folder", { params });
   },
 
   // Conversations
@@ -228,12 +286,22 @@ export const ipc = {
   async getInstallInstructions(): Promise<InstallInstructions> {
     return invoke<InstallInstructions>("get_install_instructions");
   },
+
+  // Wizard
+  async analyzeWizardProfile(params: WizardAnswers): Promise<WizardProfileResponse> {
+    return invoke<WizardProfileResponse>("analyze_wizard_profile", { params });
+  },
+
+  async detectEnvironment(): Promise<EnvironmentDetection> {
+    return invoke<EnvironmentDetection>("detect_environment");
+  },
 };
 
 // Export types
 export type {
   HealthCheckResponse,
   QueryResponse,
+  AddFolderResponse,
   Source,
   KnowledgeBase,
   Conversation,
@@ -244,4 +312,7 @@ export type {
   RecommendedModel,
   EmbeddingModel,
   InstallInstructions,
+  WizardAnswers,
+  WizardProfileResponse,
+  EnvironmentDetection,
 };

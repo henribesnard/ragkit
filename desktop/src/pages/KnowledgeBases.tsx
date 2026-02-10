@@ -3,6 +3,7 @@ import {
   Plus,
   Trash2,
   Upload,
+  FolderPlus,
   Database,
   FileText,
   Loader2,
@@ -23,8 +24,17 @@ import {
   Modal,
   ModalFooter,
   useConfirm,
+  useToast,
 } from "../components/ui";
 import { cn, formatDate } from "../lib/utils";
+
+const FOLDER_FILE_TYPES = [
+  { value: "pdf", label: "PDF" },
+  { value: "txt", label: "Text" },
+  { value: "md", label: "Markdown" },
+  { value: "docx", label: "Word (.docx)" },
+  { value: "doc", label: "Word (.doc)" },
+];
 
 export function KnowledgeBases() {
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
@@ -34,7 +44,20 @@ export function KnowledgeBases() {
   const [newKbDescription, setNewKbDescription] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [uploadingKbId, setUploadingKbId] = useState<string | null>(null);
+  const [showAddFolderModal, setShowAddFolderModal] = useState(false);
+  const [selectedKbForFolder, setSelectedKbForFolder] = useState<KnowledgeBase | null>(null);
+  const [folderPath, setFolderPath] = useState("");
+  const [folderRecursive, setFolderRecursive] = useState(true);
+  const [folderFileTypes, setFolderFileTypes] = useState<string[]>([
+    "pdf",
+    "txt",
+    "md",
+    "docx",
+    "doc",
+  ]);
+  const [isAddingFolder, setIsAddingFolder] = useState(false);
   const confirm = useConfirm();
+  const toast = useToast();
 
   // Load knowledge bases
   useEffect(() => {
@@ -110,10 +133,81 @@ export function KnowledgeBases() {
     }
   };
 
+  const openAddFolderModal = (kb: KnowledgeBase) => {
+    setSelectedKbForFolder(kb);
+    setFolderPath("");
+    setFolderRecursive(true);
+    setFolderFileTypes(FOLDER_FILE_TYPES.map((item) => item.value));
+    setShowAddFolderModal(true);
+  };
+
+  const handleSelectFolder = async () => {
+    const folder = await ipc.selectFolder();
+    if (folder) {
+      setFolderPath(folder);
+    }
+  };
+
+  const toggleFileType = (fileType: string) => {
+    setFolderFileTypes((prev) =>
+      prev.includes(fileType)
+        ? prev.filter((item) => item !== fileType)
+        : [...prev, fileType]
+    );
+  };
+
+  const handleAddFolder = async () => {
+    if (!selectedKbForFolder) return;
+    if (!folderPath.trim()) {
+      toast.error("Folder required", "Please choose a folder to import.");
+      return;
+    }
+    if (folderFileTypes.length === 0) {
+      toast.error("Select file types", "Choose at least one file type.");
+      return;
+    }
+
+    try {
+      setIsAddingFolder(true);
+      const result = await ipc.addFolder({
+        kbId: selectedKbForFolder.id,
+        folderPath,
+        recursive: folderRecursive,
+        fileTypes: folderFileTypes,
+      });
+      if (result.added.length === 0 && result.failed.length === 0) {
+        toast.info("No documents found", "No matching files were detected.");
+      } else if (result.failed.length > 0) {
+        toast.warning(
+          "Folder indexed with warnings",
+          `${result.added.length} added, ${result.failed.length} failed.`
+        );
+      } else {
+        toast.success(
+          "Folder indexed",
+          `${result.added.length} document${result.added.length !== 1 ? "s" : ""} added.`
+        );
+      }
+      setShowAddFolderModal(false);
+      setFolderPath("");
+      loadKnowledgeBases();
+    } catch (error) {
+      console.error("Failed to add folder:", error);
+      toast.error("Failed to add folder");
+    } finally {
+      setIsAddingFolder(false);
+    }
+  };
+
   const closeModal = () => {
     setShowCreateModal(false);
     setNewKbName("");
     setNewKbDescription("");
+  };
+
+  const closeAddFolderModal = () => {
+    setShowAddFolderModal(false);
+    setSelectedKbForFolder(null);
   };
 
   return (
@@ -154,6 +248,7 @@ export function KnowledgeBases() {
                 isUploading={uploadingKbId === kb.id}
                 onDelete={() => handleDelete(kb)}
                 onAddDocuments={() => handleAddDocuments(kb)}
+                onAddFolder={() => openAddFolderModal(kb)}
               />
             ))}
           </div>
@@ -193,6 +288,75 @@ export function KnowledgeBases() {
             isLoading={isCreating}
           >
             Create
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Add Folder Modal */}
+      <Modal
+        isOpen={showAddFolderModal}
+        onClose={closeAddFolderModal}
+        title={`Add Folder${selectedKbForFolder ? ` to ${selectedKbForFolder.name}` : ""}`}
+        description="Import all documents from a folder into this knowledge base."
+        size="md"
+      >
+        <div className="space-y-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <Input
+                label="Folder path"
+                value={folderPath}
+                onChange={(e) => setFolderPath(e.target.value)}
+                placeholder="Select a folder..."
+              />
+            </div>
+            <Button variant="secondary" onClick={handleSelectFolder}>
+              Browse
+            </Button>
+          </div>
+
+          <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              checked={folderRecursive}
+              onChange={(e) => setFolderRecursive(e.target.checked)}
+            />
+            Include subfolders
+          </label>
+
+          <div>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              File types
+            </p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {FOLDER_FILE_TYPES.map((fileType) => (
+                <label
+                  key={fileType.value}
+                  className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400"
+                >
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                    checked={folderFileTypes.includes(fileType.value)}
+                    onChange={() => toggleFileType(fileType.value)}
+                  />
+                  {fileType.label}
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+        <ModalFooter>
+          <Button variant="secondary" onClick={closeAddFolderModal}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleAddFolder}
+            disabled={!folderPath.trim() || folderFileTypes.length === 0}
+            isLoading={isAddingFolder}
+          >
+            Add Folder
           </Button>
         </ModalFooter>
       </Modal>
@@ -237,11 +401,13 @@ function KnowledgeBaseCard({
   isUploading,
   onDelete,
   onAddDocuments,
+  onAddFolder,
 }: {
   kb: KnowledgeBase;
   isUploading: boolean;
   onDelete: () => void;
   onAddDocuments: () => void;
+  onAddFolder: () => void;
 }) {
   return (
     <Card className="hover:shadow-lg transition-shadow duration-200">
@@ -302,15 +468,21 @@ function KnowledgeBaseCard({
       </CardContent>
 
       <CardFooter className="pt-3 mt-3">
-        <Button
-          variant="secondary"
-          className="w-full"
-          onClick={onAddDocuments}
-          isLoading={isUploading}
-        >
-          <Upload className="w-4 h-4 mr-2" />
-          Add Documents
-        </Button>
+        <div className="flex w-full gap-2">
+          <Button
+            variant="secondary"
+            className="flex-1"
+            onClick={onAddDocuments}
+            isLoading={isUploading}
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            Add Documents
+          </Button>
+          <Button variant="secondary" className="flex-1" onClick={onAddFolder}>
+            <FolderPlus className="w-4 h-4 mr-2" />
+            Add Folder
+          </Button>
+        </div>
       </CardFooter>
     </Card>
   );

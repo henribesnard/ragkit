@@ -1,27 +1,17 @@
-﻿import { useQuery } from '@tanstack/react-query';
-import { fetchMetricTimeseries } from '@/api/metrics';
-import { QueryChart } from '@/components/dashboard/QueryChart';
+
+import { useMetrics } from '@/hooks/useMetrics';
+import { useIngestionStatus } from '@/hooks/useIngestion';
+import { useWebSocket } from '@/hooks/useWebSocket';
 import { StatsCards } from '@/components/dashboard/StatsCards';
 import { HealthStatus } from '@/components/dashboard/HealthStatus';
 import { IngestionStatus } from '@/components/dashboard/IngestionStatus';
 import { RecentQueries } from '@/components/dashboard/RecentQueries';
-import { useMetrics } from '@/hooks/useMetrics';
-import { useIngestionStatus } from '@/hooks/useIngestion';
-import { useWebSocket } from '@/hooks/useWebSocket';
+import { MetricsDashboard } from '@/components/dashboard/MetricsDashboard';
 
 export function Dashboard() {
   const { data: metrics } = useMetrics('24h');
   const { data: ingestionStatus } = useIngestionStatus();
   const { lastMessage } = useWebSocket();
-  const { data: timeseries = [] } = useQuery({
-    queryKey: ['metric-timeseries', 'query_count'],
-    queryFn: () => fetchMetricTimeseries('query_count', '24h', '1h'),
-  });
-
-  const chartData = (timeseries as any[]).map((point) => ({
-    timestamp: point.timestamp,
-    value: point.value,
-  }));
 
   return (
     <div className="space-y-6">
@@ -31,14 +21,12 @@ export function Dashboard() {
         </div>
       )}
       <StatsCards metrics={metrics} ingestionStatus={ingestionStatus} />
+      <MetricsDashboard />
       <div className="grid gap-6 lg:grid-cols-2">
-        <QueryChart data={chartData} />
         <HealthStatus />
-      </div>
-      <div className="grid gap-6 lg:grid-cols-[1fr_2fr]">
         <IngestionStatus />
-        <RecentQueries />
       </div>
+      <RecentQueries />
     </div>
   );
 }

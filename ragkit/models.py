@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from typing import Any
+from uuid import uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class Document(BaseModel):
@@ -15,11 +16,17 @@ class Document(BaseModel):
 
 
 class Chunk(BaseModel):
-    id: str
-    document_id: str
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    document_id: str | None = None
     content: str
     metadata: dict[str, Any] = Field(default_factory=dict)
     embedding: list[float] | None = None
+
+    @model_validator(mode="after")
+    def _ensure_document_id(self) -> "Chunk":
+        if not self.document_id:
+            self.document_id = self.id
+        return self
 
 
 class RetrievalResult(BaseModel):

@@ -37,6 +37,23 @@ ingestion:
       chunk_overlap: 50
 ```
 
+## Advanced Parsing (v2)
+
+```yaml
+parsing:
+  document_loader_type: "pdf"
+  ocr_enabled: true
+  ocr_engine: "tesseract"
+  table_extraction_strategy: "markdown"
+  image_extraction_enabled: false
+
+preprocessing:
+  normalize_unicode: "NFC"
+  remove_urls: true
+  deduplication_strategy: "fuzzy"
+  deduplication_threshold: 0.9
+```
+
 ## Embedding
 
 ```yaml

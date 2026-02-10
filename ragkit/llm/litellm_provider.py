@@ -123,6 +123,7 @@ _PROVIDER_PREFIXES: dict[str, str] = {
     "deepseek": "deepseek/",
     "groq": "groq/",
     "mistral": "mistral/",
+    "gemini": "gemini/",
 }
 
 

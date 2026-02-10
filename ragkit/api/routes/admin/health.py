@@ -12,7 +12,7 @@ from pydantic import BaseModel
 
 from ragkit.state.models import ComponentHealth, ComponentStatus
 
-_HOSTED_LLM_PROVIDERS = {"openai", "anthropic", "deepseek", "groq", "mistral"}
+_HOSTED_LLM_PROVIDERS = {"openai", "anthropic", "deepseek", "groq", "mistral", "gemini"}
 _HOSTED_EMBEDDING_PROVIDERS = {"openai", "cohere"}
 
 router = APIRouter(prefix="/health")
