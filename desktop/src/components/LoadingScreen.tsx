@@ -1,10 +1,13 @@
 import { Loader2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface LoadingScreenProps {
   message?: string;
 }
 
-export function LoadingScreen({ message = "Loading..." }: LoadingScreenProps) {
+export function LoadingScreen({ message }: LoadingScreenProps) {
+  const { t } = useTranslation();
+  const displayMessage = message || t("common.status.loading");
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-50 dark:bg-gray-900">
       <div className="flex flex-col items-center space-y-4">
@@ -16,7 +19,7 @@ export function LoadingScreen({ message = "Loading..." }: LoadingScreenProps) {
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             RAGKIT Desktop
           </h2>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">{message}</p>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">{displayMessage}</p>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { GeneralConfig } from '@/components/config/sections/GeneralConfig';
 import { IngestionConfigSection } from '@/components/config/sections/IngestionConfig';
@@ -15,18 +16,19 @@ interface AdvancedConfigTabsProps {
 }
 
 export function AdvancedConfigTabs({ config, onChange }: AdvancedConfigTabsProps) {
+  const { t } = useTranslation();
   return (
     <Tabs defaultValue="general">
       <TabsList>
-        <TabsTrigger value="general">General</TabsTrigger>
-        <TabsTrigger value="ingestion">Ingestion</TabsTrigger>
-        <TabsTrigger value="embedding">Embedding</TabsTrigger>
-        <TabsTrigger value="retrieval">Retrieval</TabsTrigger>
-        <TabsTrigger value="llm">LLM</TabsTrigger>
-        <TabsTrigger value="agents">Agents</TabsTrigger>
-        <TabsTrigger value="vector-store">Vector Store</TabsTrigger>
-        <TabsTrigger value="conversation">Conversation</TabsTrigger>
-        <TabsTrigger value="observability">Observability</TabsTrigger>
+        <TabsTrigger value="general">{t('config.tabs.general')}</TabsTrigger>
+        <TabsTrigger value="ingestion">{t('config.tabs.ingestion')}</TabsTrigger>
+        <TabsTrigger value="embedding">{t('config.tabs.embedding')}</TabsTrigger>
+        <TabsTrigger value="retrieval">{t('config.tabs.retrieval')}</TabsTrigger>
+        <TabsTrigger value="llm">{t('config.tabs.llm')}</TabsTrigger>
+        <TabsTrigger value="agents">{t('config.tabs.agents')}</TabsTrigger>
+        <TabsTrigger value="vector-store">{t('config.tabs.vectorStore')}</TabsTrigger>
+        <TabsTrigger value="conversation">{t('config.tabs.conversation')}</TabsTrigger>
+        <TabsTrigger value="observability">{t('config.tabs.observability')}</TabsTrigger>
       </TabsList>
 
       <TabsContent value="general">

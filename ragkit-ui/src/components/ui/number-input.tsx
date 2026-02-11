@@ -1,4 +1,5 @@
 import { Input } from '@/components/ui/input';
+import { useTranslation } from 'react-i18next';
 
 interface NumberInputProps {
   value: number | null;
@@ -10,6 +11,7 @@ interface NumberInputProps {
 }
 
 export function NumberInput({ value, onChange, min, max, step, unit }: NumberInputProps) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-1">
       <div className="flex items-center gap-2">
@@ -32,9 +34,9 @@ export function NumberInput({ value, onChange, min, max, step, unit }: NumberInp
       </div>
       {(min !== undefined || max !== undefined) && (
         <p className="text-xs text-muted">
-          {min !== undefined ? `min ${min}` : null}
-          {min !== undefined && max !== undefined ? ' · ' : null}
-          {max !== undefined ? `max ${max}` : null}
+          {min !== undefined ? `${t('common.labels.min')} ${min}` : null}
+          {min !== undefined && max !== undefined ? ' / ' : null}
+          {max !== undefined ? `${t('common.labels.max')} ${max}` : null}
         </p>
       )}
     </div>

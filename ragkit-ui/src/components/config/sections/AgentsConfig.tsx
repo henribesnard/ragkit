@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { FieldLabel } from '@/components/ui/field-label';
 import { Input } from '@/components/ui/input';
@@ -14,16 +15,17 @@ interface SectionProps {
 }
 
 const intentOptions = [
-  { value: 'question', label: 'question' },
-  { value: 'greeting', label: 'greeting' },
-  { value: 'chitchat', label: 'chitchat' },
-  { value: 'out_of_scope', label: 'out_of_scope' },
-  { value: 'clarification', label: 'clarification' },
+  { value: 'question', labelKey: 'config.agents.intents.question' },
+  { value: 'greeting', labelKey: 'config.agents.intents.greeting' },
+  { value: 'chitchat', labelKey: 'config.agents.intents.chitchat' },
+  { value: 'out_of_scope', labelKey: 'config.agents.intents.outOfScope' },
+  { value: 'clarification', labelKey: 'config.agents.intents.clarification' },
 ];
 
 const responseLangOptions = ['auto', 'match_query', 'match_documents', 'fr', 'en', 'es', 'de', 'it', 'pt'];
 
 export function AgentsConfigSection({ config, onChange }: SectionProps) {
+  const { t } = useTranslation();
   const agents = config?.agents || {};
   const queryAnalyzer = agents.query_analyzer || {};
   const qaBehavior = queryAnalyzer.behavior || {};
@@ -59,39 +61,51 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
   const isPresetLang = responseLangOptions.includes(responseBehavior.response_language || 'auto');
   const langSelectValue = isPresetLang ? responseBehavior.response_language || 'auto' : 'custom';
 
+  const responseLangLabels: Record<string, string> = {
+    auto: t('common.options.auto'),
+    match_query: t('config.agents.matchQuery'),
+    match_documents: t('config.agents.matchDocuments'),
+    fr: t('common.languages.fr'),
+    en: t('common.languages.en'),
+    es: t('common.languages.es'),
+    de: t('common.languages.de'),
+    it: t('common.languages.it'),
+    pt: t('common.languages.pt'),
+  };
+
   return (
     <div className="space-y-8">
       <div>
         <FieldLabel
-          label="Mode"
-          help="default : utilise le pipeline standard query -> retrieval -> response. custom : permet d'ajouter des agents personnalises."
+          label={t('config.agents.modeLabel')}
+          help={t('config.agents.modeHelp')}
         />
         <Select
           value={agents.mode || 'default'}
           onChange={(event) => updateAgents({ ...agents, mode: event.target.value })}
         >
-          <option value="default">Default</option>
-          <option value="custom">Custom</option>
+          <option value="default">{t('common.options.default')}</option>
+          <option value="custom">{t('common.labels.custom')}</option>
         </Select>
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-ink">Query Analyzer</h3>
+        <h3 className="text-sm font-semibold text-ink">{t('config.agents.queryAnalyzerTitle')}</h3>
         <div>
-          <FieldLabel label="LLM reference" help="Quel modele LLM utiliser pour analyser les requetes." />
+          <FieldLabel label={t('config.agents.llmReferenceLabel')} help={t('config.agents.llmReferenceHelp')} />
           <Select
             value={queryAnalyzer.llm || 'fast'}
             onChange={(event) => updateQueryAnalyzer({ llm: event.target.value })}
           >
-            <option value="primary">Primary</option>
-            <option value="secondary">Secondary</option>
-            <option value="fast">Fast</option>
+            <option value="primary">{t('config.agents.primary')}</option>
+            <option value="secondary">{t('config.agents.secondary')}</option>
+            <option value="fast">{t('config.agents.fast')}</option>
           </Select>
         </div>
         <div>
           <FieldLabel
-            label="System prompt"
-            help="Instructions donnees au LLM pour analyser les requetes. Le LLM doit retourner un JSON." 
+            label={t('config.agents.systemPromptLabel')}
+            help={t('config.agents.systemPromptHelp')}
           />
           <Textarea
             rows={6}
@@ -101,8 +115,8 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
         </div>
         <div>
           <FieldLabel
-            label="Output schema"
-            help="Schema JSON que l'agent doit respecter pour la sortie."
+            label={t('config.agents.outputSchemaLabel')}
+            help={t('config.agents.outputSchemaHelp')}
           />
           <Textarea
             rows={6}
@@ -120,11 +134,11 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
           />
         </div>
 
-        <CollapsibleSection title="Behavior">
+        <CollapsibleSection title={t('config.agents.behaviorTitle')}>
           <div>
             <FieldLabel
-              label="Always retrieve"
-              help="Effectue toujours une recherche, meme pour salutations et hors-sujet."
+              label={t('config.agents.alwaysRetrieveLabel')}
+              help={t('config.agents.alwaysRetrieveHelp')}
             />
             <ToggleSwitch
               checked={qaBehavior.always_retrieve ?? false}
@@ -135,11 +149,14 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
           </div>
           <div>
             <FieldLabel
-              label="Detect intents"
-              help="Types d'intentions que l'agent doit detecter."
+              label={t('config.agents.detectIntentsLabel')}
+              help={t('config.agents.detectIntentsHelp')}
             />
             <MultiSelect
-              options={intentOptions}
+              options={intentOptions.map((option) => ({
+                value: option.value,
+                label: t(option.labelKey),
+              }))}
               selected={qaBehavior.detect_intents || []}
               onChange={(selected) =>
                 updateQueryAnalyzer({ behavior: { ...qaBehavior, detect_intents: selected } })
@@ -148,7 +165,7 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Query rewriting" help="Reecrire la requete pour ameliorer la recherche." />
+            <FieldLabel label={t('config.agents.queryRewritingLabel')} help={t('config.agents.queryRewritingHelp')} />
             <ToggleSwitch
               checked={qaRewriting.enabled ?? true}
               onChange={(checked) =>
@@ -160,7 +177,7 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
           </div>
           {qaRewriting.enabled ? (
             <div>
-              <FieldLabel label="Num rewrites" help="Nombre de reformulations de la requete." />
+              <FieldLabel label={t('config.agents.numRewritesLabel')} help={t('config.agents.numRewritesHelp')} />
               <NumberInput
                 value={qaRewriting.num_rewrites ?? 1}
                 min={1}
@@ -178,22 +195,22 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-ink">Response Generator</h3>
+        <h3 className="text-sm font-semibold text-ink">{t('config.agents.responseGeneratorTitle')}</h3>
         <div>
-          <FieldLabel label="LLM reference" help="Quel modele LLM utiliser pour generer les reponses." />
+          <FieldLabel label={t('config.agents.llmReferenceLabel')} help={t('config.agents.responseLlmHelp')} />
           <Select
             value={responseGenerator.llm || 'primary'}
             onChange={(event) => updateResponseGenerator({ llm: event.target.value })}
           >
-            <option value="primary">Primary</option>
-            <option value="secondary">Secondary</option>
-            <option value="fast">Fast</option>
+            <option value="primary">{t('config.agents.primary')}</option>
+            <option value="secondary">{t('config.agents.secondary')}</option>
+            <option value="fast">{t('config.agents.fast')}</option>
           </Select>
         </div>
         <div>
           <FieldLabel
-            label="System prompt"
-            help="Instructions pour generer les reponses. Utiliser {context} comme placeholder."
+            label={t('config.agents.systemPromptLabel')}
+            help={t('config.agents.responsePromptHelp')}
           />
           <Textarea
             rows={8}
@@ -202,7 +219,7 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
           />
         </div>
         <div>
-          <FieldLabel label="No retrieval prompt" help="Prompt utilise quand aucune recherche n'est necessaire." />
+          <FieldLabel label={t('config.agents.noRetrievalLabel')} help={t('config.agents.noRetrievalHelp')} />
           <Textarea
             rows={4}
             value={responseGenerator.no_retrieval_prompt || ''}
@@ -210,7 +227,7 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
           />
         </div>
         <div>
-          <FieldLabel label="Out of scope prompt" help="Prompt utilise quand la question est hors du domaine." />
+          <FieldLabel label={t('config.agents.outOfScopeLabel')} help={t('config.agents.outOfScopeHelp')} />
           <Textarea
             rows={4}
             value={responseGenerator.out_of_scope_prompt || ''}
@@ -218,9 +235,9 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
           />
         </div>
 
-        <CollapsibleSection title="Behavior">
+        <CollapsibleSection title={t('config.agents.behaviorTitle')}>
           <div>
-            <FieldLabel label="Cite sources" help="Inclure les references des sources dans la reponse." />
+            <FieldLabel label={t('config.agents.citeSourcesLabel')} help={t('config.agents.citeSourcesHelp')} />
             <ToggleSwitch
               checked={responseBehavior.cite_sources ?? true}
               onChange={(checked) =>
@@ -230,8 +247,8 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
           </div>
           <div>
             <FieldLabel
-              label="Source path mode"
-              help="Controle la sortie des chemins sources (basename masque les chemins complets)."
+              label={t('config.agents.sourcePathLabel')}
+              help={t('config.agents.sourcePathHelp')}
             />
             <Select
               value={responseBehavior.source_path_mode || 'basename'}
@@ -239,12 +256,12 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
                 updateResponseGenerator({ behavior: { ...responseBehavior, source_path_mode: event.target.value } })
               }
             >
-              <option value="basename">Basename</option>
-              <option value="full">Full path</option>
+              <option value="basename">{t('config.agents.basename')}</option>
+              <option value="full">{t('config.agents.fullPath')}</option>
             </Select>
           </div>
           <div>
-            <FieldLabel label="Citation format" help="Format des citations dans la reponse." />
+            <FieldLabel label={t('config.agents.citationFormatLabel')} help={t('config.agents.citationFormatHelp')} />
             <Input
               value={responseBehavior.citation_format || ''}
               onChange={(event) =>
@@ -253,10 +270,7 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
             />
           </div>
           <div>
-            <FieldLabel
-              label="Admit uncertainty"
-              help="Si le LLM ne trouve pas de reponse, il l'admet au lieu d'inventer."
-            />
+            <FieldLabel label={t('config.agents.admitLabel')} help={t('config.agents.admitHelp')} />
             <ToggleSwitch
               checked={responseBehavior.admit_uncertainty ?? true}
               onChange={(checked) =>
@@ -265,7 +279,7 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Uncertainty phrase" help="Phrase utilisee quand le LLM ne peut pas repondre." />
+            <FieldLabel label={t('config.agents.uncertaintyLabel')} help={t('config.agents.uncertaintyHelp')} />
             <Input
               value={responseBehavior.uncertainty_phrase || ''}
               onChange={(event) =>
@@ -274,7 +288,7 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Max response length" help="Limite la longueur de la reponse en caracteres." />
+            <FieldLabel label={t('config.agents.maxResponseLabel')} help={t('config.agents.maxResponseHelp')} />
             <NumberInput
               value={responseBehavior.max_response_length ?? null}
               min={1}
@@ -286,7 +300,7 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Response language" help="Langue de la reponse." />
+            <FieldLabel label={t('config.agents.responseLanguageLabel')} help={t('config.agents.responseLanguageHelp')} />
             <Select
               value={langSelectValue}
               onChange={(event) => {
@@ -298,10 +312,10 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
             >
               {responseLangOptions.map((option) => (
                 <option key={option} value={option}>
-                  {option}
+                  {responseLangLabels[option] || option}
                 </option>
               ))}
-              <option value="custom">Custom</option>
+              <option value="custom">{t('common.labels.custom')}</option>
             </Select>
             {langSelectValue === 'custom' ? (
               <Input
@@ -317,9 +331,9 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
         </CollapsibleSection>
       </div>
 
-      <CollapsibleSection title="Global settings">
+      <CollapsibleSection title={t('config.agents.globalTitle')}>
         <div>
-          <FieldLabel label="Timeout" help="Temps maximum pour le traitement complet d'une requete." />
+          <FieldLabel label={t('wizard.llm.timeoutLabel')} help={t('config.agents.globalTimeoutHelp')} />
           <NumberInput
             value={globalConfig.timeout ?? 30}
             min={1}
@@ -330,7 +344,7 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
           />
         </div>
         <div>
-          <FieldLabel label="Max retries" help="Nombre de tentatives en cas d'echec d'un agent." />
+          <FieldLabel label={t('wizard.llm.maxRetriesLabel')} help={t('config.agents.globalRetriesHelp')} />
           <NumberInput
             value={globalConfig.max_retries ?? 2}
             min={0}
@@ -340,7 +354,7 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
           />
         </div>
         <div>
-          <FieldLabel label="Retry delay" help="Delai entre les tentatives (secondes)." />
+          <FieldLabel label={t('config.agents.retryDelayLabel')} help={t('config.agents.retryDelayHelp')} />
           <NumberInput
             value={globalConfig.retry_delay ?? 1}
             min={0}
@@ -351,7 +365,7 @@ export function AgentsConfigSection({ config, onChange }: SectionProps) {
           />
         </div>
         <div>
-          <FieldLabel label="Verbose" help="Active les logs detailles des agents." />
+          <FieldLabel label={t('config.agents.verboseLabel')} help={t('config.agents.verboseHelp')} />
           <ToggleSwitch
             checked={globalConfig.verbose ?? false}
             onChange={(checked) => updateAgents({ ...agents, global: { ...globalConfig, verbose: checked } })}

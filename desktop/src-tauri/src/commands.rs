@@ -77,6 +77,22 @@ pub struct AddFolderResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct FolderValidationStats {
+    pub files: usize,
+    pub size_mb: f64,
+    pub extensions: Vec<String>,
+    pub extension_counts: Option<std::collections::HashMap<String, usize>>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct FolderValidationResult {
+    pub valid: bool,
+    pub error: Option<String>,
+    pub error_code: Option<String>,
+    pub stats: FolderValidationStats,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Settings {
     pub embedding_provider: String,
     pub embedding_model: String,
@@ -215,6 +231,18 @@ pub async fn add_folder(params: AddFolderParams) -> Result<AddFolderResponse, St
             "recursive": params.recursive,
             "file_types": params.file_types,
         })),
+    )
+    .await
+    .map_err(|e| e.to_string())
+}
+
+/// Validate a knowledge base folder
+#[tauri::command]
+pub async fn validate_folder(folder_path: String) -> Result<FolderValidationResult, String> {
+    backend_request(
+        Method::POST,
+        "/api/wizard/validate-folder",
+        Some(json!({ "folder_path": folder_path })),
     )
     .await
     .map_err(|e| e.to_string())

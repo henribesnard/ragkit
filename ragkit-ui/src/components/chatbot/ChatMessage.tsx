@@ -1,5 +1,5 @@
-
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ThumbsDown, ThumbsUp } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { submitFeedback } from '@/api/feedback';
@@ -29,7 +29,10 @@ interface ChatMessageProps {
   isStreaming?: boolean;
 }
 
-const normalizeSources = (sources?: Array<string | RawSource>): SourceItem[] => {
+const normalizeSources = (
+  sources: Array<string | RawSource> | undefined,
+  fallbackLabel: (index: number) => string
+): SourceItem[] => {
   if (!sources) {
     return [];
   }
@@ -38,7 +41,7 @@ const normalizeSources = (sources?: Array<string | RawSource>): SourceItem[] => 
       return { label: source };
     }
     const label =
-      source.filename || source.source || source.source_name || source.path || `Source ${index + 1}`;
+      source.filename || source.source || source.source_name || source.path || fallbackLabel(index + 1);
     const rawScore = source.score;
     const parsedScore =
       typeof rawScore === 'number' ? rawScore : rawScore !== undefined ? Number(rawScore) : undefined;
@@ -51,9 +54,13 @@ const normalizeSources = (sources?: Array<string | RawSource>): SourceItem[] => 
 };
 
 export function ChatMessage({ id, role, content, sources, isStreaming }: ChatMessageProps) {
+  const { t } = useTranslation();
   const [expandedCitation, setExpandedCitation] = useState<number | null>(null);
   const [feedback, setFeedback] = useState<'up' | 'down' | null>(null);
-  const normalizedSources = useMemo(() => normalizeSources(sources), [sources]);
+  const normalizedSources = useMemo(
+    () => normalizeSources(sources, (index) => t('chat.sourceLabel', { index })),
+    [sources, t]
+  );
 
   const handleFeedback = async (rating: 'up' | 'down') => {
     setFeedback(rating);
@@ -133,7 +140,7 @@ export function ChatMessage({ id, role, content, sources, isStreaming }: ChatMes
             )}
           >
             <ThumbsUp size={14} />
-            Helpful
+            {t('chat.feedback.helpful')}
           </button>
           <button
             type="button"
@@ -144,7 +151,7 @@ export function ChatMessage({ id, role, content, sources, isStreaming }: ChatMes
             )}
           >
             <ThumbsDown size={14} />
-            Needs work
+            {t('chat.feedback.needsWork')}
           </button>
         </div>
       ) : null}

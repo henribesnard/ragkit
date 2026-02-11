@@ -25,6 +25,20 @@ interface AddFolderResponse {
   total_processed: number;
 }
 
+interface FolderValidationStats {
+  files: number;
+  size_mb: number;
+  extensions: string[];
+  extension_counts?: Record<string, number>;
+}
+
+interface FolderValidationResult {
+  valid: boolean;
+  error: string | null;
+  error_code?: string | null;
+  stats: FolderValidationStats;
+}
+
 interface Source {
   filename: string;
   chunk: string;
@@ -189,6 +203,10 @@ export const ipc = {
     return invoke<AddFolderResponse>("add_folder", { params });
   },
 
+  async validateFolder(folderPath: string): Promise<FolderValidationResult> {
+    return invoke<FolderValidationResult>("validate_folder", { folder_path: folderPath });
+  },
+
   // Conversations
   async listConversations(kbId?: string): Promise<Conversation[]> {
     return invoke<Conversation[]>("list_conversations", { kbId });
@@ -302,6 +320,7 @@ export type {
   HealthCheckResponse,
   QueryResponse,
   AddFolderResponse,
+  FolderValidationResult,
   Source,
   KnowledgeBase,
   Conversation,

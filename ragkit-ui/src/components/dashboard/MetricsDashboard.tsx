@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import {
   LineChart,
   Line,
@@ -42,11 +43,13 @@ const ChartCard = ({
   description,
   data,
   color,
+  emptyLabel,
 }: {
   title: string;
   description: string;
   data: Array<{ timestamp: string; value: number }>;
   color: string;
+  emptyLabel: string;
 }) => (
   <Card className="h-full">
     <CardTitle>{title}</CardTitle>
@@ -54,7 +57,7 @@ const ChartCard = ({
     <div className="mt-6 h-56">
       {data.length === 0 ? (
         <div className="flex h-full items-center justify-center rounded-2xl bg-canvas text-sm text-muted">
-          No data yet
+          {emptyLabel}
         </div>
       ) : (
         <ResponsiveContainer width="100%" height="100%">
@@ -71,6 +74,7 @@ const ChartCard = ({
 );
 
 export function MetricsDashboard() {
+  const { t } = useTranslation();
   const { data: metrics } = useMetrics('24h');
   const { data: latencySeries = [] } = useQuery({
     queryKey: ['metric-timeseries', 'query_latency_ms'],
@@ -99,36 +103,38 @@ export function MetricsDashboard() {
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
         <MetricCard
-          title="Latency p95"
-          description="Service-level response time"
+          title={t('dashboard.metrics.latencyP95')}
+          description={t('dashboard.metrics.latencyP95Help')}
           value={metrics?.queries?.p95_latency_ms}
           unit="ms"
         />
         <MetricCard
-          title="Success rate"
-          description="Queries answered without error"
+          title={t('dashboard.metrics.successRate')}
+          description={t('dashboard.metrics.successRateHelp')}
           value={successRate}
           unit="%"
         />
         <MetricCard
-          title="Cost (est.)"
-          description="Enable cost tracking for visibility"
+          title={t('dashboard.metrics.cost')}
+          description={t('dashboard.metrics.costHelp')}
           value={null}
           unit="$"
         />
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <ChartCard
-          title="Latency trend"
-          description="Median latency over the last 24h"
+          title={t('dashboard.metrics.latencyTrend')}
+          description={t('dashboard.metrics.latencyTrendHelp')}
           data={latencyData}
           color="#0e7490"
+          emptyLabel={t('dashboard.metrics.noData')}
         />
         <ChartCard
-          title="Query volume"
-          description="Throughput over the last 24h"
+          title={t('dashboard.metrics.queryVolume')}
+          description={t('dashboard.metrics.queryVolumeHelp')}
           data={throughputData}
           color="#f97316"
+          emptyLabel={t('dashboard.metrics.noData')}
         />
       </div>
     </div>

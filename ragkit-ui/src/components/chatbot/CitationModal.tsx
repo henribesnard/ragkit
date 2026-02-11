@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 
 interface CitationModalProps {
@@ -10,6 +11,7 @@ interface CitationModalProps {
 }
 
 export function CitationModal({ source, onClose }: CitationModalProps) {
+  const { t } = useTranslation();
   if (!source) {
     return null;
   }
@@ -21,16 +23,17 @@ export function CitationModal({ source, onClose }: CitationModalProps) {
           type="button"
           onClick={onClose}
           className="absolute right-4 top-4 rounded-full bg-slate-100 p-2 text-slate-600 hover:bg-slate-200"
+          aria-label={t('common.actions.close')}
         >
           <X size={16} />
         </button>
-        <p className="text-xs uppercase tracking-[0.3em] text-muted">Citation</p>
+        <p className="text-xs uppercase tracking-[0.3em] text-muted">{t('chat.citation.title')}</p>
         <h3 className="mt-2 text-lg font-display">{source.label}</h3>
         {source.score !== undefined ? (
-          <p className="mt-1 text-xs text-muted">Score: {source.score.toFixed(2)}</p>
+          <p className="mt-1 text-xs text-muted">{t('chat.citation.score', { score: source.score.toFixed(2) })}</p>
         ) : null}
         <div className="mt-4 rounded-2xl bg-canvas p-4 text-sm text-ink">
-          {source.snippet || 'No snippet available for this citation yet.'}
+          {source.snippet || t('chat.citation.empty')}
         </div>
       </div>
     </div>

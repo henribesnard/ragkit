@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
 
@@ -12,6 +13,7 @@ interface ModelSelectProps {
 const CUSTOM_VALUE = '__custom__';
 
 export function ModelSelect({ provider, models, value, onChange }: ModelSelectProps) {
+  const { t } = useTranslation();
   const options = models[provider] || [];
   const isPreset = options.some((option) => option.value === value);
   const [customValue, setCustomValue] = useState(isPreset ? '' : value);
@@ -47,12 +49,12 @@ export function ModelSelect({ provider, models, value, onChange }: ModelSelectPr
             {option.label}
           </option>
         ))}
-        <option value={CUSTOM_VALUE}>Custom</option>
+        <option value={CUSTOM_VALUE}>{t('common.labels.custom')}</option>
       </Select>
       {selectValue === CUSTOM_VALUE ? (
         <Input
           value={customValue}
-          placeholder="custom-model-name"
+          placeholder={t('common.placeholders.customModel')}
           onChange={(event) => {
             setCustomValue(event.target.value);
             onChange(event.target.value);

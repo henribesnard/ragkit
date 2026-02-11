@@ -1,18 +1,21 @@
 import { NavLink } from 'react-router-dom';
 import { LayoutGrid, Settings2, PlugZap, MessageCircle, FileStack, Activity } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useStatus } from '@/hooks/useStatus';
-
-const navItems = [
-  { to: '/', label: 'Dashboard', icon: LayoutGrid },
-  { to: '/setup', label: 'Setup Wizard', icon: PlugZap },
-  { to: '/config', label: 'Configuration', icon: Settings2 },
-  { to: '/ingestion', label: 'Ingestion', icon: FileStack },
-  { to: '/chatbot', label: 'Chatbot', icon: MessageCircle },
-  { to: '/logs', label: 'Logs', icon: Activity },
-];
 
 export function Sidebar({ open = true }: { open?: boolean }) {
   const { data: status } = useStatus();
+  const { t } = useTranslation();
+
+  const navItems = [
+    { to: '/', label: t('nav.dashboard'), icon: LayoutGrid },
+    { to: '/setup', label: t('nav.setup'), icon: PlugZap },
+    { to: '/config', label: t('nav.configuration'), icon: Settings2 },
+    { to: '/ingestion', label: t('nav.ingestion'), icon: FileStack },
+    { to: '/chatbot', label: t('nav.chatbot'), icon: MessageCircle },
+    { to: '/logs', label: t('nav.logs'), icon: Activity },
+  ];
+
   return (
     <aside
       className={`shrink-0 border-r border-white/40 bg-white/70 backdrop-blur-xl transition-all ${
@@ -21,10 +24,10 @@ export function Sidebar({ open = true }: { open?: boolean }) {
     >
       <div className="px-6 py-8">
         <p className="text-xs uppercase tracking-[0.3em] text-muted">RAGKIT</p>
-        <h1 className="mt-2 text-2xl font-display">Control Room</h1>
+        <h1 className="mt-2 text-2xl font-display">{t('sidebar.controlRoom')}</h1>
         {status?.setup_mode && (
           <span className="mt-3 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-            Setup mode
+            {t('sidebar.setupMode')}
           </span>
         )}
       </div>

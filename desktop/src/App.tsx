@@ -1,4 +1,5 @@
 import { useEffect, useState, Suspense, lazy } from "react";
+import { useTranslation } from "react-i18next";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { useBackendStatus } from "./hooks/useBackendStatus";
@@ -21,17 +22,21 @@ const Onboarding = lazy(() =>
 
 // Page loading fallback
 function PageLoader() {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center justify-center h-full">
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 border-2 border-primary-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-gray-500 dark:text-gray-400">Loading...</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {t("common.status.loading")}
+        </p>
       </div>
     </div>
   );
 }
 
 function App() {
+  const { t } = useTranslation();
   const { status, error, retry } = useBackendStatus();
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window !== "undefined") {
@@ -54,15 +59,15 @@ function App() {
 
   // Show loading while backend is starting
   if (status === "connecting") {
-    return <LoadingScreen message="Starting RAGKIT backend..." />;
+    return <LoadingScreen message={t("app.backendStarting")} />;
   }
 
   // Show error if backend failed to start
   if (status === "error") {
     return (
       <ErrorScreen
-        title="Backend Connection Failed"
-        message={error || "Could not connect to the RAGKIT backend."}
+        title={t("app.backendErrorTitle")}
+        message={error || t("app.backendErrorMessage")}
         onRetry={retry}
       />
     );
@@ -73,7 +78,7 @@ function App() {
     return (
       <ErrorBoundary>
         <ToastProvider position="bottom-right">
-          <Suspense fallback={<LoadingScreen message="Loading..." />}>
+          <Suspense fallback={<LoadingScreen message={t("common.status.loading")} />}>
             <Onboarding onComplete={handleOnboardingComplete} />
           </Suspense>
         </ToastProvider>

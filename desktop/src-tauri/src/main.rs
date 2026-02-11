@@ -94,6 +94,7 @@ fn main() {
             commands::delete_knowledge_base,
             commands::add_documents,
             commands::add_folder,
+            commands::validate_folder,
             commands::list_conversations,
             commands::create_conversation,
             commands::delete_conversation,

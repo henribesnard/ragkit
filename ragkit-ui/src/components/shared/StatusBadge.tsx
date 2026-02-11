@@ -1,4 +1,5 @@
-﻿import { cn } from '@/utils/cn';
+import { cn } from '@/utils/cn';
+import { useTranslation } from 'react-i18next';
 
 interface StatusBadgeProps {
   status: 'healthy' | 'degraded' | 'unhealthy' | 'unknown';
@@ -12,9 +13,10 @@ const styles: Record<string, string> = {
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {
+  const { t } = useTranslation();
   return (
     <span className={cn('rounded-full px-3 py-1 text-xs font-semibold', styles[status])}>
-      {status}
+      {t(`common.status.${status}`)}
     </span>
   );
 }

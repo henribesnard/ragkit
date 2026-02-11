@@ -1,4 +1,5 @@
-﻿import { useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useToast } from "../../components/ui";
 import { ipc, Settings, WizardProfileResponse } from "../../lib/ipc";
 import { FolderStep, type FolderSelection } from "./FolderStep";
@@ -13,7 +14,10 @@ interface WizardProps {
   onComplete?: () => void;
 }
 
+const DEFAULT_FOLDER_TYPES = ["pdf", "txt", "md", "docx", "doc"];
+
 export function Wizard({ onComplete }: WizardProps) {
+  const { t } = useTranslation();
   const toast = useToast();
   const [currentStep, setCurrentStep] = useState<WizardStep>("welcome");
   const [wizardData, setWizardData] = useState<{
@@ -30,12 +34,27 @@ export function Wizard({ onComplete }: WizardProps) {
   const steps: WizardStep[] = ["welcome", "profile", "models", "folder", "summary"];
   const currentStepIndex = steps.indexOf(currentStep);
   const progress = ((currentStepIndex + 1) / steps.length) * 100;
+  const stepLabels = [
+    t("wizard.steps.welcome"),
+    t("wizard.steps.profile"),
+    t("wizard.steps.models"),
+    t("wizard.steps.folder"),
+    t("wizard.steps.summary"),
+  ];
 
   const profileSummary = useMemo(() => {
     return wizardData.profile?.analysis || null;
   }, [wizardData.profile]);
 
   const handleConfirm = async () => {
+    if (!wizardData.folder?.path) {
+      toast.error(
+        t("wizard.summary.folderRequiredTitle"),
+        t("wizard.summary.folderRequiredMessage")
+      );
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       const currentSettings = await ipc.getSettings();
@@ -53,10 +72,32 @@ export function Wizard({ onComplete }: WizardProps) {
         await ipc.setApiKey("anthropic", wizardData.models.anthropicKey);
       }
 
+      const folderPath = wizardData.folder.path;
+      const kbName = deriveKnowledgeBaseName(folderPath, t("wizard.summary.defaultKbName"));
+      const kb = await ipc.createKnowledgeBase({
+        name: kbName,
+        description: wizardData.profile?.analysis?.description || undefined,
+        embedding_model: wizardData.models?.embeddingModel,
+      });
+
+      await ipc.addFolder({
+        kbId: kb.id,
+        folderPath,
+        recursive: wizardData.folder.recursive,
+        fileTypes: DEFAULT_FOLDER_TYPES,
+      });
+
+      toast.success(
+        t("wizard.summary.setupCompletedTitle"),
+        t("wizard.summary.setupCompletedMessage")
+      );
       onComplete?.();
     } catch (error) {
       console.error("Failed to finalize wizard:", error);
-      toast.error("Setup failed", "Please review your selections and try again.");
+      toast.error(
+        t("wizard.summary.setupFailedTitle"),
+        t("wizard.summary.setupFailedMessage")
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -75,7 +116,7 @@ export function Wizard({ onComplete }: WizardProps) {
       {/* Step indicator */}
       <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex flex-wrap items-center justify-between max-w-4xl mx-auto gap-3">
-          {["Welcome", "Profile", "Models", "Folder", "Summary"].map((label, idx) => (
+          {stepLabels.map((label, idx) => (
             <div
               key={label}
               className={`flex items-center gap-2 text-sm ${
@@ -212,4 +253,9 @@ function buildSettingsFromWizard(
   }
 
   return next;
+}
+
+function deriveKnowledgeBaseName(folderPath: string, fallback: string): string {
+  const parts = folderPath.split(/[/\\]+/).filter(Boolean);
+  return parts[parts.length - 1] || fallback;
 }

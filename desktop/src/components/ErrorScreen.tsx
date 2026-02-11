@@ -1,4 +1,5 @@
 import { AlertCircle, RefreshCw } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface ErrorScreenProps {
   title: string;
@@ -7,6 +8,7 @@ interface ErrorScreenProps {
 }
 
 export function ErrorScreen({ title, message, onRetry }: ErrorScreenProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center h-screen bg-gray-50 dark:bg-gray-900 p-8">
       <div className="flex flex-col items-center max-w-md text-center space-y-4">
@@ -25,7 +27,7 @@ export function ErrorScreen({ title, message, onRetry }: ErrorScreenProps) {
             className="inline-flex items-center px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition-colors"
           >
             <RefreshCw className="w-4 h-4 mr-2" />
-            Retry
+            {t("common.actions.retry")}
           </button>
         )}
       </div>

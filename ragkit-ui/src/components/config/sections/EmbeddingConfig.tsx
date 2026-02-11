@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { FieldLabel } from '@/components/ui/field-label';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,7 @@ const isSameModel = (left: any, right: any) => {
 };
 
 export function EmbeddingConfigSection({ config, onChange }: SectionProps) {
+  const { t } = useTranslation();
   const embedding = config?.embedding || {};
   const documentModel = embedding.document_model || {};
   const queryModel = embedding.query_model || {};
@@ -67,11 +69,11 @@ export function EmbeddingConfigSection({ config, onChange }: SectionProps) {
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-ink">Document Embedding Model</h3>
+        <h3 className="text-sm font-semibold text-ink">{t('config.embedding.documentTitle')}</h3>
         <div>
           <FieldLabel
-            label="Provider"
-            help="Service qui genere les vecteurs d'embedding. OpenAI et Cohere necessitent une cle API. Ollama tourne en local sans cle. LiteLLM est un passe-plat generique."
+            label={t('wizard.embedding.providerLabel')}
+            help={t('config.embedding.providerHelp')}
           />
           <Select
             value={documentModel.provider || 'openai'}
@@ -85,8 +87,8 @@ export function EmbeddingConfigSection({ config, onChange }: SectionProps) {
         </div>
         <div>
           <FieldLabel
-            label="Model"
-            help="Modele d'embedding a utiliser. Chaque modele produit des vecteurs de dimension differente."
+            label={t('wizard.embedding.modelLabel')}
+            help={t('config.embedding.modelHelp')}
           />
           <ModelSelect
             provider={documentModel.provider || 'openai'}
@@ -98,8 +100,8 @@ export function EmbeddingConfigSection({ config, onChange }: SectionProps) {
         {documentModel.provider !== 'ollama' ? (
           <div>
             <FieldLabel
-              label="API key"
-              help="Cle d'API pour le provider d'embedding. Non necessaire pour les providers locaux (Ollama)."
+              label={t('wizard.embedding.apiKeyLabel')}
+              help={t('config.embedding.apiKeyHelp')}
             />
             <Input
               type="password"
@@ -110,11 +112,11 @@ export function EmbeddingConfigSection({ config, onChange }: SectionProps) {
           </div>
         ) : null}
 
-        <CollapsibleSection title="Parameters">
+        <CollapsibleSection title={t('wizard.embedding.parametersTitle')}>
           <div>
             <FieldLabel
-              label="Batch size"
-              help="Nombre de textes envoyes en une seule requete. Plus grand = plus rapide pour l'ingestion."
+              label={t('wizard.embedding.batchLabel')}
+              help={t('config.embedding.batchHelp')}
             />
             <NumberInput
               value={documentModel.params?.batch_size ?? null}
@@ -130,8 +132,8 @@ export function EmbeddingConfigSection({ config, onChange }: SectionProps) {
           </div>
           <div>
             <FieldLabel
-              label="Dimensions"
-              help="Nombre de dimensions du vecteur. Laisser vide pour utiliser la dimension par defaut."
+              label={t('wizard.embedding.dimensionsLabel')}
+              help={t('config.embedding.dimensionsHelp')}
             />
             <NumberInput
               value={documentModel.params?.dimensions ?? null}
@@ -146,7 +148,7 @@ export function EmbeddingConfigSection({ config, onChange }: SectionProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Cache enabled" help="Active le cache des embeddings deja calcules." />
+            <FieldLabel label={t('wizard.embedding.cacheLabel')} help={t('config.embedding.cacheHelp')} />
             <ToggleSwitch
               checked={documentModel.cache?.enabled ?? false}
               onChange={(checked) =>
@@ -158,7 +160,7 @@ export function EmbeddingConfigSection({ config, onChange }: SectionProps) {
           </div>
           {documentModel.cache?.enabled ? (
             <div>
-              <FieldLabel label="Cache backend" help="memory : cache en RAM. disk : cache sur disque." />
+              <FieldLabel label={t('wizard.embedding.cacheBackendLabel')} help={t('config.embedding.cacheBackendHelp')} />
               <Select
                 value={documentModel.cache?.backend || 'memory'}
                 onChange={(event) =>
@@ -167,8 +169,8 @@ export function EmbeddingConfigSection({ config, onChange }: SectionProps) {
                   })
                 }
               >
-                <option value="memory">Memory</option>
-                <option value="disk">Disk</option>
+                <option value="memory">{t('common.cache.memory')}</option>
+                <option value="disk">{t('common.cache.disk')}</option>
               </Select>
             </div>
           ) : null}
@@ -176,11 +178,11 @@ export function EmbeddingConfigSection({ config, onChange }: SectionProps) {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-ink">Query Embedding Model</h3>
+        <h3 className="text-sm font-semibold text-ink">{t('config.embedding.queryTitle')}</h3>
         <div>
           <FieldLabel
-            label="Same as document model"
-            help="Si active, le meme modele est utilise pour encoder les requetes et les documents."
+            label={t('wizard.embedding.sameLabel')}
+            help={t('config.embedding.sameHelp')}
           />
           <ToggleSwitch
             checked={sameAsDocument}
@@ -199,7 +201,7 @@ export function EmbeddingConfigSection({ config, onChange }: SectionProps) {
         {!sameAsDocument ? (
           <div className="space-y-4">
             <div>
-              <FieldLabel label="Provider" help="Provider pour le modele de requete." />
+              <FieldLabel label={t('wizard.embedding.providerLabel')} help={t('wizard.embedding.queryProviderHelp')} />
               <Select
                 value={queryModel.provider || 'openai'}
                 onChange={(event) => updateQueryModel({ provider: event.target.value })}
@@ -211,7 +213,7 @@ export function EmbeddingConfigSection({ config, onChange }: SectionProps) {
               </Select>
             </div>
             <div>
-              <FieldLabel label="Model" help="Modele d'embedding pour les requetes." />
+              <FieldLabel label={t('wizard.embedding.modelLabel')} help={t('wizard.embedding.queryModelHelp')} />
               <ModelSelect
                 provider={queryModel.provider || 'openai'}
                 models={EMBEDDING_MODELS}
@@ -221,7 +223,7 @@ export function EmbeddingConfigSection({ config, onChange }: SectionProps) {
             </div>
             {queryModel.provider !== 'ollama' ? (
               <div>
-                <FieldLabel label="API key" help="Cle d'API pour le provider de requete." />
+                <FieldLabel label={t('wizard.embedding.apiKeyLabel')} help={t('config.embedding.queryApiKeyHelp')} />
                 <Input
                   type="password"
                   placeholder="sk-..."

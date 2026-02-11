@@ -1,5 +1,5 @@
-
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { FieldLabel } from '@/components/ui/field-label';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -15,6 +15,7 @@ interface WizardStepProps {
 }
 
 export function ProjectStep({ config, onChange }: WizardStepProps) {
+  const { t } = useTranslation();
   const project = config.project || {};
   const [selectedProfile, setSelectedProfile] = useState<string | null>(null);
 
@@ -28,11 +29,11 @@ export function ProjectStep({ config, onChange }: WizardStepProps) {
     <div className="space-y-6">
       <div>
         <FieldLabel
-          label="Project name"
-          help="Nom unique de votre projet RAG. Utilise dans les logs et l'interface."
+          label={t('wizard.project.nameLabel')}
+          help={t('wizard.project.nameHelp')}
         />
         <Input
-          placeholder="Acme Knowledge Base"
+          placeholder={t('wizard.project.namePlaceholder')}
           value={project.name || ''}
           onChange={(event) =>
             onChange({
@@ -44,11 +45,11 @@ export function ProjectStep({ config, onChange }: WizardStepProps) {
       </div>
       <div>
         <FieldLabel
-          label="Description"
-          help="Description libre du projet. Aide a documenter l'objectif du systeme RAG."
+          label={t('wizard.project.descriptionLabel')}
+          help={t('wizard.project.descriptionHelp')}
         />
         <Textarea
-          placeholder="Explain what this RAG system powers"
+          placeholder={t('wizard.project.descriptionPlaceholder')}
           rows={4}
           value={project.description || ''}
           onChange={(event) =>
@@ -61,8 +62,8 @@ export function ProjectStep({ config, onChange }: WizardStepProps) {
       </div>
       <div>
         <FieldLabel
-          label="Environment"
-          help="development : logs verbeux, rechargement rapide. staging : test pre-production. production : optimise pour la performance."
+          label={t('wizard.project.environmentLabel')}
+          help={t('wizard.project.environmentHelp')}
         />
         <Select
           value={project.environment || 'development'}
@@ -73,17 +74,17 @@ export function ProjectStep({ config, onChange }: WizardStepProps) {
             })
           }
         >
-          <option value="development">Development</option>
-          <option value="staging">Staging</option>
-          <option value="production">Production</option>
+          <option value="development">{t('common.environments.development')}</option>
+          <option value="staging">{t('common.environments.staging')}</option>
+          <option value="production">{t('common.environments.production')}</option>
         </Select>
       </div>
 
       <div className="space-y-4">
         <div>
           <FieldLabel
-            label="Suggested profile"
-            help="Choisissez un profil pour appliquer des reglages recommandes. Vous pourrez ajuster ensuite."
+            label={t('wizard.project.profileLabel')}
+            help={t('wizard.project.profileHelp')}
           />
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
@@ -96,16 +97,16 @@ export function ProjectStep({ config, onChange }: WizardStepProps) {
               )}
             >
               <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-muted">{profile.tag}</p>
-                <h4 className="mt-2 text-lg font-display">{profile.name}</h4>
-                <p className="mt-2 text-sm text-muted">{profile.description}</p>
+                <p className="text-xs uppercase tracking-[0.3em] text-muted">{t(profile.tagKey)}</p>
+                <h4 className="mt-2 text-lg font-display">{t(profile.nameKey)}</h4>
+                <p className="mt-2 text-sm text-muted">{t(profile.descriptionKey)}</p>
               </div>
               <div className="mt-auto pt-4">
                 <Button
                   variant={selectedProfile === profile.id ? 'primary' : 'outline'}
                   onClick={() => handleProfileSelect(profile)}
                 >
-                  Apply profile
+                  {t('wizard.project.applyProfile')}
                 </Button>
               </div>
             </Card>

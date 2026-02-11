@@ -1,5 +1,5 @@
-
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChatContainer } from '@/components/chatbot/ChatContainer';
 import { DebugPanel } from '@/components/chatbot/DebugPanel';
 import { queryRag, queryRagStream } from '@/api/query';
@@ -22,6 +22,7 @@ interface Message {
 }
 
 export function Chatbot() {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>([]);
   const [showDebug, setShowDebug] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -98,14 +99,14 @@ export function Chatbot() {
           updateAssistant((message) => ({
             ...message,
             isStreaming: false,
-            content: 'Streaming is disabled in configuration. Enable it in Settings > API.',
+            content: t('chat.errors.streamingDisabled'),
           }));
         }
       } else {
         updateAssistant((message) => ({
           ...message,
           isStreaming: false,
-          content: 'Unable to reach the API. Please check the server logs.',
+          content: t('chat.errors.unreachable'),
         }));
       }
     } finally {

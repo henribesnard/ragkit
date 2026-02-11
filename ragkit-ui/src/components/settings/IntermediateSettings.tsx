@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { FieldLabel } from '@/components/ui/field-label';
 import { NumberInput } from '@/components/ui/number-input';
 import { Select } from '@/components/ui/select';
@@ -22,6 +23,7 @@ const setNestedValue = (base: Record<string, any>, path: string[], value: any) =
 };
 
 export function IntermediateSettings({ config, onChange }: IntermediateSettingsProps) {
+  const { t } = useTranslation();
   const ingestion = config?.ingestion ?? {};
   const chunking = ingestion.chunking ?? {};
   const fixed = chunking.fixed ?? {};
@@ -63,21 +65,21 @@ export function IntermediateSettings({ config, onChange }: IntermediateSettingsP
     <div className="space-y-6">
       <section className="space-y-4 rounded-3xl bg-white/70 p-6 shadow-soft">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-muted">Chunking</p>
-          <h4 className="mt-2 text-lg font-display">Control context granularity</h4>
+          <p className="text-xs uppercase tracking-[0.3em] text-muted">{t('settings.intermediate.chunkingTitle')}</p>
+          <h4 className="mt-2 text-lg font-display">{t('settings.intermediate.chunkingSubtitle')}</h4>
         </div>
         <div>
-          <FieldLabel label="Strategy" help="Choisir entre decoupage fixe ou semantique." />
+          <FieldLabel label={t('settings.intermediate.strategyLabel')} help={t('settings.intermediate.strategyHelp')} />
           <Select
             value={chunking.strategy || 'fixed'}
             onChange={(event) => updateConfig(['ingestion', 'chunking', 'strategy'], event.target.value)}
           >
-            <option value="fixed">Fixed</option>
-            <option value="semantic">Semantic</option>
+            <option value="fixed">{t('common.chunking.fixed')}</option>
+            <option value="semantic">{t('common.chunking.semantic')}</option>
           </Select>
         </div>
         <div>
-          <FieldLabel label="Chunk size" help="Taille des morceaux (caracteres)." />
+          <FieldLabel label={t('settings.intermediate.chunkSizeLabel')} help={t('settings.intermediate.chunkSizeHelp')} />
           <NumberInput
             value={fixed.chunk_size ?? 512}
             min={64}
@@ -87,7 +89,7 @@ export function IntermediateSettings({ config, onChange }: IntermediateSettingsP
           />
         </div>
         <div>
-          <FieldLabel label="Chunk overlap" help="Chevauchement entre morceaux." />
+          <FieldLabel label={t('settings.intermediate.chunkOverlapLabel')} help={t('settings.intermediate.chunkOverlapHelp')} />
           <NumberInput
             value={fixed.chunk_overlap ?? 50}
             min={0}
@@ -100,38 +102,38 @@ export function IntermediateSettings({ config, onChange }: IntermediateSettingsP
 
       <section className="space-y-4 rounded-3xl bg-white/70 p-6 shadow-soft">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-muted">Retrieval</p>
-          <h4 className="mt-2 text-lg font-display">Blend semantic and lexical search</h4>
+          <p className="text-xs uppercase tracking-[0.3em] text-muted">{t('settings.intermediate.retrievalTitle')}</p>
+          <h4 className="mt-2 text-lg font-display">{t('settings.intermediate.retrievalSubtitle')}</h4>
         </div>
         <div>
-          <FieldLabel label="Architecture" help="Mode de recherche principal." />
+          <FieldLabel label={t('settings.intermediate.architectureLabel')} help={t('settings.intermediate.architectureHelp')} />
           <Select
             value={retrieval.architecture || 'semantic'}
             onChange={(event) => updateConfig(['retrieval', 'architecture'], event.target.value)}
           >
-            <option value="semantic">Semantic</option>
-            <option value="lexical">Lexical</option>
-            <option value="hybrid">Hybrid</option>
-            <option value="hybrid_rerank">Hybrid + Rerank</option>
+            <option value="semantic">{t('common.retrieval.semantic')}</option>
+            <option value="lexical">{t('common.retrieval.lexical')}</option>
+            <option value="hybrid">{t('common.retrieval.hybrid')}</option>
+            <option value="hybrid_rerank">{t('common.retrieval.hybridRerank')}</option>
           </Select>
         </div>
         <div>
-          <FieldLabel label="Top K" help="Nombre de resultats par requete." />
+          <FieldLabel label={t('settings.intermediate.topKLabel')} help={t('settings.intermediate.topKHelp')} />
           <NumberInput value={topK} min={1} max={50} step={1} onChange={updateTopK} />
         </div>
         <div>
-          <FieldLabel label="Semantic/Lexical balance" help="0 = lexical, 1 = semantic." />
+          <FieldLabel label={t('settings.intermediate.balanceLabel')} help={t('settings.intermediate.balanceHelp')} />
           <SliderInput value={alpha} min={0} max={1} step={0.05} onChange={updateAlpha} />
         </div>
       </section>
 
       <section className="space-y-4 rounded-3xl bg-white/70 p-6 shadow-soft">
         <div>
-          <p className="text-xs uppercase tracking-[0.3em] text-muted">Generation</p>
-          <h4 className="mt-2 text-lg font-display">Tone and output length</h4>
+          <p className="text-xs uppercase tracking-[0.3em] text-muted">{t('settings.intermediate.generationTitle')}</p>
+          <h4 className="mt-2 text-lg font-display">{t('settings.intermediate.generationSubtitle')}</h4>
         </div>
         <div>
-          <FieldLabel label="Temperature" help="Creativite du modele." />
+          <FieldLabel label={t('settings.intermediate.temperatureLabel')} help={t('settings.intermediate.temperatureHelp')} />
           <SliderInput
             value={llmParams.temperature ?? 0.7}
             min={0}
@@ -141,7 +143,7 @@ export function IntermediateSettings({ config, onChange }: IntermediateSettingsP
           />
         </div>
         <div>
-          <FieldLabel label="Max tokens" help="Limite de tokens de reponse." />
+          <FieldLabel label={t('settings.intermediate.maxTokensLabel')} help={t('settings.intermediate.maxTokensHelp')} />
           <NumberInput
             value={llmParams.max_tokens ?? null}
             min={100}
@@ -151,7 +153,7 @@ export function IntermediateSettings({ config, onChange }: IntermediateSettingsP
           />
         </div>
         <div>
-          <FieldLabel label="Require citations" help="Forcer l'inclusion des sources." />
+          <FieldLabel label={t('settings.intermediate.citationsLabel')} help={t('settings.intermediate.citationsHelp')} />
           <ToggleSwitch
             checked={behavior.cite_sources ?? true}
             onChange={(checked) =>

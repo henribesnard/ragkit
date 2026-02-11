@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Plus,
   Trash2,
@@ -29,14 +30,15 @@ import {
 import { cn, formatDate } from "../lib/utils";
 
 const FOLDER_FILE_TYPES = [
-  { value: "pdf", label: "PDF" },
-  { value: "txt", label: "Text" },
-  { value: "md", label: "Markdown" },
-  { value: "docx", label: "Word (.docx)" },
-  { value: "doc", label: "Word (.doc)" },
+  { value: "pdf", labelKey: "knowledgeBases.fileTypes.pdf" },
+  { value: "txt", labelKey: "knowledgeBases.fileTypes.txt" },
+  { value: "md", labelKey: "knowledgeBases.fileTypes.md" },
+  { value: "docx", labelKey: "knowledgeBases.fileTypes.docx" },
+  { value: "doc", labelKey: "knowledgeBases.fileTypes.doc" },
 ];
 
 export function KnowledgeBases() {
+  const { t } = useTranslation();
   const [knowledgeBases, setKnowledgeBases] = useState<KnowledgeBase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
@@ -71,6 +73,7 @@ export function KnowledgeBases() {
       setKnowledgeBases(kbs);
     } catch (error) {
       console.error("Failed to load knowledge bases:", error);
+      toast.error(t("knowledgeBases.loadFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -91,6 +94,7 @@ export function KnowledgeBases() {
       loadKnowledgeBases();
     } catch (error) {
       console.error("Failed to create knowledge base:", error);
+      toast.error(t("knowledgeBases.createFailed"));
     } finally {
       setIsCreating(false);
     }
@@ -98,10 +102,10 @@ export function KnowledgeBases() {
 
   const handleDelete = async (kb: KnowledgeBase) => {
     const confirmed = await confirm({
-      title: "Delete Knowledge Base",
-      message: `Are you sure you want to delete "${kb.name}"? This action cannot be undone and all documents will be permanently removed.`,
-      confirmLabel: "Delete",
-      cancelLabel: "Cancel",
+      title: t("knowledgeBases.confirmDeleteTitle"),
+      message: t("knowledgeBases.confirmDeleteMessage", { name: kb.name }),
+      confirmLabel: t("common.actions.delete"),
+      cancelLabel: t("common.actions.cancel"),
       variant: "danger",
     });
 
@@ -112,6 +116,7 @@ export function KnowledgeBases() {
       loadKnowledgeBases();
     } catch (error) {
       console.error("Failed to delete knowledge base:", error);
+      toast.error(t("knowledgeBases.deleteFailed"));
     }
   };
 
@@ -159,11 +164,11 @@ export function KnowledgeBases() {
   const handleAddFolder = async () => {
     if (!selectedKbForFolder) return;
     if (!folderPath.trim()) {
-      toast.error("Folder required", "Please choose a folder to import.");
+      toast.error(t("knowledgeBases.folderRequiredTitle"), t("knowledgeBases.folderRequiredMessage"));
       return;
     }
     if (folderFileTypes.length === 0) {
-      toast.error("Select file types", "Choose at least one file type.");
+      toast.error(t("knowledgeBases.selectFileTypesTitle"), t("knowledgeBases.selectFileTypesMessage"));
       return;
     }
 
@@ -176,16 +181,19 @@ export function KnowledgeBases() {
         fileTypes: folderFileTypes,
       });
       if (result.added.length === 0 && result.failed.length === 0) {
-        toast.info("No documents found", "No matching files were detected.");
+        toast.info(t("knowledgeBases.noDocumentsTitle"), t("knowledgeBases.noDocumentsMessage"));
       } else if (result.failed.length > 0) {
         toast.warning(
-          "Folder indexed with warnings",
-          `${result.added.length} added, ${result.failed.length} failed.`
+          t("knowledgeBases.folderIndexedWarningTitle"),
+          t("knowledgeBases.folderIndexedWarningMessage", {
+            added: result.added.length,
+            failed: result.failed.length,
+          })
         );
       } else {
         toast.success(
-          "Folder indexed",
-          `${result.added.length} document${result.added.length !== 1 ? "s" : ""} added.`
+          t("knowledgeBases.folderIndexedTitle"),
+          t("knowledgeBases.folderIndexedMessage", { count: result.added.length })
         );
       }
       setShowAddFolderModal(false);
@@ -193,7 +201,7 @@ export function KnowledgeBases() {
       loadKnowledgeBases();
     } catch (error) {
       console.error("Failed to add folder:", error);
-      toast.error("Failed to add folder");
+      toast.error(t("knowledgeBases.addFolderFailed"));
     } finally {
       setIsAddingFolder(false);
     }
@@ -210,6 +218,10 @@ export function KnowledgeBases() {
     setSelectedKbForFolder(null);
   };
 
+  const addFolderTitle = selectedKbForFolder
+    ? t("knowledgeBases.addFolderTitleWithName", { name: selectedKbForFolder.name })
+    : t("knowledgeBases.addFolderTitle");
+
   return (
     <div className="h-full overflow-auto">
       {/* Header */}
@@ -220,16 +232,16 @@ export function KnowledgeBases() {
           </div>
           <div>
             <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Knowledge Bases
+              {t("knowledgeBases.title")}
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {knowledgeBases.length} knowledge base{knowledgeBases.length !== 1 ? "s" : ""}
+              {t("knowledgeBases.count", { count: knowledgeBases.length })}
             </p>
           </div>
         </div>
         <Button onClick={() => setShowCreateModal(true)}>
           <Plus className="w-4 h-4 mr-2" />
-          Create
+          {t("common.actions.create")}
         </Button>
       </header>
 
@@ -259,35 +271,35 @@ export function KnowledgeBases() {
       <Modal
         isOpen={showCreateModal}
         onClose={closeModal}
-        title="Create Knowledge Base"
-        description="Create a new knowledge base to store and query your documents."
+        title={t("knowledgeBases.createTitle")}
+        description={t("knowledgeBases.createDescription")}
         size="md"
       >
         <div className="space-y-4">
           <Input
-            label="Name"
+            label={t("knowledgeBases.nameLabel")}
             value={newKbName}
             onChange={(e) => setNewKbName(e.target.value)}
-            placeholder="My Knowledge Base"
+            placeholder={t("knowledgeBases.namePlaceholder")}
           />
           <Textarea
-            label="Description (optional)"
+            label={t("knowledgeBases.descriptionLabel")}
             value={newKbDescription}
             onChange={(e) => setNewKbDescription(e.target.value)}
-            placeholder="A brief description of what this knowledge base contains..."
-            hint="This helps you remember what documents are stored here."
+            placeholder={t("knowledgeBases.descriptionPlaceholder")}
+            hint={t("knowledgeBases.descriptionHint")}
           />
         </div>
         <ModalFooter>
           <Button variant="secondary" onClick={closeModal}>
-            Cancel
+            {t("common.actions.cancel")}
           </Button>
           <Button
             onClick={handleCreate}
             disabled={!newKbName.trim()}
             isLoading={isCreating}
           >
-            Create
+            {t("common.actions.create")}
           </Button>
         </ModalFooter>
       </Modal>
@@ -296,22 +308,22 @@ export function KnowledgeBases() {
       <Modal
         isOpen={showAddFolderModal}
         onClose={closeAddFolderModal}
-        title={`Add Folder${selectedKbForFolder ? ` to ${selectedKbForFolder.name}` : ""}`}
-        description="Import all documents from a folder into this knowledge base."
+        title={addFolderTitle}
+        description={t("knowledgeBases.addFolderDescription")}
         size="md"
       >
         <div className="space-y-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
             <div className="flex-1">
               <Input
-                label="Folder path"
+                label={t("knowledgeBases.folderPathLabel")}
                 value={folderPath}
                 onChange={(e) => setFolderPath(e.target.value)}
-                placeholder="Select a folder..."
+                placeholder={t("knowledgeBases.folderPathPlaceholder")}
               />
             </div>
             <Button variant="secondary" onClick={handleSelectFolder}>
-              Browse
+              {t("common.actions.browse")}
             </Button>
           </div>
 
@@ -322,12 +334,12 @@ export function KnowledgeBases() {
               checked={folderRecursive}
               onChange={(e) => setFolderRecursive(e.target.checked)}
             />
-            Include subfolders
+            {t("knowledgeBases.includeSubfolders")}
           </label>
 
           <div>
             <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              File types
+              {t("knowledgeBases.fileTypesLabel")}
             </p>
             <div className="grid gap-2 sm:grid-cols-2">
               {FOLDER_FILE_TYPES.map((fileType) => (
@@ -341,7 +353,7 @@ export function KnowledgeBases() {
                     checked={folderFileTypes.includes(fileType.value)}
                     onChange={() => toggleFileType(fileType.value)}
                   />
-                  {fileType.label}
+                  {t(fileType.labelKey)}
                 </label>
               ))}
             </div>
@@ -349,14 +361,14 @@ export function KnowledgeBases() {
         </div>
         <ModalFooter>
           <Button variant="secondary" onClick={closeAddFolderModal}>
-            Cancel
+            {t("common.actions.cancel")}
           </Button>
           <Button
             onClick={handleAddFolder}
             disabled={!folderPath.trim() || folderFileTypes.length === 0}
             isLoading={isAddingFolder}
           >
-            Add Folder
+            {t("knowledgeBases.addFolderButton")}
           </Button>
         </ModalFooter>
       </Modal>
@@ -366,30 +378,34 @@ export function KnowledgeBases() {
 
 // Loading state
 function LoadingState() {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center py-16">
       <Loader2 className="w-10 h-10 text-primary-600 animate-spin" />
-      <p className="mt-4 text-gray-500 dark:text-gray-400">Loading knowledge bases...</p>
+      <p className="mt-4 text-gray-500 dark:text-gray-400">
+        {t("knowledgeBases.loading")}
+      </p>
     </div>
   );
 }
 
 // Empty state
 function EmptyState({ onCreateClick }: { onCreateClick: () => void }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-700 flex items-center justify-center mb-6 shadow-lg">
         <Database className="w-10 h-10 text-gray-400 dark:text-gray-500" />
       </div>
       <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-        No knowledge bases yet
+        {t("knowledgeBases.emptyTitle")}
       </h2>
       <p className="mt-3 text-gray-600 dark:text-gray-400 max-w-md text-lg">
-        Create your first knowledge base to start indexing documents and querying them with AI.
+        {t("knowledgeBases.emptyDescription")}
       </p>
       <Button onClick={onCreateClick} className="mt-6" size="lg">
         <Plus className="w-5 h-5 mr-2" />
-        Create Knowledge Base
+        {t("knowledgeBases.emptyCta")}
       </Button>
     </div>
   );
@@ -409,6 +425,7 @@ function KnowledgeBaseCard({
   onAddDocuments: () => void;
   onAddFolder: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <Card className="hover:shadow-lg transition-shadow duration-200">
       <CardHeader
@@ -443,13 +460,13 @@ function KnowledgeBaseCard({
         <div className="grid grid-cols-2 gap-3">
           <StatBadge
             icon={FileText}
-            label="Documents"
+            label={t("knowledgeBases.stats.documents")}
             value={kb.document_count}
             color="blue"
           />
           <StatBadge
             icon={Layers}
-            label="Chunks"
+            label={t("knowledgeBases.stats.chunks")}
             value={kb.chunk_count}
             color="green"
           />
@@ -458,7 +475,7 @@ function KnowledgeBaseCard({
         {/* Metadata */}
         <div className="mt-4 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
           <span className="flex items-center gap-1">
-            <span className="font-medium">Model:</span> {kb.embedding_model}
+            <span className="font-medium">{t("knowledgeBases.modelLabel")}</span> {kb.embedding_model}
           </span>
           <span className="flex items-center gap-1">
             <Clock className="w-3 h-3" />
@@ -476,11 +493,11 @@ function KnowledgeBaseCard({
             isLoading={isUploading}
           >
             <Upload className="w-4 h-4 mr-2" />
-            Add Documents
+            {t("knowledgeBases.addDocuments")}
           </Button>
           <Button variant="secondary" className="flex-1" onClick={onAddFolder}>
             <FolderPlus className="w-4 h-4 mr-2" />
-            Add Folder
+            {t("knowledgeBases.addFolder")}
           </Button>
         </div>
       </CardFooter>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { FieldLabel } from '@/components/ui/field-label';
 import { Input } from '@/components/ui/input';
@@ -24,6 +25,7 @@ const metricOptions = [
 ];
 
 export function ObservabilityConfigSection({ config, onChange }: SectionProps) {
+  const { t } = useTranslation();
   const observability = config?.observability || {};
   const logging = observability.logging || {};
   const loggingFile = logging.file || {};
@@ -36,9 +38,9 @@ export function ObservabilityConfigSection({ config, onChange }: SectionProps) {
   return (
     <div className="space-y-8">
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-ink">Logging</h3>
+        <h3 className="text-sm font-semibold text-ink">{t('config.observability.loggingTitle')}</h3>
         <div>
-          <FieldLabel label="Level" help="Niveau de logs." />
+          <FieldLabel label={t('config.observability.levelLabel')} help={t('config.observability.levelHelp')} />
           <Select
             value={logging.level || 'INFO'}
             onChange={(event) => updateObservability({ ...observability, logging: { ...logging, level: event.target.value } })}
@@ -50,18 +52,18 @@ export function ObservabilityConfigSection({ config, onChange }: SectionProps) {
           </Select>
         </div>
         <div>
-          <FieldLabel label="Format" help="Format des logs." />
+          <FieldLabel label={t('config.observability.formatLabel')} help={t('config.observability.formatHelp')} />
           <Select
             value={logging.format || 'text'}
             onChange={(event) => updateObservability({ ...observability, logging: { ...logging, format: event.target.value } })}
           >
-            <option value="text">Text</option>
+            <option value="text">{t('common.options.text')}</option>
             <option value="json">JSON</option>
           </Select>
         </div>
-        <CollapsibleSection title="File output">
+        <CollapsibleSection title={t('config.observability.fileTitle')}>
           <div>
-            <FieldLabel label="Enabled" help="Ecrire les logs dans un fichier." />
+            <FieldLabel label={t('wizard.retrieval.enabledLabel')} help={t('config.observability.fileEnabledHelp')} />
             <ToggleSwitch
               checked={loggingFile.enabled ?? false}
               onChange={(checked) =>
@@ -75,7 +77,7 @@ export function ObservabilityConfigSection({ config, onChange }: SectionProps) {
           {loggingFile.enabled ? (
             <>
               <div>
-                <FieldLabel label="Path" help="Chemin du fichier de logs." />
+                <FieldLabel label={t('wizard.sources.pathLabel')} help={t('config.observability.filePathHelp')} />
                 <Input
                   value={loggingFile.path || ''}
                   onChange={(event) =>
@@ -87,7 +89,7 @@ export function ObservabilityConfigSection({ config, onChange }: SectionProps) {
                 />
               </div>
               <div>
-                <FieldLabel label="Rotation" help="Rotation des logs (daily, weekly, size-based)." />
+                <FieldLabel label={t('config.observability.rotationLabel')} help={t('config.observability.rotationHelp')} />
                 <Select
                   value={loggingFile.rotation || 'daily'}
                   onChange={(event) =>
@@ -97,19 +99,19 @@ export function ObservabilityConfigSection({ config, onChange }: SectionProps) {
                     })
                   }
                 >
-                  <option value="daily">Daily</option>
-                  <option value="weekly">Weekly</option>
-                  <option value="size-based">Size-based</option>
+                  <option value="daily">{t('common.options.daily')}</option>
+                  <option value="weekly">{t('common.options.weekly')}</option>
+                  <option value="size-based">{t('common.options.sizeBased')}</option>
                 </Select>
               </div>
               <div>
-                <FieldLabel label="Retention" help="Nombre de jours de retention des logs." />
+                <FieldLabel label={t('config.observability.retentionLabel')} help={t('config.observability.retentionHelp')} />
                 <NumberInput
                   value={loggingFile.retention_days ?? null}
                   min={1}
                   max={365}
                   step={1}
-                  unit="days"
+                  unit={t('common.units.days')}
                   onChange={(value) =>
                     updateObservability({
                       ...observability,
@@ -124,16 +126,16 @@ export function ObservabilityConfigSection({ config, onChange }: SectionProps) {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-ink">Metrics</h3>
+        <h3 className="text-sm font-semibold text-ink">{t('config.observability.metricsTitle')}</h3>
         <div>
-          <FieldLabel label="Enabled" help="Active la collecte de metriques." />
+          <FieldLabel label={t('wizard.retrieval.enabledLabel')} help={t('config.observability.metricsEnabledHelp')} />
           <ToggleSwitch
             checked={metrics.enabled ?? true}
             onChange={(checked) => updateObservability({ ...observability, metrics: { ...metrics, enabled: checked } })}
           />
         </div>
         <div>
-          <FieldLabel label="Track" help="Metriques a collecter." />
+          <FieldLabel label={t('config.observability.trackLabel')} help={t('config.observability.trackHelp')} />
           <MultiSelect
             options={metricOptions}
             selected={metrics.track || []}

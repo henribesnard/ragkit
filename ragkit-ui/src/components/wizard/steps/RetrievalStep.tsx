@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { FieldLabel } from '@/components/ui/field-label';
 import { NumberInput } from '@/components/ui/number-input';
@@ -11,6 +12,7 @@ interface WizardStepProps {
 }
 
 export function RetrievalStep({ config, onChange }: WizardStepProps) {
+  const { t } = useTranslation();
   const retrieval = config.retrieval || {};
   const semantic = retrieval.semantic || {};
   const lexical = retrieval.lexical || {};
@@ -31,24 +33,24 @@ export function RetrievalStep({ config, onChange }: WizardStepProps) {
   return (
     <div className="space-y-6">
       <div>
-        <FieldLabel label="Architecture" help="Choix de la strategie de recherche." />
+        <FieldLabel label={t('wizard.retrieval.architectureLabel')} help={t('wizard.retrieval.architectureHelp')} />
         <Select
           value={retrieval.architecture || 'semantic'}
           onChange={(event) => updateRetrieval({ ...retrieval, architecture: event.target.value })}
         >
-          <option value="semantic">Semantic</option>
-          <option value="lexical">Lexical</option>
-          <option value="hybrid">Hybrid</option>
-          <option value="hybrid_rerank">Hybrid + Rerank</option>
+          <option value="semantic">{t('common.retrieval.semantic')}</option>
+          <option value="lexical">{t('common.retrieval.lexical')}</option>
+          <option value="hybrid">{t('common.retrieval.hybrid')}</option>
+          <option value="hybrid_rerank">{t('common.retrieval.hybridRerank')}</option>
         </Select>
       </div>
 
       {isSemantic ? (
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-ink">Semantic</h3>
+          <h3 className="text-sm font-semibold text-ink">{t('wizard.retrieval.semanticTitle')}</h3>
           {isHybrid ? (
             <div>
-              <FieldLabel label="Weight" help="Poids de la recherche semantique." />
+              <FieldLabel label={t('wizard.retrieval.weightLabel')} help={t('wizard.retrieval.semanticWeightHelp')} />
               <SliderInput
                 value={semantic.weight ?? 0.5}
                 onChange={(value) => updateRetrieval({ ...retrieval, semantic: { ...semantic, weight: value } })}
@@ -59,7 +61,7 @@ export function RetrievalStep({ config, onChange }: WizardStepProps) {
             </div>
           ) : null}
           <div>
-            <FieldLabel label="Top K" help="Nombre de resultats a retourner." />
+            <FieldLabel label={t('wizard.retrieval.topKLabel')} help={t('wizard.retrieval.topKHelp')} />
             <NumberInput
               value={semantic.top_k ?? 10}
               min={1}
@@ -69,7 +71,10 @@ export function RetrievalStep({ config, onChange }: WizardStepProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Similarity threshold" help="Score minimum de similarite." />
+            <FieldLabel
+              label={t('wizard.retrieval.similarityLabel')}
+              help={t('wizard.retrieval.similarityHelp')}
+            />
             <SliderInput
               value={semantic.similarity_threshold ?? 0}
               onChange={(value) =>
@@ -85,10 +90,10 @@ export function RetrievalStep({ config, onChange }: WizardStepProps) {
 
       {isLexical ? (
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-ink">Lexical</h3>
+          <h3 className="text-sm font-semibold text-ink">{t('wizard.retrieval.lexicalTitle')}</h3>
           {isHybrid ? (
             <div>
-              <FieldLabel label="Weight" help="Poids de la recherche lexicale." />
+              <FieldLabel label={t('wizard.retrieval.weightLabel')} help={t('wizard.retrieval.lexicalWeightHelp')} />
               <SliderInput
                 value={lexical.weight ?? 0.5}
                 onChange={(value) => updateRetrieval({ ...retrieval, lexical: { ...lexical, weight: value } })}
@@ -99,7 +104,7 @@ export function RetrievalStep({ config, onChange }: WizardStepProps) {
             </div>
           ) : null}
           <div>
-            <FieldLabel label="Top K" help="Nombre de resultats a retourner." />
+            <FieldLabel label={t('wizard.retrieval.topKLabel')} help={t('wizard.retrieval.topKHelp')} />
             <NumberInput
               value={lexical.top_k ?? 10}
               min={1}
@@ -109,7 +114,7 @@ export function RetrievalStep({ config, onChange }: WizardStepProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Algorithm" help="Algorithme lexical." />
+            <FieldLabel label={t('wizard.retrieval.algorithmLabel')} help={t('wizard.retrieval.algorithmHelp')} />
             <Select
               value={lexical.algorithm || 'bm25'}
               onChange={(event) => updateRetrieval({ ...retrieval, lexical: { ...lexical, algorithm: event.target.value } })}
@@ -118,9 +123,9 @@ export function RetrievalStep({ config, onChange }: WizardStepProps) {
               <option value="bm25+">BM25+</option>
             </Select>
           </div>
-          <CollapsibleSection title="BM25 Parameters">
+          <CollapsibleSection title={t('wizard.retrieval.bm25Title')}>
             <div>
-              <FieldLabel label="k1" help="Saturation de la frequence des termes." />
+              <FieldLabel label={t('wizard.retrieval.k1Label')} help={t('wizard.retrieval.k1Help')} />
               <SliderInput
                 value={lexicalParams.k1 ?? 1.5}
                 onChange={(value) =>
@@ -132,7 +137,7 @@ export function RetrievalStep({ config, onChange }: WizardStepProps) {
               />
             </div>
             <div>
-              <FieldLabel label="b" help="Normalisation par longueur de document." />
+              <FieldLabel label={t('wizard.retrieval.bLabel')} help={t('wizard.retrieval.bHelp')} />
               <SliderInput
                 value={lexicalParams.b ?? 0.75}
                 onChange={(value) =>
@@ -149,16 +154,16 @@ export function RetrievalStep({ config, onChange }: WizardStepProps) {
 
       {isRerank ? (
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-ink">Reranking</h3>
+          <h3 className="text-sm font-semibold text-ink">{t('wizard.retrieval.rerankTitle')}</h3>
           <div>
-            <FieldLabel label="Enabled" help="Active le reranking." />
+            <FieldLabel label={t('wizard.retrieval.enabledLabel')} help={t('wizard.retrieval.enabledHelp')} />
             <ToggleSwitch
               checked={rerank.enabled ?? false}
               onChange={(checked) => updateRetrieval({ ...retrieval, rerank: { ...rerank, enabled: checked } })}
             />
           </div>
           <div>
-            <FieldLabel label="Top N" help="Nombre de resultats gardes apres reranking." />
+            <FieldLabel label={t('wizard.retrieval.topNLabel')} help={t('wizard.retrieval.topNHelp')} />
             <NumberInput
               value={rerank.top_n ?? 5}
               min={1}
@@ -170,9 +175,9 @@ export function RetrievalStep({ config, onChange }: WizardStepProps) {
         </div>
       ) : null}
 
-      <CollapsibleSection title="Context">
+      <CollapsibleSection title={t('wizard.retrieval.contextTitle')}>
         <div>
-          <FieldLabel label="Max chunks" help="Nombre maximum de chunks envoyes au LLM." />
+          <FieldLabel label={t('wizard.retrieval.maxChunksLabel')} help={t('wizard.retrieval.maxChunksHelp')} />
           <NumberInput
             value={context.max_chunks ?? 10}
             min={1}
@@ -182,7 +187,7 @@ export function RetrievalStep({ config, onChange }: WizardStepProps) {
           />
         </div>
         <div>
-          <FieldLabel label="Max tokens" help="Limite de tokens pour le contexte." />
+          <FieldLabel label={t('wizard.retrieval.maxTokensLabel')} help={t('wizard.retrieval.maxTokensHelp')} />
           <NumberInput
             value={context.max_tokens ?? 2000}
             min={100}
@@ -192,7 +197,7 @@ export function RetrievalStep({ config, onChange }: WizardStepProps) {
           />
         </div>
         <div>
-          <FieldLabel label="Deduplication" help="Supprimer les chunks trop similaires." />
+          <FieldLabel label={t('wizard.retrieval.dedupLabel')} help={t('wizard.retrieval.dedupHelp')} />
           <ToggleSwitch
             checked={dedup.enabled ?? true}
             onChange={(checked) =>

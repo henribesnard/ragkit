@@ -1,4 +1,5 @@
-﻿import { Database, Shield, Sparkles, Zap } from "lucide-react";
+import { useTranslation } from "react-i18next";
+import { Database, Shield, Sparkles, Zap } from "lucide-react";
 import { Button, Card, CardContent, CardFooter, CardHeader, CardTitle } from "../../components/ui";
 
 interface WelcomeStepProps {
@@ -6,6 +7,8 @@ interface WelcomeStepProps {
 }
 
 export function WelcomeStep({ onNext }: WelcomeStepProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="max-w-4xl mx-auto p-6">
       <Card>
@@ -15,9 +18,9 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
               <Sparkles className="w-6 h-6 text-primary-600 dark:text-primary-400" />
             </div>
             <div>
-              <CardTitle>Welcome to RAGKIT</CardTitle>
+              <CardTitle>{t("wizard.welcome.title")}</CardTitle>
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                Let us configure your knowledge base in a few guided steps.
+                {t("wizard.welcome.subtitle")}
               </p>
             </div>
           </div>
@@ -26,27 +29,26 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
           <div className="grid gap-4 sm:grid-cols-3">
             <FeatureCard
               icon={Shield}
-              title="Local-first"
-              description="Keep data under your control"
+              title={t("wizard.welcome.features.localFirst.title")}
+              description={t("wizard.welcome.features.localFirst.description")}
             />
             <FeatureCard
               icon={Zap}
-              title="Fast"
-              description="Optimized retrieval defaults"
+              title={t("wizard.welcome.features.fast.title")}
+              description={t("wizard.welcome.features.fast.description")}
             />
             <FeatureCard
               icon={Database}
-              title="Flexible"
-              description="Support for multiple providers"
+              title={t("wizard.welcome.features.flexible.title")}
+              description={t("wizard.welcome.features.flexible.description")}
             />
           </div>
           <p className="mt-6 text-gray-600 dark:text-gray-400">
-            This wizard will recommend a profile, detect your environment, and help
-            you choose the right models.
+            {t("wizard.welcome.body")}
           </p>
         </CardContent>
         <CardFooter className="justify-end">
-          <Button onClick={onNext}>Start configuration</Button>
+          <Button onClick={onNext}>{t("wizard.welcome.cta")}</Button>
         </CardFooter>
       </Card>
     </div>

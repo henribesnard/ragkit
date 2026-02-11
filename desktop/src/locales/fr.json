@@ -1,0 +1,460 @@
+{
+  "common": {
+    "actions": {
+      "add": "Ajouter",
+      "back": "Retour",
+      "browse": "Parcourir",
+      "cancel": "Annuler",
+      "close": "Fermer",
+      "continue": "Continuer",
+      "create": "Créer",
+      "delete": "Supprimer",
+      "retry": "Réessayer",
+      "save": "Enregistrer",
+      "update": "Mettre à jour"
+    },
+    "status": {
+      "loading": "Chargement..."
+    }
+  },
+  "language": {
+    "en": "Anglais",
+    "fr": "Français"
+  },
+  "navigation": {
+    "chat": "Chat",
+    "knowledgeBases": "Bases de connaissances",
+    "settings": "Paramètres"
+  },
+  "layout": {
+    "darkMode": "Mode sombre",
+    "lightMode": "Mode clair"
+  },
+  "app": {
+    "backendStarting": "Démarrage du backend RAGKIT...",
+    "backendErrorTitle": "Connexion au backend échouée",
+    "backendErrorMessage": "Impossible de se connecter au backend RAGKIT."
+  },
+  "wizard": {
+    "steps": {
+      "welcome": "Bienvenue",
+      "profile": "Profil",
+      "models": "Modèles",
+      "folder": "Dossier",
+      "summary": "Résumé"
+    },
+    "welcome": {
+      "title": "Bienvenue sur RAGKIT",
+      "subtitle": "Configurons votre base de connaissances en quelques étapes guidées.",
+      "features": {
+        "localFirst": {
+          "title": "Local-first",
+          "description": "Gardez vos données sous contrôle"
+        },
+        "fast": {
+          "title": "Rapide",
+          "description": "Paramètres de recherche optimisés"
+        },
+        "flexible": {
+          "title": "Flexible",
+          "description": "Plusieurs fournisseurs supportés"
+        }
+      },
+      "body": "Cet assistant recommande un profil, détecte votre environnement et vous aide à choisir les bons modèles.",
+      "cta": "Démarrer la configuration"
+    },
+    "profile": {
+      "title": "Profil de votre base de connaissances",
+      "subtitle": "Répondez à quelques questions pour recommander la meilleure configuration par défaut.",
+      "kbTypeLabel": "Type de base de connaissances",
+      "kbTypes": {
+        "technical": "Documentation technique",
+        "faq": "FAQ / Support",
+        "legal": "Juridique / Réglementaire",
+        "reports": "Rapports / Analyses",
+        "general": "Base généraliste"
+      },
+      "questions": {
+        "tables": {
+          "label": "Les documents contiennent des tableaux ou schémas",
+          "description": "Active un parsing avancé pour le contenu structuré"
+        },
+        "multiDoc": {
+          "label": "Les réponses doivent combiner plusieurs documents",
+          "description": "Augmente la profondeur de recherche et le reranking"
+        },
+        "largeDocs": {
+          "label": "Les documents dépassent souvent 50 pages",
+          "description": "Utilise des chunks plus grands pour le long format"
+        },
+        "precision": {
+          "label": "Vous avez besoin de réponses très précises",
+          "description": "Privilégie la précision, les citations et le reranking"
+        },
+        "updates": {
+          "label": "Votre base est mise à jour fréquemment",
+          "description": "Active l'indexation incrémentale et le refresh"
+        },
+        "citations": {
+          "label": "Citer les sources avec numéros de page",
+          "description": "Active les métadonnées de page dans les réponses"
+        }
+      },
+      "analyze": "Analyser le profil",
+      "analysisFailedTitle": "Analyse du profil échouée",
+      "analysisFailedMessage": "Veuillez réessayer."
+    },
+    "models": {
+      "title": "Configuration des modèles",
+      "subtitle": "Choisissez les modèles d'embedding et de génération pour votre configuration.",
+      "recommendedProfile": "Profil recommandé",
+      "embeddingProviderLabel": "Fournisseur d'embedding",
+      "embeddingModelLabel": "Modèle d'embedding",
+      "llmProviderLabel": "Fournisseur LLM",
+      "llmModelLabel": "Modèle LLM",
+      "apiKeysTitle": "Clés API",
+      "openaiKeyLabel": "Clé API OpenAI",
+      "anthropicKeyLabel": "Clé API Anthropic",
+      "environmentTitle": "Détection de l'environnement",
+      "environmentSubtitle": "Nous détectons automatiquement votre matériel et l'exécution locale des modèles.",
+      "detectingEnvironment": "Détection de l'environnement...",
+      "environmentErrorTitle": "Détection de l'environnement échouée",
+      "environmentErrorMessage": "Vous pouvez continuer manuellement.",
+      "providers": {
+        "onnxLocal": "ONNX Local (Recommandé)",
+        "openai": "OpenAI",
+        "ollama": "Ollama",
+        "ollamaRecommended": "Ollama (Recommandé)",
+        "anthropic": "Anthropic"
+      },
+      "environment": {
+        "gpu": "GPU",
+        "ollama": "Ollama",
+        "detected": "Détecté",
+        "notDetected": "Non détecté",
+        "cpuOnly": "Mode CPU uniquement",
+        "running": "En cours",
+        "installed": "Installé",
+        "notInstalled": "Non installé",
+        "version": "Version : {{version}}",
+        "unknown": "inconnue",
+        "localUnavailable": "LLM local indisponible",
+        "ollamaNotRunning": "Ollama est installé mais non démarré. Lancez le service pour utiliser les modèles locaux."
+      }
+    },
+    "folder": {
+      "title": "Sélectionnez votre dossier de documents",
+      "subtitle": "Choisissez le dossier qui contient les documents à indexer.",
+      "pathLabel": "Chemin du dossier",
+      "placeholder": "Sélectionnez un dossier...",
+      "includeSubfolders": "Inclure les sous-dossiers",
+      "info": "Vous pourrez ajouter ou modifier les dossiers depuis l'écran des bases de connaissances.",
+      "validation": {
+        "required": "Veuillez sélectionner un dossier.",
+        "notExists": "Ce dossier n'existe pas.",
+        "notDir": "Ce chemin n'est pas un dossier.",
+        "noPermission": "Aucun droit de lecture sur ce dossier.",
+        "noSupported": "Aucun document supporté dans ce dossier.",
+        "scanError": "Erreur lors de l'analyse du dossier.",
+        "generic": "Impossible de valider le dossier.",
+        "browseFailed": "Impossible d'ouvrir le sélecteur de dossier."
+      },
+      "stats": {
+        "title": "Analyse du dossier",
+        "filesLabel": "Documents",
+        "files": "{{count}} document",
+        "files_other": "{{count}} documents",
+        "sizeLabel": "Taille totale",
+        "sizeValue": "{{size}} Mo",
+        "extensionsLabel": "Extensions",
+        "extensionsEmpty": "Aucune"
+      }
+    },
+    "summary": {
+      "title": "Résumé",
+      "subtitle": "Vérifiez la configuration avant de terminer l'installation.",
+      "sections": {
+        "profile": "Profil",
+        "models": "Modèles",
+        "documents": "Documents"
+      },
+      "labels": {
+        "embedding": "Embedding",
+        "llm": "LLM",
+        "folder": "Dossier"
+      },
+      "noProfile": "Aucun profil détecté.",
+      "noModels": "Aucune sélection de modèle.",
+      "notSelected": "Non sélectionné",
+      "includeSubfolders": "Sous-dossiers inclus",
+      "topLevelOnly": "Niveau supérieur uniquement",
+      "documentsLater": "Vous pourrez ajouter des documents plus tard depuis l'écran des bases de connaissances.",
+      "finish": "Terminer la configuration",
+      "folderRequiredTitle": "Dossier requis",
+      "folderRequiredMessage": "Veuillez sélectionner un dossier de documents avant de continuer.",
+      "defaultKbName": "Ma base de connaissances",
+      "setupCompletedTitle": "Configuration terminée",
+      "setupCompletedMessage": "Votre base de connaissances est prête.",
+      "setupFailedTitle": "Configuration échouée",
+      "setupFailedMessage": "Veuillez vérifier vos choix et réessayer."
+    }
+  },
+  "knowledgeBases": {
+    "title": "Bases de connaissances",
+    "count": "{{count}} base de connaissances",
+    "count_other": "{{count}} bases de connaissances",
+    "loadFailed": "Impossible de charger les bases de connaissances",
+    "createFailed": "Impossible de créer la base de connaissances",
+    "confirmDeleteTitle": "Supprimer la base de connaissances",
+    "confirmDeleteMessage": "Êtes-vous sûr de vouloir supprimer \"{{name}}\" ? Cette action est irréversible et supprimera tous les documents.",
+    "deleteFailed": "Impossible de supprimer la base de connaissances",
+    "folderRequiredTitle": "Dossier requis",
+    "folderRequiredMessage": "Veuillez choisir un dossier à importer.",
+    "selectFileTypesTitle": "Sélectionnez des types de fichiers",
+    "selectFileTypesMessage": "Choisissez au moins un type de fichier.",
+    "noDocumentsTitle": "Aucun document trouvé",
+    "noDocumentsMessage": "Aucun fichier correspondant n'a été détecté.",
+    "folderIndexedWarningTitle": "Indexation avec avertissements",
+    "folderIndexedWarningMessage": "{{added}} ajoutés, {{failed}} en échec.",
+    "folderIndexedTitle": "Dossier indexé",
+    "folderIndexedMessage": "{{count}} document ajouté",
+    "folderIndexedMessage_other": "{{count}} documents ajoutés",
+    "addFolderFailed": "Impossible d'ajouter le dossier",
+    "addFolderTitle": "Ajouter un dossier",
+    "addFolderTitleWithName": "Ajouter un dossier à {{name}}",
+    "addFolderDescription": "Importer tous les documents d'un dossier dans cette base de connaissances.",
+    "createTitle": "Créer une base de connaissances",
+    "createDescription": "Créez une nouvelle base de connaissances pour stocker et interroger vos documents.",
+    "nameLabel": "Nom",
+    "namePlaceholder": "Ma base de connaissances",
+    "descriptionLabel": "Description (optionnelle)",
+    "descriptionPlaceholder": "Une brève description du contenu de cette base...",
+    "descriptionHint": "Cela vous aide à vous souvenir des documents stockés ici.",
+    "folderPathLabel": "Chemin du dossier",
+    "folderPathPlaceholder": "Sélectionnez un dossier...",
+    "includeSubfolders": "Inclure les sous-dossiers",
+    "fileTypesLabel": "Types de fichiers",
+    "fileTypes": {
+      "pdf": "PDF",
+      "txt": "Texte",
+      "md": "Markdown",
+      "docx": "Word (.docx)",
+      "doc": "Word (.doc)"
+    },
+    "addFolderButton": "Ajouter le dossier",
+    "loading": "Chargement des bases de connaissances...",
+    "emptyTitle": "Aucune base de connaissances",
+    "emptyDescription": "Créez votre première base pour commencer à indexer vos documents et les interroger avec l'IA.",
+    "emptyCta": "Créer une base de connaissances",
+    "stats": {
+      "documents": "Documents",
+      "chunks": "Chunks"
+    },
+    "modelLabel": "Modèle :",
+    "addDocuments": "Ajouter des documents",
+    "addFolder": "Ajouter un dossier"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "subtitle": "Configurer les fournisseurs et modèles",
+    "loading": "Chargement des paramètres...",
+    "language": {
+      "label": "Langue"
+    },
+    "expertise": {
+      "label": "Niveau d'expertise",
+      "beginner": "Débutant",
+      "intermediate": "Intermédiaire",
+      "expert": "Expert"
+    },
+    "tabs": {
+      "general": "Général",
+      "advanced": "Avancé",
+      "json": "JSON"
+    },
+    "embedding": {
+      "title": "Modèle d'embedding",
+      "description": "Choisissez comment les documents sont convertis en vecteurs pour la recherche sémantique",
+      "providers": {
+        "onnx_local": "ONNX Local (Hors ligne)",
+        "openai": "OpenAI",
+        "cohere": "Cohere",
+        "ollama": "Ollama"
+      }
+    },
+    "llm": {
+      "title": "Modèle de langage",
+      "description": "Choisissez le modèle IA pour générer les réponses",
+      "providers": {
+        "ollama": "Ollama (Local)",
+        "openai": "OpenAI",
+        "anthropic": "Anthropic",
+        "deepseek": "DeepSeek",
+        "groq": "Groq",
+        "mistral": "Mistral",
+        "gemini": "Gemini"
+      }
+    },
+    "labels": {
+      "provider": "Fournisseur",
+      "model": "Modèle",
+      "customModel": "Modèle personnalisé",
+      "strategy": "Stratégie",
+      "chunkSize": "Taille des chunks",
+      "chunkOverlap": "Chevauchement",
+      "architecture": "Architecture",
+      "topK": "Top K",
+      "semanticWeight": "Poids sémantique",
+      "lexicalWeight": "Poids lexical",
+      "rerankWeight": "Poids du rerank",
+      "maxChunks": "Chunks max",
+      "enableReranking": "Activer le reranking",
+      "rerankProvider": "Fournisseur de rerank",
+      "apiKey": "Clé API"
+    },
+    "actions": {
+      "usePreset": "Utiliser la liste",
+      "useCustom": "Utiliser un modèle personnalisé"
+    },
+    "notices": {
+      "localNoKey": "Exécution locale - aucune clé API requise"
+    },
+    "chunking": {
+      "title": "Chunking",
+      "description": "Contrôlez la manière dont les documents sont découpés avant l'embedding",
+      "strategies": {
+        "fixed": "Fixe",
+        "semantic": "Sémantique (Expérimental)"
+      }
+    },
+    "retrieval": {
+      "title": "Retrieval",
+      "description": "Ajustez la recherche et le classement des documents",
+      "architectures": {
+        "semantic": "Sémantique",
+        "lexical": "Lexical (BM25)",
+        "hybrid": "Hybride (Sémantique + Lexical)",
+        "hybrid_rerank": "Hybride + Rerank"
+      },
+      "rerankProviders": {
+        "none": "Aucun",
+        "cohere": "Cohere"
+      }
+    },
+    "hints": {
+      "chunkSize": "Des chunks plus grands apportent du contexte mais réduisent le rappel",
+      "chunkOverlap": "Le chevauchement préserve le contexte entre chunks",
+      "topK": "Nombre de candidats récupérés par requête",
+      "maxChunks": "Nombre maximal de chunks envoyés au LLM"
+    },
+    "apiKeys": {
+      "title": "Clés API",
+      "description": "Stockées en toute sécurité dans le trousseau système",
+      "providers": {
+        "openai": "Pour GPT et les embeddings",
+        "anthropic": "Pour les modèles Claude",
+        "deepseek": "Pour les modèles DeepSeek",
+        "groq": "Pour les modèles hébergés par Groq",
+        "mistral": "Pour les modèles Mistral",
+        "gemini": "Pour Google Gemini",
+        "cohere": "Pour Cohere"
+      },
+      "deleteTitle": "Supprimer la clé API",
+      "deleteMessage": "Êtes-vous sûr de vouloir supprimer la clé API {{provider}} ? Vous devrez la saisir à nouveau pour utiliser ce fournisseur.",
+      "modalTitleAdd": "Ajouter une clé API",
+      "modalTitleUpdate": "Mettre à jour la clé API",
+      "modalDescription": "Saisissez votre clé API {{provider}}. Elle sera stockée en toute sécurité dans votre trousseau système.",
+      "saveKey": "Enregistrer la clé"
+    },
+    "toasts": {
+      "loadFailed": "Impossible de charger les paramètres",
+      "saveSuccessTitle": "Paramètres enregistrés",
+      "saveSuccessMessage": "Vos modifications ont été appliquées.",
+      "saveFailed": "Impossible d'enregistrer les paramètres",
+      "apiKeySavedTitle": "Clé API enregistrée",
+      "apiKeySavedMessage": "La clé API {{provider}} a été stockée en toute sécurité.",
+      "apiKeySaveFailed": "Impossible d'enregistrer la clé API",
+      "apiKeyDeletedTitle": "Clé API supprimée",
+      "apiKeyDeletedMessage": "La clé API {{provider}} a été supprimée.",
+      "apiKeyDeleteFailed": "Impossible de supprimer la clé API"
+    },
+    "json": {
+      "title": "JSON avancé",
+      "description": "Modifiez directement les paramètres avancés. Ne changez que les valeurs que vous comprenez.",
+      "placeholder": "{\n  \"embedding_provider\": \"onnx_local\",\n  \"embedding_model\": \"all-MiniLM-L6-v2\"\n}",
+      "hint": "Les modifications ici mettent à jour les champs après application.",
+      "apply": "Appliquer le JSON",
+      "applySuccessTitle": "JSON appliqué",
+      "applySuccessMessage": "Paramètres mis à jour depuis le JSON.",
+      "invalidTitle": "JSON invalide",
+      "invalidMessage": "Vérifiez le format JSON et réessayez."
+    }
+  },
+  "chat": {
+    "title": "Chat",
+    "messageCount": "{{count}} message",
+    "messageCount_other": "{{count}} messages",
+    "selectKnowledgeBase": "Sélectionnez une base de connaissances...",
+    "askPlaceholder": "Posez une question...",
+    "selectFirst": "Sélectionnez d'abord une base de connaissances",
+    "empty": {
+      "startTitle": "Commencer une conversation",
+      "startDescription": "Posez vos questions sur vos documents et obtenez des réponses instantanées avec sources.",
+      "selectTitle": "Sélectionner une base de connaissances",
+      "selectDescription": "Choisissez une base de connaissances dans la liste ci-dessus pour démarrer."
+    },
+    "sources": "{{count}} source",
+    "sources_other": "{{count}} sources",
+    "match": "{{score}}% de correspondance"
+  },
+  "ollama": {
+    "title": "Ollama",
+    "status": {
+      "runningVersion": "En cours v{{version}}",
+      "notRunning": "Non démarré",
+      "notInstalled": "Non installé",
+      "running": "En cours",
+      "stopped": "Arrêté"
+    },
+    "install": {
+      "required": "Ollama est requis pour l'inférence locale des LLM.",
+      "cta": "Installer Ollama",
+      "notRunning": "Ollama est installé mais non démarré.",
+      "start": "Démarrer Ollama",
+      "modalTitle": "Installer Ollama",
+      "modalDescription": "Suivez ces instructions pour installer Ollama sur votre système.",
+      "visitSite": "Visiter ollama.ai",
+      "checkAgain": "Vérifier à nouveau"
+    },
+    "models": {
+      "installed": "Modèles installés ({{count}})",
+      "none": "Aucun modèle installé. Téléchargez un modèle pour commencer.",
+      "recommended": "Modèles recommandés",
+      "download": "Télécharger"
+    },
+    "quality": {
+      "good": "Bon",
+      "excellent": "Excellent"
+    },
+    "speed": {
+      "very_fast": "Très rapide",
+      "fast": "Rapide",
+      "medium": "Moyen"
+    },
+    "confirmDeleteTitle": "Supprimer le modèle",
+    "confirmDeleteMessage": "Êtes-vous sûr de vouloir supprimer \"{{model}}\" ? Cette action est irréversible.",
+    "toasts": {
+      "startedTitle": "Ollama démarré",
+      "startedMessage": "Le service Ollama est maintenant en cours.",
+      "startFailedTitle": "Impossible de démarrer Ollama",
+      "downloadingTitle": "Téléchargement du modèle",
+      "downloadingMessage": "Téléchargement de {{model}}...",
+      "downloadedTitle": "Modèle téléchargé",
+      "downloadedMessage": "{{model}} est prêt à être utilisé.",
+      "downloadFailedTitle": "Téléchargement échoué",
+      "deleteSuccessTitle": "Modèle supprimé",
+      "deleteSuccessMessage": "{{model}} a été supprimé.",
+      "deleteFailedTitle": "Suppression échouée"
+    }
+  }
+}

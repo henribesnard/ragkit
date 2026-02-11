@@ -1,5 +1,5 @@
-
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { useConfig, useUpdateConfig } from '@/hooks/useConfig';
 import { validateConfig } from '@/api/config';
@@ -12,6 +12,7 @@ import { applyProfilePatch } from '@/data/profiles';
 import { useConfigStore } from '@/stores/configStore';
 
 export function Config() {
+  const { t } = useTranslation();
   const { data, isLoading } = useConfig();
   const { mutate: updateConfig, isPending } = useUpdateConfig();
   const { config, expertiseLevel, jsonDraft, jsonError, setConfig, setExpertiseLevel, setJsonDraft } =
@@ -47,32 +48,32 @@ export function Config() {
     try {
       const result = await validateConfig(config);
       if (result?.valid) {
-        setValidationMessage('Configuration is valid.');
+        setValidationMessage(t('config.validation.valid'));
       } else {
-        setValidationMessage(result?.errors?.join(' | ') || 'Configuration has errors.');
+        setValidationMessage(result?.errors?.join(' | ') || t('config.validation.invalid'));
       }
     } catch (error: any) {
-      setValidationMessage(error?.message || 'Unable to validate configuration.');
+      setValidationMessage(error?.message || t('config.validation.unable'));
     }
   };
 
   if (isLoading) {
-    return <p className="text-sm text-muted">Loading configuration...</p>;
+    return <p className="text-sm text-muted">{t('config.loading')}</p>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-display">Configuration</h2>
-          <p className="text-sm text-muted">Manage your project settings.</p>
+          <h2 className="text-2xl font-display">{t('config.title')}</h2>
+          <p className="text-sm text-muted">{t('config.subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleExport}>
-            Export YAML
+            {t('config.actions.export')}
           </Button>
           <Button onClick={handleSave} disabled={!hasChanges || isPending}>
-            {isPending ? 'Saving...' : 'Save changes'}
+            {isPending ? t('common.actions.saving') : t('common.actions.saveChanges')}
           </Button>
         </div>
       </div>
@@ -109,15 +110,15 @@ export function Config() {
                     const formatted = JSON.stringify(JSON.parse(jsonDraft || '{}'), null, 2);
                     setJsonDraft(formatted);
                   } catch {
-                    setValidationMessage('Unable to format JSON: fix errors first.');
+                    setValidationMessage(t('config.validation.formatError'));
                   }
                 }}
                 onValidate={handleValidate}
               />
               <div className="rounded-3xl bg-white/60 p-6 shadow-soft">
                 <div className="mb-4">
-                  <h3 className="text-lg font-display">Full configuration</h3>
-                  <p className="text-xs text-muted">Use the form view for quick edits.</p>
+                  <h3 className="text-lg font-display">{t('config.advanced.title')}</h3>
+                  <p className="text-xs text-muted">{t('config.advanced.subtitle')}</p>
                 </div>
                 <AdvancedConfigTabs
                   config={config}

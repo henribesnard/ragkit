@@ -1,4 +1,5 @@
-﻿import { Card, CardDescription, CardTitle } from '@/components/ui/card';
+import { useTranslation } from 'react-i18next';
+import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import {
   LineChart,
   Line,
@@ -13,14 +14,15 @@ interface QueryChartProps {
 }
 
 export function QueryChart({ data = [] }: QueryChartProps) {
+  const { t } = useTranslation();
   return (
     <Card className="h-full">
-      <CardTitle>Queries over time</CardTitle>
-      <CardDescription>Volume trend for the selected window.</CardDescription>
+      <CardTitle>{t('dashboard.queryChart.title')}</CardTitle>
+      <CardDescription>{t('dashboard.queryChart.subtitle')}</CardDescription>
       <div className="mt-6 h-56">
         {data.length === 0 ? (
           <div className="flex h-full items-center justify-center rounded-2xl bg-canvas text-sm text-muted">
-            No data yet
+            {t('dashboard.metrics.noData')}
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">

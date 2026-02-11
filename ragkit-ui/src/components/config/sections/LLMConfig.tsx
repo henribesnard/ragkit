@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { FieldLabel } from '@/components/ui/field-label';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ interface SectionProps {
 }
 
 export function LLMConfigSection({ config, onChange }: SectionProps) {
+  const { t } = useTranslation();
   const llm = config?.llm || {};
   const primary = llm.primary || {};
 
@@ -35,8 +37,8 @@ export function LLMConfigSection({ config, onChange }: SectionProps) {
       <div className="space-y-4">
         <div>
           <FieldLabel
-            label="Provider"
-            help="Service qui genere les reponses. OpenAI, Anthropic, DeepSeek, Groq et Mistral necessitent une cle API. Ollama tourne en local."
+            label={t('wizard.llm.providerLabel')}
+            help={t('config.llm.providerHelp')}
           />
           <Select
             value={model.provider || 'openai'}
@@ -51,7 +53,7 @@ export function LLMConfigSection({ config, onChange }: SectionProps) {
           </Select>
         </div>
         <div>
-          <FieldLabel label="Model" help="Modele LLM a utiliser pour generer les reponses." />
+          <FieldLabel label={t('wizard.llm.modelLabel')} help={t('config.llm.modelHelp')} />
           <ModelSelect
             provider={model.provider || 'openai'}
             models={LLM_MODELS}
@@ -61,7 +63,7 @@ export function LLMConfigSection({ config, onChange }: SectionProps) {
         </div>
         {model.provider !== 'ollama' ? (
           <div>
-            <FieldLabel label="API key" help="Cle d'API pour le provider LLM." />
+            <FieldLabel label={t('wizard.llm.apiKeyLabel')} help={t('config.llm.apiKeyHelp')} />
             <Input
               type="password"
               placeholder="sk-..."
@@ -71,9 +73,9 @@ export function LLMConfigSection({ config, onChange }: SectionProps) {
           </div>
         ) : null}
 
-        <CollapsibleSection title="Model parameters">
+        <CollapsibleSection title={t('config.llm.parametersTitle')}>
           <div>
-            <FieldLabel label="Temperature" help="Controle la creativite. 0 = deterministe, 1+ = creatif." />
+            <FieldLabel label={t('wizard.llm.temperatureLabel')} help={t('config.llm.temperatureHelp')} />
             <SliderInput
               value={model.params?.temperature ?? 0.7}
               onChange={(value) => updateModel(key, { params: { ...model.params, temperature: value } })}
@@ -83,7 +85,7 @@ export function LLMConfigSection({ config, onChange }: SectionProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Max tokens" help="Limite maximale de tokens pour la reponse." />
+            <FieldLabel label={t('wizard.llm.maxTokensLabel')} help={t('config.llm.maxTokensHelp')} />
             <NumberInput
               value={model.params?.max_tokens ?? null}
               min={1}
@@ -93,7 +95,7 @@ export function LLMConfigSection({ config, onChange }: SectionProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Top P" help="Echantillonnage nucleus. 1.0 = pas de limite." />
+            <FieldLabel label={t('wizard.llm.topPLabel')} help={t('config.llm.topPHelp')} />
             <SliderInput
               value={model.params?.top_p ?? 1}
               onChange={(value) => updateModel(key, { params: { ...model.params, top_p: value } })}
@@ -103,7 +105,7 @@ export function LLMConfigSection({ config, onChange }: SectionProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Timeout" help="Temps maximum d'attente avant timeout (secondes)." />
+            <FieldLabel label={t('wizard.llm.timeoutLabel')} help={t('config.llm.timeoutHelp')} />
             <NumberInput
               value={model.timeout ?? null}
               min={1}
@@ -114,7 +116,7 @@ export function LLMConfigSection({ config, onChange }: SectionProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Max retries" help="Nombre de tentatives en cas d'erreur." />
+            <FieldLabel label={t('wizard.llm.maxRetriesLabel')} help={t('wizard.llm.maxRetriesHelp')} />
             <NumberInput
               value={model.max_retries ?? null}
               min={0}
@@ -134,13 +136,13 @@ export function LLMConfigSection({ config, onChange }: SectionProps) {
   return (
     <div className="space-y-6">
       <div className="space-y-4">
-        <h3 className="text-sm font-semibold text-ink">LLM Principal (Primary)</h3>
+        <h3 className="text-sm font-semibold text-ink">{t('config.llm.primaryTitle')}</h3>
         {renderModelFields('primary')}
       </div>
 
-      <CollapsibleSection title="LLM Secondaire">
+      <CollapsibleSection title={t('config.llm.secondaryTitle')}>
         <div className="space-y-4">
-          <FieldLabel label="Enabled" help="Active un LLM secondaire pour certaines taches." />
+          <FieldLabel label={t('wizard.retrieval.enabledLabel')} help={t('config.llm.secondaryHelp')} />
           <ToggleSwitch
             checked={hasSecondary}
             onChange={(checked) =>
@@ -160,9 +162,9 @@ export function LLMConfigSection({ config, onChange }: SectionProps) {
         </div>
       </CollapsibleSection>
 
-      <CollapsibleSection title="LLM Rapide">
+      <CollapsibleSection title={t('config.llm.fastTitle')}>
         <div className="space-y-4">
-          <FieldLabel label="Enabled" help="Active un LLM rapide pour les taches simples." />
+          <FieldLabel label={t('wizard.retrieval.enabledLabel')} help={t('config.llm.fastHelp')} />
           <ToggleSwitch
             checked={hasFast}
             onChange={(checked) =>

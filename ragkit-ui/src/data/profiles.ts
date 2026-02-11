@@ -2,18 +2,18 @@ import { deepMerge } from '@/utils/deepMerge';
 
 export interface RagProfile {
   id: string;
-  name: string;
-  tag: string;
-  description: string;
+  nameKey: string;
+  tagKey: string;
+  descriptionKey: string;
   patch: Record<string, any>;
 }
 
 export const RAG_PROFILES: RagProfile[] = [
   {
     id: 'technical_docs',
-    name: 'Technical Docs',
-    tag: 'API / DevOps / SDK',
-    description: 'Structured documentation with precise terminology and citations.',
+    nameKey: 'profiles.technical.name',
+    tagKey: 'profiles.technical.tag',
+    descriptionKey: 'profiles.technical.description',
     patch: {
       ingestion: {
         chunking: {
@@ -36,9 +36,9 @@ export const RAG_PROFILES: RagProfile[] = [
   },
   {
     id: 'faq_support',
-    name: 'FAQ & Support',
-    tag: 'Support / Knowledge Base',
-    description: 'Fast answers for repetitive questions with concise responses.',
+    nameKey: 'profiles.faq.name',
+    tagKey: 'profiles.faq.tag',
+    descriptionKey: 'profiles.faq.description',
     patch: {
       ingestion: {
         chunking: {
@@ -60,9 +60,9 @@ export const RAG_PROFILES: RagProfile[] = [
   },
   {
     id: 'scientific_research',
-    name: 'Scientific Research',
-    tag: 'Papers / Data',
-    description: 'Longer context windows and conservative generation.',
+    nameKey: 'profiles.scientific.name',
+    tagKey: 'profiles.scientific.tag',
+    descriptionKey: 'profiles.scientific.description',
     patch: {
       ingestion: {
         chunking: {
@@ -84,9 +84,9 @@ export const RAG_PROFILES: RagProfile[] = [
   },
   {
     id: 'legal_regulatory',
-    name: 'Legal & Regulatory',
-    tag: 'Compliance / Policy',
-    description: 'Hybrid retrieval with strict citation requirements.',
+    nameKey: 'profiles.legal.name',
+    tagKey: 'profiles.legal.tag',
+    descriptionKey: 'profiles.legal.description',
     patch: {
       ingestion: {
         chunking: {
@@ -109,9 +109,9 @@ export const RAG_PROFILES: RagProfile[] = [
   },
   {
     id: 'reports_analysis',
-    name: 'Reports & Analysis',
-    tag: 'BI / Analytics',
-    description: 'Larger chunks and broader retrieval for synthesis.',
+    nameKey: 'profiles.reports.name',
+    tagKey: 'profiles.reports.tag',
+    descriptionKey: 'profiles.reports.description',
     patch: {
       ingestion: {
         chunking: {
@@ -133,9 +133,9 @@ export const RAG_PROFILES: RagProfile[] = [
   },
   {
     id: 'general_knowledge',
-    name: 'General Knowledge',
-    tag: 'Mixed Content',
-    description: 'Balanced settings for diverse documentation.',
+    nameKey: 'profiles.general.name',
+    tagKey: 'profiles.general.tag',
+    descriptionKey: 'profiles.general.description',
     patch: {
       ingestion: {
         chunking: {

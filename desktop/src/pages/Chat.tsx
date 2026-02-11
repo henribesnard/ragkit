@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import { Send, FileText, ChevronDown, ChevronUp, MessageSquare, Database } from "lucide-react";
 import { ipc, Message, Source, KnowledgeBase } from "../lib/ipc";
@@ -7,6 +8,7 @@ import { cn } from "../lib/utils";
 import { parseError } from "../lib/errors";
 
 export function Chat() {
+  const { t } = useTranslation();
   const { conversationId } = useParams();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -97,7 +99,9 @@ export function Chat() {
         id: `error-${Date.now()}`,
         conversation_id: currentConvId || "",
         role: "assistant",
-        content: `**${errorInfo.title}**\n\n${errorInfo.message}${errorInfo.suggestion ? `\n\n💡 ${errorInfo.suggestion}` : ""}`,
+        content: `**${errorInfo.title}**\n\n${errorInfo.message}${
+          errorInfo.suggestion ? `\n\n💡 ${errorInfo.suggestion}` : ""
+        }`,
         created_at: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -127,10 +131,10 @@ export function Chat() {
           </div>
           <div>
             <h1 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Chat
+              {t("chat.title")}
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              {messages.length} message{messages.length !== 1 ? "s" : ""}
+              {t("chat.messageCount", { count: messages.length })}
             </p>
           </div>
         </div>
@@ -139,7 +143,7 @@ export function Chat() {
             options={kbOptions}
             value={selectedKb}
             onChange={handleKbChange}
-            placeholder="Select a knowledge base..."
+            placeholder={t("chat.selectKnowledgeBase")}
           />
         </div>
       </header>
@@ -170,7 +174,7 @@ export function Chat() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={
-                selectedKb ? "Ask a question..." : "Select a knowledge base first"
+                selectedKb ? t("chat.askPlaceholder") : t("chat.selectFirst")
               }
               disabled={!selectedKb || isLoading}
             />
@@ -191,6 +195,7 @@ export function Chat() {
 
 // Empty state component (memoized)
 const EmptyState = memo(function EmptyState({ hasKnowledgeBase }: { hasKnowledgeBase: boolean }) {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center h-full text-center">
       <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary-100 to-primary-200 dark:from-primary-900/30 dark:to-primary-800/30 flex items-center justify-center mb-6 shadow-lg">
@@ -201,12 +206,12 @@ const EmptyState = memo(function EmptyState({ hasKnowledgeBase }: { hasKnowledge
         )}
       </div>
       <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
-        {hasKnowledgeBase ? "Start a conversation" : "Select a Knowledge Base"}
+        {hasKnowledgeBase ? t("chat.empty.startTitle") : t("chat.empty.selectTitle")}
       </h2>
       <p className="mt-3 text-gray-600 dark:text-gray-400 max-w-md text-lg">
         {hasKnowledgeBase
-          ? "Ask any question about your documents and get instant answers with sources."
-          : "Choose a knowledge base from the dropdown above to begin chatting with your documents."}
+          ? t("chat.empty.startDescription")
+          : t("chat.empty.selectDescription")}
       </p>
     </div>
   );
@@ -218,9 +223,18 @@ const TypingIndicator = memo(function TypingIndicator() {
     <div className="flex justify-start">
       <div className="bg-gray-100 dark:bg-gray-700 rounded-2xl px-4 py-3">
         <div className="flex items-center gap-1">
-          <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-          <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-          <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+          <div
+            className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce"
+            style={{ animationDelay: "0ms" }}
+          />
+          <div
+            className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce"
+            style={{ animationDelay: "150ms" }}
+          />
+          <div
+            className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce"
+            style={{ animationDelay: "300ms" }}
+          />
         </div>
       </div>
     </div>
@@ -229,6 +243,7 @@ const TypingIndicator = memo(function TypingIndicator() {
 
 // Message bubble component (memoized)
 const MessageBubble = memo(function MessageBubble({ message }: { message: Message }) {
+  const { t } = useTranslation();
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const isUser = message.role === "user";
 
@@ -262,7 +277,7 @@ const MessageBubble = memo(function MessageBubble({ message }: { message: Messag
               )}
             >
               <FileText className="w-4 h-4 mr-1.5" />
-              {message.sources.length} source{message.sources.length > 1 ? "s" : ""}
+              {t("chat.sources", { count: message.sources.length })}
               {sourcesOpen ? (
                 <ChevronUp className="w-4 h-4 ml-1" />
               ) : (
@@ -296,7 +311,14 @@ const MessageBubble = memo(function MessageBubble({ message }: { message: Messag
 });
 
 // Source card component (memoized)
-const SourceCard = memo(function SourceCard({ source, isUserMessage }: { source: Source; isUserMessage: boolean }) {
+const SourceCard = memo(function SourceCard({
+  source,
+  isUserMessage,
+}: {
+  source: Source;
+  isUserMessage: boolean;
+}) {
+  const { t } = useTranslation();
   return (
     <Card
       variant="outlined"
@@ -308,32 +330,40 @@ const SourceCard = memo(function SourceCard({ source, isUserMessage }: { source:
       )}
     >
       <div className="flex items-start gap-2">
-        <FileText className={cn(
-          "w-4 h-4 mt-0.5 flex-shrink-0",
-          isUserMessage ? "text-white/70" : "text-gray-500 dark:text-gray-400"
-        )} />
+        <FileText
+          className={cn(
+            "w-4 h-4 mt-0.5 flex-shrink-0",
+            isUserMessage ? "text-white/70" : "text-gray-500 dark:text-gray-400"
+          )}
+        />
         <div className="flex-1 min-w-0">
-          <p className={cn(
-            "font-medium text-sm truncate",
-            isUserMessage ? "text-white" : "text-gray-800 dark:text-gray-200"
-          )}>
+          <p
+            className={cn(
+              "font-medium text-sm truncate",
+              isUserMessage ? "text-white" : "text-gray-800 dark:text-gray-200"
+            )}
+          >
             {source.filename}
           </p>
-          <p className={cn(
-            "mt-1 text-sm line-clamp-2",
-            isUserMessage ? "text-white/80" : "text-gray-600 dark:text-gray-400"
-          )}>
+          <p
+            className={cn(
+              "mt-1 text-sm line-clamp-2",
+              isUserMessage ? "text-white/80" : "text-gray-600 dark:text-gray-400"
+            )}
+          >
             {source.chunk}
           </p>
-          <div className={cn(
-            "mt-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
-            source.score >= 0.8
-              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-              : source.score >= 0.5
-              ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-              : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
-          )}>
-            {(source.score * 100).toFixed(0)}% match
+          <div
+            className={cn(
+              "mt-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
+              source.score >= 0.8
+                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                : source.score >= 0.5
+                ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
+            )}
+          >
+            {t("chat.match", { score: Math.round(source.score * 100) })}
           </div>
         </div>
       </div>

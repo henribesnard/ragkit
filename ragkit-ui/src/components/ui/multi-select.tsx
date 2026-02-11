@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/utils/cn';
@@ -16,6 +17,7 @@ interface MultiSelectProps {
 }
 
 export function MultiSelect({ options, selected, onChange, allowCustom }: MultiSelectProps) {
+  const { t } = useTranslation();
   const [customValue, setCustomValue] = useState('');
 
   const toggleValue = (value: string) => {
@@ -61,11 +63,11 @@ export function MultiSelect({ options, selected, onChange, allowCustom }: MultiS
           <Input
             value={customValue}
             onChange={(event) => setCustomValue(event.target.value)}
-            placeholder="Add custom value"
+            placeholder={t('common.placeholders.addCustomValue')}
             className="flex-1"
           />
           <Button type="button" variant="outline" size="sm" onClick={addCustom}>
-            Add
+            {t('common.actions.add')}
           </Button>
         </div>
       ) : null}

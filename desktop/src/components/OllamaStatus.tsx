@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Server,
   Download,
@@ -28,6 +29,7 @@ import {
 import { cn } from "../lib/utils";
 
 export function OllamaStatusCard() {
+  const { t } = useTranslation();
   const toast = useToast();
   const confirm = useConfirm();
   const [status, setStatus] = useState<OllamaStatusType | null>(null);
@@ -67,10 +69,10 @@ export function OllamaStatusCard() {
     setIsStarting(true);
     try {
       await ipc.startOllamaService();
-      toast.success("Ollama started", "The Ollama service is now running.");
+      toast.success(t("ollama.toasts.startedTitle"), t("ollama.toasts.startedMessage"));
       await loadStatus();
     } catch (error) {
-      toast.error("Failed to start Ollama", String(error));
+      toast.error(t("ollama.toasts.startFailedTitle"), String(error));
     } finally {
       setIsStarting(false);
     }
@@ -79,12 +81,18 @@ export function OllamaStatusCard() {
   const handlePullModel = async (modelName: string) => {
     setIsPulling(modelName);
     try {
-      toast.info("Downloading model", `Downloading ${modelName}...`);
+      toast.info(
+        t("ollama.toasts.downloadingTitle"),
+        t("ollama.toasts.downloadingMessage", { model: modelName })
+      );
       await ipc.pullOllamaModel(modelName);
-      toast.success("Model downloaded", `${modelName} is ready to use.`);
+      toast.success(
+        t("ollama.toasts.downloadedTitle"),
+        t("ollama.toasts.downloadedMessage", { model: modelName })
+      );
       await loadStatus();
     } catch (error) {
-      toast.error("Download failed", String(error));
+      toast.error(t("ollama.toasts.downloadFailedTitle"), String(error));
     } finally {
       setIsPulling(null);
     }
@@ -92,10 +100,10 @@ export function OllamaStatusCard() {
 
   const handleDeleteModel = async (modelName: string) => {
     const confirmed = await confirm({
-      title: "Delete Model",
-      message: `Are you sure you want to delete "${modelName}"? This cannot be undone.`,
-      confirmLabel: "Delete",
-      cancelLabel: "Cancel",
+      title: t("ollama.confirmDeleteTitle"),
+      message: t("ollama.confirmDeleteMessage", { model: modelName }),
+      confirmLabel: t("common.actions.delete"),
+      cancelLabel: t("common.actions.cancel"),
       variant: "danger",
     });
 
@@ -103,10 +111,13 @@ export function OllamaStatusCard() {
 
     try {
       await ipc.deleteOllamaModel(modelName);
-      toast.success("Model deleted", `${modelName} has been removed.`);
+      toast.success(
+        t("ollama.toasts.deleteSuccessTitle"),
+        t("ollama.toasts.deleteSuccessMessage", { model: modelName })
+      );
       await loadStatus();
     } catch (error) {
-      toast.error("Delete failed", String(error));
+      toast.error(t("ollama.toasts.deleteFailedTitle"), String(error));
     }
   };
 
@@ -162,13 +173,15 @@ export function OllamaStatusCard() {
                 />
               </div>
               <div>
-                <CardTitle>Ollama</CardTitle>
+                <CardTitle>{t("ollama.title")}</CardTitle>
                 <CardDescription>
                   {status?.running
-                    ? `Running v${status.version || "?"}`
+                    ? t("ollama.status.runningVersion", {
+                        version: status.version || "?",
+                      })
                     : status?.installed
-                    ? "Not running"
-                    : "Not installed"}
+                    ? t("ollama.status.notRunning")
+                    : t("ollama.status.notInstalled")}
                 </CardDescription>
               </div>
             </div>
@@ -191,11 +204,11 @@ export function OllamaStatusCard() {
           {!status?.installed && (
             <div className="text-center py-6">
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Ollama is required for local LLM inference.
+                {t("ollama.install.required")}
               </p>
               <Button onClick={handleShowInstall}>
                 <ExternalLink className="w-4 h-4 mr-2" />
-                Install Ollama
+                {t("ollama.install.cta")}
               </Button>
             </div>
           )}
@@ -204,11 +217,11 @@ export function OllamaStatusCard() {
           {status?.installed && !status?.running && (
             <div className="text-center py-6">
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                Ollama is installed but not running.
+                {t("ollama.install.notRunning")}
               </p>
               <Button onClick={handleStartService} isLoading={isStarting}>
                 <Play className="w-4 h-4 mr-2" />
-                Start Ollama
+                {t("ollama.install.start")}
               </Button>
             </div>
           )}
@@ -219,11 +232,11 @@ export function OllamaStatusCard() {
               {/* Installed Models */}
               <div>
                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Installed Models ({models.length})
+                  {t("ollama.models.installed", { count: models.length })}
                 </h4>
                 {models.length === 0 ? (
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    No models installed. Download a model to get started.
+                    {t("ollama.models.none")}
                   </p>
                 ) : (
                   <div className="space-y-2">
@@ -260,7 +273,7 @@ export function OllamaStatusCard() {
               {/* Recommended Models */}
               <div>
                 <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                  Recommended Models
+                  {t("ollama.models.recommended")}
                 </h4>
                 <div className="grid gap-2">
                   {Object.entries(recommended).map(([id, model]) => {
@@ -300,7 +313,7 @@ export function OllamaStatusCard() {
                             disabled={isPulling !== null}
                           >
                             <Download className="w-4 h-4 mr-1" />
-                            Download
+                            {t("ollama.models.download")}
                           </Button>
                         )}
                       </div>
@@ -317,8 +330,8 @@ export function OllamaStatusCard() {
       <Modal
         isOpen={showInstallModal}
         onClose={() => setShowInstallModal(false)}
-        title="Install Ollama"
-        description="Follow these instructions to install Ollama on your system."
+        title={t("ollama.install.modalTitle")}
+        description={t("ollama.install.modalDescription")}
         size="md"
       >
         <div className="space-y-4">
@@ -331,17 +344,17 @@ export function OllamaStatusCard() {
             rel="noopener noreferrer"
             className="inline-flex items-center text-primary-600 hover:text-primary-700 dark:text-primary-400"
           >
-            Visit ollama.ai
+            {t("ollama.install.visitSite")}
             <ExternalLink className="w-4 h-4 ml-1" />
           </a>
         </div>
         <ModalFooter>
           <Button variant="secondary" onClick={() => setShowInstallModal(false)}>
-            Close
+            {t("common.actions.close")}
           </Button>
           <Button onClick={loadStatus}>
             <RefreshCw className="w-4 h-4 mr-2" />
-            Check Again
+            {t("ollama.install.checkAgain")}
           </Button>
         </ModalFooter>
       </Modal>
@@ -351,13 +364,14 @@ export function OllamaStatusCard() {
 
 // Status badge component
 function StatusBadge({ status }: { status: OllamaStatusType | null }) {
+  const { t } = useTranslation();
   if (!status) return null;
 
   if (status.running) {
     return (
       <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium">
         <CheckCircle className="w-3 h-3" />
-        Running
+        {t("ollama.status.running")}
       </div>
     );
   }
@@ -366,7 +380,7 @@ function StatusBadge({ status }: { status: OllamaStatusType | null }) {
     return (
       <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 text-xs font-medium">
         <AlertCircle className="w-3 h-3" />
-        Stopped
+        {t("ollama.status.stopped")}
       </div>
     );
   }
@@ -374,36 +388,37 @@ function StatusBadge({ status }: { status: OllamaStatusType | null }) {
   return (
     <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs font-medium">
       <XCircle className="w-3 h-3" />
-      Not Installed
+      {t("ollama.status.notInstalled")}
     </div>
   );
 }
 
 // Quality badge
 function QualityBadge({ quality }: { quality: string }) {
+  const { t } = useTranslation();
   const colors = {
     good: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
     excellent: "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
   };
 
   return (
-    <span className={cn("px-1.5 py-0.5 rounded text-xs font-medium", colors[quality as keyof typeof colors] || colors.good)}>
-      {quality}
+    <span
+      className={cn(
+        "px-1.5 py-0.5 rounded text-xs font-medium",
+        colors[quality as keyof typeof colors] || colors.good
+      )}
+    >
+      {t(`ollama.quality.${quality}`)}
     </span>
   );
 }
 
 // Speed badge
 function SpeedBadge({ speed }: { speed: string }) {
-  const labels: Record<string, string> = {
-    very_fast: "Very Fast",
-    fast: "Fast",
-    medium: "Medium",
-  };
-
+  const { t } = useTranslation();
   return (
     <span className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs">
-      {labels[speed] || speed}
+      {t(`ollama.speed.${speed}`)}
     </span>
   );
 }

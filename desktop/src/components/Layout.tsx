@@ -1,5 +1,6 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { NavLink } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   MessageSquare,
   Database,
@@ -8,7 +9,6 @@ import {
   Moon,
   Menu,
 } from "lucide-react";
-import { useState } from "react";
 import { clsx } from "clsx";
 
 interface LayoutProps {
@@ -17,14 +17,15 @@ interface LayoutProps {
   onToggleDarkMode: () => void;
 }
 
-const navItems = [
-  { to: "/chat", icon: MessageSquare, label: "Chat" },
-  { to: "/knowledge-bases", icon: Database, label: "Knowledge Bases" },
-  { to: "/settings", icon: Settings, label: "Settings" },
-];
-
 export function Layout({ children, darkMode, onToggleDarkMode }: LayoutProps) {
+  const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const navItems = [
+    { to: "/chat", icon: MessageSquare, label: t("navigation.chat") },
+    { to: "/knowledge-bases", icon: Database, label: t("navigation.knowledgeBases") },
+    { to: "/settings", icon: Settings, label: t("navigation.settings") },
+  ];
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
@@ -86,7 +87,9 @@ export function Layout({ children, darkMode, onToggleDarkMode }: LayoutProps) {
               <Moon className="w-5 h-5" />
             )}
             {sidebarOpen && (
-              <span className="ml-3">{darkMode ? "Light mode" : "Dark mode"}</span>
+              <span className="ml-3">
+                {darkMode ? t("layout.lightMode") : t("layout.darkMode")}
+              </span>
             )}
           </button>
         </div>

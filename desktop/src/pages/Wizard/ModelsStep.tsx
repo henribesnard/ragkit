@@ -1,4 +1,5 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Cpu, Key, Monitor, Server } from "lucide-react";
 import {
   Button,
@@ -29,40 +30,8 @@ interface ModelsStepProps {
   initialModels?: ModelsSelection | null;
 }
 
-const EMBEDDING_PROVIDERS = [
-  { value: "onnx_local", label: "ONNX Local (Recommended)" },
-  { value: "openai", label: "OpenAI" },
-  { value: "ollama", label: "Ollama" },
-];
-
-const EMBEDDING_MODELS: Record<string, { value: string; label: string }[]> = {
-  onnx_local: [{ value: "all-MiniLM-L6-v2", label: "all-MiniLM-L6-v2" }],
-  openai: [{ value: "text-embedding-3-small", label: "text-embedding-3-small" }],
-  ollama: [{ value: "nomic-embed-text", label: "nomic-embed-text" }],
-};
-
-const LLM_PROVIDERS = [
-  { value: "ollama", label: "Ollama (Recommended)" },
-  { value: "openai", label: "OpenAI" },
-  { value: "anthropic", label: "Anthropic" },
-];
-
-const LLM_MODELS: Record<string, { value: string; label: string }[]> = {
-  ollama: [
-    { value: "llama3.2:3b", label: "Llama 3.2 3B" },
-    { value: "llama3.1:8b", label: "Llama 3.1 8B" },
-  ],
-  openai: [
-    { value: "gpt-4o-mini", label: "GPT-4o Mini" },
-    { value: "gpt-4o", label: "GPT-4o" },
-  ],
-  anthropic: [
-    { value: "claude-3-haiku-20240307", label: "Claude 3 Haiku" },
-    { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet" },
-  ],
-};
-
 export function ModelsStep({ profile, onNext, onBack, initialModels }: ModelsStepProps) {
+  const { t } = useTranslation();
   const toast = useToast();
   const [environment, setEnvironment] = useState<EnvironmentDetection | null>(null);
   const [loadingEnv, setLoadingEnv] = useState(true);
@@ -77,6 +46,39 @@ export function ModelsStep({ profile, onNext, onBack, initialModels }: ModelsSte
     }
   );
 
+  const embeddingProviders = [
+    { value: "onnx_local", label: t("wizard.models.providers.onnxLocal") },
+    { value: "openai", label: t("wizard.models.providers.openai") },
+    { value: "ollama", label: t("wizard.models.providers.ollama") },
+  ];
+
+  const embeddingModels: Record<string, { value: string; label: string }[]> = {
+    onnx_local: [{ value: "all-MiniLM-L6-v2", label: "all-MiniLM-L6-v2" }],
+    openai: [{ value: "text-embedding-3-small", label: "text-embedding-3-small" }],
+    ollama: [{ value: "nomic-embed-text", label: "nomic-embed-text" }],
+  };
+
+  const llmProviders = [
+    { value: "ollama", label: t("wizard.models.providers.ollamaRecommended") },
+    { value: "openai", label: t("wizard.models.providers.openai") },
+    { value: "anthropic", label: t("wizard.models.providers.anthropic") },
+  ];
+
+  const llmModels: Record<string, { value: string; label: string }[]> = {
+    ollama: [
+      { value: "llama3.2:3b", label: "Llama 3.2 3B" },
+      { value: "llama3.1:8b", label: "Llama 3.1 8B" },
+    ],
+    openai: [
+      { value: "gpt-4o-mini", label: "GPT-4o Mini" },
+      { value: "gpt-4o", label: "GPT-4o" },
+    ],
+    anthropic: [
+      { value: "claude-3-haiku-20240307", label: "Claude 3 Haiku" },
+      { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet" },
+    ],
+  };
+
   useEffect(() => {
     let mounted = true;
     const loadEnvironment = async () => {
@@ -87,7 +89,10 @@ export function ModelsStep({ profile, onNext, onBack, initialModels }: ModelsSte
         }
       } catch (error) {
         console.error("Failed to detect environment:", error);
-        toast.error("Environment detection failed", "You can continue manually.");
+        toast.error(
+          t("wizard.models.environmentErrorTitle"),
+          t("wizard.models.environmentErrorMessage")
+        );
       } finally {
         if (mounted) {
           setLoadingEnv(false);
@@ -99,10 +104,10 @@ export function ModelsStep({ profile, onNext, onBack, initialModels }: ModelsSte
     return () => {
       mounted = false;
     };
-  }, [toast]);
+  }, [toast, t]);
 
-  const embeddingModels = EMBEDDING_MODELS[selection.embeddingProvider] || [];
-  const llmModels = LLM_MODELS[selection.llmProvider] || [];
+  const embeddingModelOptions = embeddingModels[selection.embeddingProvider] || [];
+  const llmModelOptions = llmModels[selection.llmProvider] || [];
 
   const handleNext = () => {
     onNext(selection);
@@ -116,15 +121,17 @@ export function ModelsStep({ profile, onNext, onBack, initialModels }: ModelsSte
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Model configuration</CardTitle>
+          <CardTitle>{t("wizard.models.title")}</CardTitle>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Choose the embedding and language models for your setup.
+            {t("wizard.models.subtitle")}
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
           {profile && (
             <div className="p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60">
-              <p className="text-sm font-medium text-gray-900 dark:text-white">Recommended profile</p>
+              <p className="text-sm font-medium text-gray-900 dark:text-white">
+                {t("wizard.models.recommendedProfile")}
+              </p>
               <p className="text-sm text-gray-500 dark:text-gray-400">{profile.profile_name}</p>
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                 {profile.description}
@@ -134,12 +141,12 @@ export function ModelsStep({ profile, onNext, onBack, initialModels }: ModelsSte
 
           <div className="grid gap-4 sm:grid-cols-2">
             <Select
-              label="Embedding provider"
-              options={EMBEDDING_PROVIDERS}
+              label={t("wizard.models.embeddingProviderLabel")}
+              options={embeddingProviders}
               value={selection.embeddingProvider}
               onChange={(e) => {
                 const provider = e.target.value;
-                const nextModel = EMBEDDING_MODELS[provider]?.[0]?.value || "";
+                const nextModel = embeddingModels[provider]?.[0]?.value || "";
                 setSelection((prev) => ({
                   ...prev,
                   embeddingProvider: provider,
@@ -148,20 +155,20 @@ export function ModelsStep({ profile, onNext, onBack, initialModels }: ModelsSte
               }}
             />
             <Select
-              label="Embedding model"
-              options={embeddingModels}
+              label={t("wizard.models.embeddingModelLabel")}
+              options={embeddingModelOptions}
               value={selection.embeddingModel}
               onChange={(e) =>
                 setSelection((prev) => ({ ...prev, embeddingModel: e.target.value }))
               }
             />
             <Select
-              label="LLM provider"
-              options={LLM_PROVIDERS}
+              label={t("wizard.models.llmProviderLabel")}
+              options={llmProviders}
               value={selection.llmProvider}
               onChange={(e) => {
                 const provider = e.target.value;
-                const nextModel = LLM_MODELS[provider]?.[0]?.value || "";
+                const nextModel = llmModels[provider]?.[0]?.value || "";
                 setSelection((prev) => ({
                   ...prev,
                   llmProvider: provider,
@@ -170,8 +177,8 @@ export function ModelsStep({ profile, onNext, onBack, initialModels }: ModelsSte
               }}
             />
             <Select
-              label="LLM model"
-              options={llmModels}
+              label={t("wizard.models.llmModelLabel")}
+              options={llmModelOptions}
               value={selection.llmModel}
               onChange={(e) =>
                 setSelection((prev) => ({ ...prev, llmModel: e.target.value }))
@@ -183,12 +190,12 @@ export function ModelsStep({ profile, onNext, onBack, initialModels }: ModelsSte
             <div className="space-y-4">
               <div className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-300">
                 <Key className="w-4 h-4" />
-                API keys
+                {t("wizard.models.apiKeysTitle")}
               </div>
               {showOpenAIKey && (
                 <Input
                   type="password"
-                  label="OpenAI API key"
+                  label={t("wizard.models.openaiKeyLabel")}
                   value={selection.openaiKey || ""}
                   onChange={(e) =>
                     setSelection((prev) => ({ ...prev, openaiKey: e.target.value }))
@@ -199,7 +206,7 @@ export function ModelsStep({ profile, onNext, onBack, initialModels }: ModelsSte
               {showAnthropicKey && (
                 <Input
                   type="password"
-                  label="Anthropic API key"
+                  label={t("wizard.models.anthropicKeyLabel")}
                   value={selection.anthropicKey || ""}
                   onChange={(e) =>
                     setSelection((prev) => ({ ...prev, anthropicKey: e.target.value }))
@@ -212,55 +219,63 @@ export function ModelsStep({ profile, onNext, onBack, initialModels }: ModelsSte
         </CardContent>
         <CardFooter className="justify-between">
           <Button variant="ghost" onClick={onBack}>
-            Back
+            {t("common.actions.back")}
           </Button>
-          <Button onClick={handleNext}>Continue</Button>
+          <Button onClick={handleNext}>{t("common.actions.continue")}</Button>
         </CardFooter>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Environment detection</CardTitle>
+          <CardTitle>{t("wizard.models.environmentTitle")}</CardTitle>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            We automatically detect your hardware and local model runtime.
+            {t("wizard.models.environmentSubtitle")}
           </p>
         </CardHeader>
         <CardContent>
           {loadingEnv ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400">Detecting environment...</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              {t("wizard.models.detectingEnvironment")}
+            </p>
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
               <EnvCard
                 icon={Monitor}
-                title="GPU"
-                value={environment?.gpu.detected ? "Detected" : "Not detected"}
+                title={t("wizard.models.environment.gpu")}
+                value={
+                  environment?.gpu.detected
+                    ? t("wizard.models.environment.detected")
+                    : t("wizard.models.environment.notDetected")
+                }
                 detail={
                   environment?.gpu.detected
-                    ? `${environment?.gpu.name || "GPU"} (${environment?.gpu.vram_free_gb || "?"} GB free)`
-                    : "CPU-only mode"
+                    ? `${environment?.gpu.name || "GPU"} (${environment?.gpu.vram_free_gb || "?"} GB)`
+                    : t("wizard.models.environment.cpuOnly")
                 }
               />
               <EnvCard
                 icon={Server}
-                title="Ollama"
+                title={t("wizard.models.environment.ollama")}
                 value={
                   environment?.ollama.running
-                    ? "Running"
+                    ? t("wizard.models.environment.running")
                     : environment?.ollama.installed
-                    ? "Installed"
-                    : "Not installed"
+                    ? t("wizard.models.environment.installed")
+                    : t("wizard.models.environment.notInstalled")
                 }
                 detail={
                   environment?.ollama.installed
-                    ? `Version: ${environment?.ollama.version || "unknown"}`
-                    : "Local LLMs unavailable"
+                    ? t("wizard.models.environment.version", {
+                        version: environment?.ollama.version || t("wizard.models.environment.unknown"),
+                      })
+                    : t("wizard.models.environment.localUnavailable")
                 }
               />
             </div>
           )}
           {environment?.ollama.installed && !environment?.ollama.running && (
             <p className="mt-3 text-sm text-amber-600 dark:text-amber-400">
-              Ollama is installed but not running. Start the service to use local models.
+              {t("wizard.models.environment.ollamaNotRunning")}
             </p>
           )}
         </CardContent>

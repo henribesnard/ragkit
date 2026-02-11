@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface HelpTooltipProps {
   text: string;
 }
 
 export function HelpTooltip({ text }: HelpTooltipProps) {
+  const { t } = useTranslation();
   const [show, setShow] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +35,7 @@ export function HelpTooltip({ text }: HelpTooltipProps) {
         onMouseLeave={() => setShow(false)}
         onClick={() => setShow((current) => !current)}
         className="ml-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full bg-slate-200 text-[10px] font-bold text-slate-500 hover:bg-accent/20 hover:text-accent"
-        aria-label="Help"
+        aria-label={t('common.actions.help')}
       >
         ?
       </button>

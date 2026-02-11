@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { FieldLabel } from '@/components/ui/field-label';
 import { Input } from '@/components/ui/input';
 import { NumberInput } from '@/components/ui/number-input';
@@ -9,6 +10,7 @@ interface SectionProps {
 }
 
 export function VectorStoreConfigSection({ config, onChange }: SectionProps) {
+  const { t } = useTranslation();
   const vectorStore = config?.vector_store || {};
   const qdrant = vectorStore.qdrant || {};
   const chroma = vectorStore.chroma || {};
@@ -21,8 +23,8 @@ export function VectorStoreConfigSection({ config, onChange }: SectionProps) {
     <div className="space-y-6">
       <div>
         <FieldLabel
-          label="Provider"
-          help="Base de donnees vectorielle. qdrant : performant, supporte le cloud. chroma : simple, bon pour le developpement."
+          label={t('wizard.embedding.providerLabel')}
+          help={t('config.vectorStore.providerHelp')}
         />
         <Select
           value={vectorStore.provider || 'qdrant'}
@@ -36,19 +38,19 @@ export function VectorStoreConfigSection({ config, onChange }: SectionProps) {
       {vectorStore.provider === 'qdrant' ? (
         <div className="space-y-4">
           <div>
-            <FieldLabel label="Mode" help="memory : rapide, perdu au redemarrage. local : persiste sur disque. cloud : heberge sur Qdrant Cloud." />
+            <FieldLabel label={t('config.vectorStore.modeLabel')} help={t('config.vectorStore.qdrantModeHelp')} />
             <Select
               value={qdrant.mode || 'memory'}
               onChange={(event) => updateVectorStore({ ...vectorStore, qdrant: { ...qdrant, mode: event.target.value } })}
             >
-              <option value="memory">Memory</option>
-              <option value="local">Local</option>
-              <option value="cloud">Cloud</option>
+              <option value="memory">{t('common.cache.memory')}</option>
+              <option value="local">{t('common.options.local')}</option>
+              <option value="cloud">{t('common.options.cloud')}</option>
             </Select>
           </div>
           {qdrant.mode === 'local' ? (
             <div>
-              <FieldLabel label="Path" help="Chemin du stockage local Qdrant." />
+              <FieldLabel label={t('wizard.sources.pathLabel')} help={t('config.vectorStore.qdrantPathHelp')} />
               <Input
                 value={qdrant.path || ''}
                 onChange={(event) => updateVectorStore({ ...vectorStore, qdrant: { ...qdrant, path: event.target.value } })}
@@ -58,14 +60,14 @@ export function VectorStoreConfigSection({ config, onChange }: SectionProps) {
           {qdrant.mode === 'cloud' ? (
             <>
               <div>
-                <FieldLabel label="URL" help="URL du cluster Qdrant Cloud." />
+                <FieldLabel label={t('config.vectorStore.urlLabel')} help={t('config.vectorStore.qdrantUrlHelp')} />
                 <Input
                   value={qdrant.url || ''}
                   onChange={(event) => updateVectorStore({ ...vectorStore, qdrant: { ...qdrant, url: event.target.value } })}
                 />
               </div>
               <div>
-                <FieldLabel label="API key" help="Cle API Qdrant Cloud." />
+                <FieldLabel label={t('wizard.embedding.apiKeyLabel')} help={t('config.vectorStore.qdrantApiKeyHelp')} />
                 <Input
                   type="password"
                   value={qdrant.api_key || ''}
@@ -75,7 +77,7 @@ export function VectorStoreConfigSection({ config, onChange }: SectionProps) {
             </>
           ) : null}
           <div>
-            <FieldLabel label="Collection name" help="Nom de la collection dans la base vectorielle." />
+            <FieldLabel label={t('config.vectorStore.collectionLabel')} help={t('config.vectorStore.collectionHelp')} />
             <Input
               value={qdrant.collection_name || ''}
               onChange={(event) =>
@@ -84,7 +86,7 @@ export function VectorStoreConfigSection({ config, onChange }: SectionProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Distance metric" help="Methode de calcul de distance entre vecteurs." />
+            <FieldLabel label={t('config.vectorStore.distanceLabel')} help={t('config.vectorStore.distanceHelp')} />
             <Select
               value={qdrant.distance_metric || 'cosine'}
               onChange={(event) =>
@@ -97,7 +99,7 @@ export function VectorStoreConfigSection({ config, onChange }: SectionProps) {
             </Select>
           </div>
           <div>
-            <FieldLabel label="Add batch size" help="Taille des lots pour les insertions (laisser vide = pas de batching)." />
+            <FieldLabel label={t('config.vectorStore.batchLabel')} help={t('config.vectorStore.batchHelp')} />
             <NumberInput
               value={qdrant.add_batch_size ?? null}
               min={1}
@@ -112,18 +114,18 @@ export function VectorStoreConfigSection({ config, onChange }: SectionProps) {
       ) : (
         <div className="space-y-4">
           <div>
-            <FieldLabel label="Mode" help="memory : rapide, perdu au redemarrage. persistent : persiste sur disque." />
+            <FieldLabel label={t('config.vectorStore.modeLabel')} help={t('config.vectorStore.chromaModeHelp')} />
             <Select
               value={chroma.mode || 'memory'}
               onChange={(event) => updateVectorStore({ ...vectorStore, chroma: { ...chroma, mode: event.target.value } })}
             >
-              <option value="memory">Memory</option>
-              <option value="persistent">Persistent</option>
+              <option value="memory">{t('common.cache.memory')}</option>
+              <option value="persistent">{t('common.options.persistent')}</option>
             </Select>
           </div>
           {chroma.mode === 'persistent' ? (
             <div>
-              <FieldLabel label="Path" help="Chemin du stockage Chroma persistant." />
+              <FieldLabel label={t('wizard.sources.pathLabel')} help={t('config.vectorStore.chromaPathHelp')} />
               <Input
                 value={chroma.path || ''}
                 onChange={(event) => updateVectorStore({ ...vectorStore, chroma: { ...chroma, path: event.target.value } })}
@@ -131,7 +133,7 @@ export function VectorStoreConfigSection({ config, onChange }: SectionProps) {
             </div>
           ) : null}
           <div>
-            <FieldLabel label="Collection name" help="Nom de la collection dans Chroma." />
+            <FieldLabel label={t('config.vectorStore.collectionLabel')} help={t('config.vectorStore.chromaCollectionHelp')} />
             <Input
               value={chroma.collection_name || ''}
               onChange={(event) =>
@@ -140,7 +142,7 @@ export function VectorStoreConfigSection({ config, onChange }: SectionProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Add batch size" help="Taille des lots pour les insertions." />
+            <FieldLabel label={t('config.vectorStore.batchLabel')} help={t('config.vectorStore.chromaBatchHelp')} />
             <NumberInput
               value={chroma.add_batch_size ?? 100}
               min={1}

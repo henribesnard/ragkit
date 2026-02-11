@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { FieldLabel } from '@/components/ui/field-label';
@@ -15,6 +16,7 @@ interface WizardStepProps {
 }
 
 export function SourcesStep({ config, onChange }: WizardStepProps) {
+  const { t } = useTranslation();
   const ingestion = config.ingestion || {};
   const sources = ingestion.sources || [{}];
   const source = sources[0] || {};
@@ -67,31 +69,31 @@ export function SourcesStep({ config, onChange }: WizardStepProps) {
   return (
     <div className="space-y-6">
       <div>
-        <FieldLabel label="Source type" help="Type de source pour l'ingestion." />
+        <FieldLabel label={t('wizard.sources.sourceTypeLabel')} help={t('wizard.sources.sourceTypeHelp')} />
         <Select
           value={source.type || 'local'}
           onChange={(event) => updateSource({ type: event.target.value })}
         >
-          <option value="local">Local filesystem</option>
+          <option value="local">{t('wizard.sources.sourceTypeLocal')}</option>
         </Select>
       </div>
       <div>
-        <FieldLabel label="Path" help="Repertoire contenant vos documents." />
+        <FieldLabel label={t('wizard.sources.pathLabel')} help={t('wizard.sources.pathHelp')} />
         <div className="flex gap-2">
           <Input
-            placeholder="./data/documents"
+            placeholder={t('wizard.sources.pathPlaceholder')}
             value={source.path || ''}
             onChange={(event) => updateSource({ path: event.target.value })}
             className="flex-1"
           />
           <Button type="button" variant="outline" onClick={handleBrowse}>
-            Browse
+            {t('common.actions.browse')}
           </Button>
           <input ref={fileInputRef} type="file" className="hidden" multiple onChange={handleBrowseChange} />
         </div>
       </div>
       <div>
-        <FieldLabel label="Patterns" help="Formats de fichiers a indexer." />
+        <FieldLabel label={t('wizard.sources.patternsLabel')} help={t('wizard.sources.patternsHelp')} />
         <MultiSelect
           options={patternOptions}
           selected={source.patterns || []}
@@ -100,27 +102,27 @@ export function SourcesStep({ config, onChange }: WizardStepProps) {
         />
       </div>
       <div>
-        <FieldLabel label="Recursive" help="Parcourt aussi les sous-dossiers." />
+        <FieldLabel label={t('wizard.sources.recursiveLabel')} help={t('wizard.sources.recursiveHelp')} />
         <ToggleSwitch checked={source.recursive ?? true} onChange={(checked) => updateSource({ recursive: checked })} />
       </div>
 
-      <CollapsibleSection title="Chunking">
+      <CollapsibleSection title={t('wizard.sources.chunkingTitle')}>
         <div>
-          <FieldLabel label="Strategy" help="fixed : taille fixe. semantic : coherence semantique." />
+          <FieldLabel label={t('wizard.sources.strategyLabel')} help={t('wizard.sources.strategyHelp')} />
           <Select
             value={chunking.strategy || 'fixed'}
             onChange={(event) =>
               updateIngestion({ ...ingestion, chunking: { ...chunking, strategy: event.target.value } })
             }
           >
-            <option value="fixed">Fixed</option>
-            <option value="semantic">Semantic</option>
+            <option value="fixed">{t('common.chunking.fixed')}</option>
+            <option value="semantic">{t('common.chunking.semantic')}</option>
           </Select>
         </div>
         {chunking.strategy === 'semantic' ? (
           <>
             <div>
-              <FieldLabel label="Similarity threshold" help="Seuil pour decouper en chunks." />
+              <FieldLabel label={t('wizard.sources.similarityLabel')} help={t('wizard.sources.similarityHelp')} />
               <SliderInput
                 value={semantic.similarity_threshold ?? 0.85}
                 onChange={(value) =>
@@ -135,7 +137,7 @@ export function SourcesStep({ config, onChange }: WizardStepProps) {
               />
             </div>
             <div>
-              <FieldLabel label="Min chunk size" help="Taille minimale d'un chunk." />
+              <FieldLabel label={t('wizard.sources.minChunkLabel')} help={t('wizard.sources.minChunkHelp')} />
               <NumberInput
                 value={semantic.min_chunk_size ?? 100}
                 min={50}
@@ -150,7 +152,7 @@ export function SourcesStep({ config, onChange }: WizardStepProps) {
               />
             </div>
             <div>
-              <FieldLabel label="Max chunk size" help="Taille maximale d'un chunk." />
+              <FieldLabel label={t('wizard.sources.maxChunkLabel')} help={t('wizard.sources.maxChunkHelp')} />
               <NumberInput
                 value={semantic.max_chunk_size ?? 1000}
                 min={200}
@@ -168,7 +170,7 @@ export function SourcesStep({ config, onChange }: WizardStepProps) {
         ) : (
           <>
             <div>
-              <FieldLabel label="Chunk size" help="Nombre de caracteres par chunk." />
+              <FieldLabel label={t('wizard.sources.chunkSizeLabel')} help={t('wizard.sources.chunkSizeHelp')} />
               <NumberInput
                 value={fixed.chunk_size ?? 512}
                 min={64}
@@ -183,7 +185,7 @@ export function SourcesStep({ config, onChange }: WizardStepProps) {
               />
             </div>
             <div>
-              <FieldLabel label="Chunk overlap" help="Chevauchement entre chunks." />
+              <FieldLabel label={t('wizard.sources.chunkOverlapLabel')} help={t('wizard.sources.chunkOverlapHelp')} />
               <NumberInput
                 value={fixed.chunk_overlap ?? 50}
                 min={0}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 
@@ -17,23 +18,22 @@ export function ExpertJsonEditor({
   onFormat,
   onValidate,
 }: ExpertJsonEditorProps) {
+  const { t } = useTranslation();
   const [touched, setTouched] = useState(false);
 
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h3 className="text-xl font-display">Expert JSON</h3>
-          <p className="text-sm text-muted">
-            Full configuration control with real-time validation.
-          </p>
+          <h3 className="text-xl font-display">{t('settings.expertJson.title')}</h3>
+          <p className="text-sm text-muted">{t('settings.expertJson.subtitle')}</p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={onFormat}>
-            Format JSON
+            {t('common.actions.formatJson')}
           </Button>
           <Button variant="outline" onClick={onValidate}>
-            Validate
+            {t('common.actions.validate')}
           </Button>
         </div>
       </div>

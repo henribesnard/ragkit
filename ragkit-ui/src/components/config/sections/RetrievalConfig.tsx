@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { FieldLabel } from '@/components/ui/field-label';
 import { Input } from '@/components/ui/input';
@@ -12,6 +13,7 @@ interface SectionProps {
 }
 
 export function RetrievalConfigSection({ config, onChange }: SectionProps) {
+  const { t } = useTranslation();
   const retrieval = config?.retrieval || {};
   const semantic = retrieval.semantic || {};
   const lexical = retrieval.lexical || {};
@@ -35,25 +37,25 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
     <div className="space-y-6">
       <div>
         <FieldLabel
-          label="Architecture"
-          help="Strategie de recherche. semantic : recherche par similarite vectorielle. lexical : recherche par mots-cles. hybrid : combine les deux. hybrid_rerank : hybrid + reranking."
+          label={t('wizard.retrieval.architectureLabel')}
+          help={t('config.retrieval.architectureHelp')}
         />
         <Select
           value={retrieval.architecture || 'semantic'}
           onChange={(event) => updateRetrieval({ ...retrieval, architecture: event.target.value })}
         >
-          <option value="semantic">Semantic</option>
-          <option value="lexical">Lexical</option>
-          <option value="hybrid">Hybrid</option>
-          <option value="hybrid_rerank">Hybrid + Rerank</option>
+          <option value="semantic">{t('common.retrieval.semantic')}</option>
+          <option value="lexical">{t('common.retrieval.lexical')}</option>
+          <option value="hybrid">{t('common.retrieval.hybrid')}</option>
+          <option value="hybrid_rerank">{t('common.retrieval.hybridRerank')}</option>
         </Select>
       </div>
 
       {isSemantic ? (
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-ink">Recherche Semantique</h3>
+          <h3 className="text-sm font-semibold text-ink">{t('config.retrieval.semanticTitle')}</h3>
           <div>
-            <FieldLabel label="Enabled" help="Active la recherche semantique." />
+            <FieldLabel label={t('wizard.retrieval.enabledLabel')} help={t('config.retrieval.semanticEnabledHelp')} />
             <ToggleSwitch
               checked={semantic.enabled ?? true}
               onChange={(checked) =>
@@ -64,8 +66,8 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
           {isHybrid ? (
             <div>
               <FieldLabel
-                label="Weight"
-                help="Poids de la recherche semantique dans le score final hybrid."
+                label={t('wizard.retrieval.weightLabel')}
+                help={t('config.retrieval.semanticWeightHelp')}
               />
               <SliderInput
                 value={semantic.weight ?? 0.5}
@@ -79,7 +81,7 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
             </div>
           ) : null}
           <div>
-            <FieldLabel label="Top K" help="Nombre de resultats a retourner par la recherche semantique." />
+            <FieldLabel label={t('wizard.retrieval.topKLabel')} help={t('config.retrieval.semanticTopKHelp')} />
             <NumberInput
               value={semantic.top_k ?? 20}
               min={1}
@@ -92,8 +94,8 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
           </div>
           <div>
             <FieldLabel
-              label="Similarity threshold"
-              help="Score minimum de similarite pour qu'un resultat soit retenu."
+              label={t('wizard.retrieval.similarityLabel')}
+              help={t('config.retrieval.semanticSimilarityHelp')}
             />
             <SliderInput
               value={semantic.similarity_threshold ?? 0}
@@ -110,9 +112,9 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
 
       {isLexical ? (
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-ink">Recherche Lexicale</h3>
+          <h3 className="text-sm font-semibold text-ink">{t('config.retrieval.lexicalTitle')}</h3>
           <div>
-            <FieldLabel label="Enabled" help="Active la recherche lexicale." />
+            <FieldLabel label={t('wizard.retrieval.enabledLabel')} help={t('config.retrieval.lexicalEnabledHelp')} />
             <ToggleSwitch
               checked={lexical.enabled ?? false}
               onChange={(checked) =>
@@ -122,7 +124,7 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
           </div>
           {isHybrid ? (
             <div>
-              <FieldLabel label="Weight" help="Poids de la recherche lexicale dans le score final hybrid." />
+              <FieldLabel label={t('wizard.retrieval.weightLabel')} help={t('config.retrieval.lexicalWeightHelp')} />
               <SliderInput
                 value={lexical.weight ?? 0.5}
                 onChange={(value) =>
@@ -135,7 +137,7 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
             </div>
           ) : null}
           <div>
-            <FieldLabel label="Top K" help="Nombre de resultats a retourner par la recherche lexicale." />
+            <FieldLabel label={t('wizard.retrieval.topKLabel')} help={t('config.retrieval.lexicalTopKHelp')} />
             <NumberInput
               value={lexical.top_k ?? 20}
               min={1}
@@ -147,7 +149,7 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Algorithm" help="Algorithme de recherche lexical (BM25)." />
+            <FieldLabel label={t('wizard.retrieval.algorithmLabel')} help={t('config.retrieval.algorithmHelp')} />
             <Select
               value={lexical.algorithm || 'bm25'}
               onChange={(event) =>
@@ -159,9 +161,9 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
             </Select>
           </div>
 
-          <CollapsibleSection title="BM25 Parameters">
+          <CollapsibleSection title={t('config.retrieval.bm25Title')}>
             <div>
-              <FieldLabel label="k1" help="Controle la saturation de la frequence des termes." />
+              <FieldLabel label={t('wizard.retrieval.k1Label')} help={t('config.retrieval.k1Help')} />
               <SliderInput
                 value={lexicalParams.k1 ?? 1.5}
                 onChange={(value) =>
@@ -176,7 +178,7 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
               />
             </div>
             <div>
-              <FieldLabel label="b" help="Controle la normalisation par longueur de document." />
+              <FieldLabel label={t('wizard.retrieval.bLabel')} help={t('config.retrieval.bHelp')} />
               <SliderInput
                 value={lexicalParams.b ?? 0.75}
                 onChange={(value) =>
@@ -192,9 +194,9 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
             </div>
           </CollapsibleSection>
 
-          <CollapsibleSection title="Preprocessing">
+          <CollapsibleSection title={t('config.retrieval.preprocessingTitle')}>
             <div>
-              <FieldLabel label="Lowercase" help="Convertir les textes en minuscules avant la recherche." />
+              <FieldLabel label={t('config.retrieval.lowercaseLabel')} help={t('config.retrieval.lowercaseHelp')} />
               <ToggleSwitch
                 checked={lexicalPre.lowercase ?? true}
                 onChange={(checked) =>
@@ -206,7 +208,7 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
               />
             </div>
             <div>
-              <FieldLabel label="Remove stopwords" help="Retirer les mots vides qui n'apportent pas de sens." />
+              <FieldLabel label={t('config.retrieval.stopwordsLabel')} help={t('config.retrieval.stopwordsHelp')} />
               <ToggleSwitch
                 checked={lexicalPre.remove_stopwords ?? true}
                 onChange={(checked) =>
@@ -218,7 +220,7 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
               />
             </div>
             <div>
-              <FieldLabel label="Stopwords lang" help="Langue des mots vides." />
+              <FieldLabel label={t('config.retrieval.stopwordsLangLabel')} help={t('config.retrieval.stopwordsLangHelp')} />
               <Select
                 value={lexicalPre.stopwords_lang || 'auto'}
                 onChange={(event) =>
@@ -228,13 +230,13 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
                   })
                 }
               >
-                <option value="auto">Auto</option>
-                <option value="french">French</option>
-                <option value="english">English</option>
+                <option value="auto">{t('common.options.auto')}</option>
+                <option value="french">{t('common.languages.fr')}</option>
+                <option value="english">{t('common.languages.en')}</option>
               </Select>
             </div>
             <div>
-              <FieldLabel label="Stemming" help="Reduire les mots a leur racine." />
+              <FieldLabel label={t('config.retrieval.stemmingLabel')} help={t('config.retrieval.stemmingHelp')} />
               <ToggleSwitch
                 checked={lexicalPre.stemming ?? false}
                 onChange={(checked) =>
@@ -251,33 +253,33 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
 
       {isRerank ? (
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-ink">Reranking</h3>
+          <h3 className="text-sm font-semibold text-ink">{t('config.retrieval.rerankTitle')}</h3>
           <div>
-            <FieldLabel label="Enabled" help="Active le reranking pour raffiner les resultats." />
+            <FieldLabel label={t('wizard.retrieval.enabledLabel')} help={t('config.retrieval.rerankEnabledHelp')} />
             <ToggleSwitch
               checked={rerank.enabled ?? false}
               onChange={(checked) => updateRetrieval({ ...retrieval, rerank: { ...rerank, enabled: checked } })}
             />
           </div>
           <div>
-            <FieldLabel label="Provider" help="Service de reranking qui re-evalue la pertinence." />
+            <FieldLabel label={t('wizard.embedding.providerLabel')} help={t('config.retrieval.rerankProviderHelp')} />
             <Select
               value={rerank.provider || 'none'}
               onChange={(event) => updateRetrieval({ ...retrieval, rerank: { ...rerank, provider: event.target.value } })}
             >
-              <option value="none">None</option>
+              <option value="none">{t('common.options.none')}</option>
               <option value="cohere">Cohere</option>
             </Select>
           </div>
           <div>
-            <FieldLabel label="Model" help="Modele de reranking (ex: rerank-english-v3.0)." />
+            <FieldLabel label={t('wizard.embedding.modelLabel')} help={t('config.retrieval.rerankModelHelp')} />
             <Input
               value={rerank.model || ''}
               onChange={(event) => updateRetrieval({ ...retrieval, rerank: { ...rerank, model: event.target.value } })}
             />
           </div>
           <div>
-            <FieldLabel label="API key" help="Cle d'API pour le provider de reranking." />
+            <FieldLabel label={t('wizard.embedding.apiKeyLabel')} help={t('config.retrieval.rerankApiKeyHelp')} />
             <Input
               type="password"
               placeholder="sk-..."
@@ -286,7 +288,7 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Top N" help="Nombre de resultats a garder apres le reranking." />
+            <FieldLabel label={t('wizard.retrieval.topNLabel')} help={t('config.retrieval.rerankTopNHelp')} />
             <NumberInput
               value={rerank.top_n ?? 5}
               min={1}
@@ -296,7 +298,7 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Candidates" help="Nombre de resultats envoyes au reranker." />
+            <FieldLabel label={t('config.retrieval.candidatesLabel')} help={t('config.retrieval.candidatesHelp')} />
             <NumberInput
               value={rerank.candidates ?? 40}
               min={1}
@@ -306,7 +308,7 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
             />
           </div>
           <div>
-            <FieldLabel label="Relevance threshold" help="Score minimum du reranker pour garder un resultat." />
+            <FieldLabel label={t('config.retrieval.rerankThresholdLabel')} help={t('config.retrieval.rerankThresholdHelp')} />
             <SliderInput
               value={rerank.relevance_threshold ?? 0}
               onChange={(value) => updateRetrieval({ ...retrieval, rerank: { ...rerank, relevance_threshold: value } })}
@@ -319,19 +321,19 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
       ) : null}
 
       {isHybrid ? (
-        <CollapsibleSection title="Fusion">
+        <CollapsibleSection title={t('config.retrieval.fusionTitle')}>
           <div>
-            <FieldLabel label="Method" help="weighted_sum ou reciprocal_rank_fusion." />
+            <FieldLabel label={t('config.retrieval.fusionMethodLabel')} help={t('config.retrieval.fusionMethodHelp')} />
             <Select
               value={fusion.method || 'weighted_sum'}
               onChange={(event) => updateRetrieval({ ...retrieval, fusion: { ...fusion, method: event.target.value } })}
             >
-              <option value="weighted_sum">Weighted sum</option>
-              <option value="reciprocal_rank_fusion">Reciprocal rank fusion</option>
+              <option value="weighted_sum">{t('config.retrieval.fusionWeighted')}</option>
+              <option value="reciprocal_rank_fusion">{t('config.retrieval.fusionRRF')}</option>
             </Select>
           </div>
           <div>
-            <FieldLabel label="Normalize scores" help="Normaliser les scores avant fusion." />
+            <FieldLabel label={t('config.retrieval.normalizeLabel')} help={t('config.retrieval.normalizeHelp')} />
             <ToggleSwitch
               checked={fusion.normalize_scores ?? true}
               onChange={(checked) => updateRetrieval({ ...retrieval, fusion: { ...fusion, normalize_scores: checked } })}
@@ -339,7 +341,7 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
           </div>
           {fusion.method === 'reciprocal_rank_fusion' ? (
             <div>
-              <FieldLabel label="RRF K" help="Parametre de la fusion RRF." />
+              <FieldLabel label={t('config.retrieval.rrfLabel')} help={t('config.retrieval.rrfHelp')} />
               <NumberInput
                 value={fusion.rrf_k ?? 60}
                 min={1}
@@ -352,9 +354,9 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
         </CollapsibleSection>
       ) : null}
 
-      <CollapsibleSection title="Context">
+      <CollapsibleSection title={t('wizard.retrieval.contextTitle')}>
         <div>
-          <FieldLabel label="Max chunks" help="Nombre maximum de morceaux de contexte envoyes au LLM." />
+          <FieldLabel label={t('wizard.retrieval.maxChunksLabel')} help={t('config.retrieval.contextChunksHelp')} />
           <NumberInput
             value={context.max_chunks ?? 10}
             min={1}
@@ -364,7 +366,7 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
           />
         </div>
         <div>
-          <FieldLabel label="Max tokens" help="Limite de tokens du contexte injecte dans le prompt." />
+          <FieldLabel label={t('wizard.retrieval.maxTokensLabel')} help={t('config.retrieval.contextTokensHelp')} />
           <NumberInput
             value={context.max_tokens ?? 2000}
             min={100}
@@ -374,7 +376,7 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
           />
         </div>
         <div>
-          <FieldLabel label="Deduplication" help="Supprimer les morceaux trop similaires dans le contexte final." />
+          <FieldLabel label={t('wizard.retrieval.dedupLabel')} help={t('config.retrieval.dedupHelp')} />
           <ToggleSwitch
             checked={dedup.enabled ?? true}
             onChange={(checked) =>
@@ -387,7 +389,7 @@ export function RetrievalConfigSection({ config, onChange }: SectionProps) {
         </div>
         {dedup.enabled ? (
           <div>
-            <FieldLabel label="Dedup threshold" help="Seuil de similarite pour considerer un doublon." />
+            <FieldLabel label={t('config.retrieval.dedupThresholdLabel')} help={t('config.retrieval.dedupThresholdHelp')} />
             <SliderInput
               value={dedup.similarity_threshold ?? 0.95}
               onChange={(value) =>

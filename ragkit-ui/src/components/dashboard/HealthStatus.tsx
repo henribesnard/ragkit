@@ -1,19 +1,21 @@
-﻿import { useHealth } from '@/hooks/useHealth';
+import { useTranslation } from 'react-i18next';
+import { useHealth } from '@/hooks/useHealth';
 import { Card, CardDescription, CardTitle } from '@/components/ui/card';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 
 export function HealthStatus() {
+  const { t } = useTranslation();
   const { data, isLoading } = useHealth();
   const components = data?.components || {};
 
   return (
     <Card>
-      <CardTitle>System health</CardTitle>
-      <CardDescription>Key services status snapshot.</CardDescription>
+      <CardTitle>{t('dashboard.health.title')}</CardTitle>
+      <CardDescription>{t('dashboard.health.subtitle')}</CardDescription>
       <div className="mt-6 space-y-3">
-        {isLoading && <p className="text-sm text-muted">Checking health...</p>}
+        {isLoading && <p className="text-sm text-muted">{t('dashboard.health.loading')}</p>}
         {!isLoading && Object.keys(components).length === 0 && (
-          <p className="text-sm text-muted">No health data available.</p>
+          <p className="text-sm text-muted">{t('dashboard.health.empty')}</p>
         )}
         {Object.entries(components).map(([name, info]: any) => (
           <div key={name} className="flex items-center justify-between">

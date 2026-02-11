@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { FieldLabel } from '@/components/ui/field-label';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ interface WizardStepProps {
 }
 
 export function LLMStep({ config, onChange }: WizardStepProps) {
+  const { t } = useTranslation();
   const llm = config.llm || {};
   const primary = llm.primary || {};
 
@@ -23,7 +25,7 @@ export function LLMStep({ config, onChange }: WizardStepProps) {
   return (
     <div className="space-y-6">
       <div>
-        <FieldLabel label="Provider" help="Provider du modele LLM." />
+        <FieldLabel label={t('wizard.llm.providerLabel')} help={t('wizard.llm.providerHelp')} />
         <Select
           value={primary.provider || 'openai'}
           onChange={(event) => updateLLM({ provider: event.target.value })}
@@ -37,7 +39,7 @@ export function LLMStep({ config, onChange }: WizardStepProps) {
         </Select>
       </div>
       <div>
-        <FieldLabel label="Model" help="Modele LLM a utiliser." />
+        <FieldLabel label={t('wizard.llm.modelLabel')} help={t('wizard.llm.modelHelp')} />
         <ModelSelect
           provider={primary.provider || 'openai'}
           models={LLM_MODELS}
@@ -47,7 +49,7 @@ export function LLMStep({ config, onChange }: WizardStepProps) {
       </div>
       {primary.provider !== 'ollama' ? (
         <div>
-          <FieldLabel label="API key" help="Cle d'API pour le provider." />
+          <FieldLabel label={t('wizard.llm.apiKeyLabel')} help={t('wizard.llm.apiKeyHelp')} />
           <Input
             type="password"
             placeholder="sk-..."
@@ -57,9 +59,9 @@ export function LLMStep({ config, onChange }: WizardStepProps) {
         </div>
       ) : null}
 
-      <CollapsibleSection title="Parameters">
+      <CollapsibleSection title={t('wizard.llm.parametersTitle')}>
         <div>
-          <FieldLabel label="Temperature" help="Controle la creativite." />
+          <FieldLabel label={t('wizard.llm.temperatureLabel')} help={t('wizard.llm.temperatureHelp')} />
           <SliderInput
             value={primary.params?.temperature ?? 0.7}
             onChange={(value) => updateLLM({ params: { ...primary.params, temperature: value } })}
@@ -69,7 +71,7 @@ export function LLMStep({ config, onChange }: WizardStepProps) {
           />
         </div>
         <div>
-          <FieldLabel label="Max tokens" help="Limite de tokens pour la reponse." />
+          <FieldLabel label={t('wizard.llm.maxTokensLabel')} help={t('wizard.llm.maxTokensHelp')} />
           <NumberInput
             value={primary.params?.max_tokens ?? null}
             min={1}
@@ -79,7 +81,7 @@ export function LLMStep({ config, onChange }: WizardStepProps) {
           />
         </div>
         <div>
-          <FieldLabel label="Top P" help="Echantillonnage nucleus." />
+          <FieldLabel label={t('wizard.llm.topPLabel')} help={t('wizard.llm.topPHelp')} />
           <SliderInput
             value={primary.params?.top_p ?? 1}
             onChange={(value) => updateLLM({ params: { ...primary.params, top_p: value } })}
@@ -89,7 +91,7 @@ export function LLMStep({ config, onChange }: WizardStepProps) {
           />
         </div>
         <div>
-          <FieldLabel label="Timeout" help="Temps maximum avant timeout (secondes)." />
+          <FieldLabel label={t('wizard.llm.timeoutLabel')} help={t('wizard.llm.timeoutHelp')} />
           <NumberInput
             value={primary.timeout ?? null}
             min={1}
@@ -100,7 +102,7 @@ export function LLMStep({ config, onChange }: WizardStepProps) {
           />
         </div>
         <div>
-          <FieldLabel label="Max retries" help="Nombre de tentatives en cas d'erreur." />
+          <FieldLabel label={t('wizard.llm.maxRetriesLabel')} help={t('wizard.llm.maxRetriesHelp')} />
           <NumberInput
             value={primary.max_retries ?? null}
             min={0}

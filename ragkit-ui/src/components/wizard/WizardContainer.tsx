@@ -1,4 +1,5 @@
-﻿import { ReactNode } from 'react';
+import { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { WizardProgress } from './WizardProgress';
 
@@ -25,6 +26,7 @@ export function WizardContainer({
   renderStep,
   isSubmitting,
 }: WizardContainerProps) {
+  const { t } = useTranslation();
   const isLast = currentStep === steps.length - 1;
 
   return (
@@ -40,13 +42,17 @@ export function WizardContainer({
             onClick={() => onStepChange(Math.max(0, currentStep - 1))}
             disabled={currentStep === 0}
           >
-            Back
+            {t('common.actions.back')}
           </Button>
           <Button
             onClick={() => (isLast ? onComplete() : onStepChange(currentStep + 1))}
             disabled={isLast && isSubmitting}
           >
-            {isLast ? (isSubmitting ? 'Saving...' : 'Launch') : 'Next'}
+            {isLast
+              ? isSubmitting
+                ? t('common.actions.saving')
+                : t('common.actions.launch')
+              : t('common.actions.next')}
           </Button>
         </div>
       </div>

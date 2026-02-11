@@ -1,4 +1,5 @@
-﻿import { FormEvent, useState } from 'react';
+import { FormEvent, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
@@ -8,6 +9,7 @@ interface ChatInputProps {
 }
 
 export function ChatInput({ onSend, isLoading }: ChatInputProps) {
+  const { t } = useTranslation();
   const [value, setValue] = useState('');
 
   const handleSubmit = (event: FormEvent) => {
@@ -20,12 +22,12 @@ export function ChatInput({ onSend, isLoading }: ChatInputProps) {
   return (
     <form onSubmit={handleSubmit} className="flex gap-3">
       <Input
-        placeholder="Ask your question"
+        placeholder={t('chat.placeholder')}
         value={value}
         onChange={(event) => setValue(event.target.value)}
       />
       <Button type="submit" disabled={isLoading}>
-        {isLoading ? '...' : 'Send'}
+        {isLoading ? '...' : t('chat.send')}
       </Button>
     </form>
   );

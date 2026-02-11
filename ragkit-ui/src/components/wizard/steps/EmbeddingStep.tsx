@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { FieldLabel } from '@/components/ui/field-label';
 import { Input } from '@/components/ui/input';
@@ -21,6 +22,7 @@ const isSameModel = (left: any, right: any) => {
 };
 
 export function EmbeddingStep({ config, onChange }: WizardStepProps) {
+  const { t } = useTranslation();
   const embedding = config.embedding || {};
   const documentModel = embedding.document_model || {};
   const queryModel = embedding.query_model || {};
@@ -61,7 +63,7 @@ export function EmbeddingStep({ config, onChange }: WizardStepProps) {
   return (
     <div className="space-y-6">
       <div>
-        <FieldLabel label="Provider" help="Provider d'embedding." />
+        <FieldLabel label={t('wizard.embedding.providerLabel')} help={t('wizard.embedding.providerHelp')} />
         <Select
           value={documentModel.provider || 'openai'}
           onChange={(event) => updateDocumentModel({ provider: event.target.value })}
@@ -73,7 +75,7 @@ export function EmbeddingStep({ config, onChange }: WizardStepProps) {
         </Select>
       </div>
       <div>
-        <FieldLabel label="Model" help="Modele d'embedding." />
+        <FieldLabel label={t('wizard.embedding.modelLabel')} help={t('wizard.embedding.modelHelp')} />
         <ModelSelect
           provider={documentModel.provider || 'openai'}
           models={EMBEDDING_MODELS}
@@ -83,7 +85,7 @@ export function EmbeddingStep({ config, onChange }: WizardStepProps) {
       </div>
       {documentModel.provider !== 'ollama' ? (
         <div>
-          <FieldLabel label="API key" help="Cle d'API pour le provider." />
+          <FieldLabel label={t('wizard.embedding.apiKeyLabel')} help={t('wizard.embedding.apiKeyHelp')} />
           <Input
             type="password"
             placeholder="sk-..."
@@ -93,9 +95,9 @@ export function EmbeddingStep({ config, onChange }: WizardStepProps) {
         </div>
       ) : null}
 
-      <CollapsibleSection title="Parameters">
+      <CollapsibleSection title={t('wizard.embedding.parametersTitle')}>
         <div>
-          <FieldLabel label="Batch size" help="Nombre de textes par requete." />
+          <FieldLabel label={t('wizard.embedding.batchLabel')} help={t('wizard.embedding.batchHelp')} />
           <NumberInput
             value={documentModel.params?.batch_size ?? null}
             min={1}
@@ -105,7 +107,7 @@ export function EmbeddingStep({ config, onChange }: WizardStepProps) {
           />
         </div>
         <div>
-          <FieldLabel label="Dimensions" help="Laisser vide pour la dimension par defaut." />
+          <FieldLabel label={t('wizard.embedding.dimensionsLabel')} help={t('wizard.embedding.dimensionsHelp')} />
           <NumberInput
             value={documentModel.params?.dimensions ?? null}
             min={1}
@@ -115,7 +117,7 @@ export function EmbeddingStep({ config, onChange }: WizardStepProps) {
           />
         </div>
         <div>
-          <FieldLabel label="Cache enabled" help="Active le cache d'embeddings." />
+          <FieldLabel label={t('wizard.embedding.cacheLabel')} help={t('wizard.embedding.cacheHelp')} />
           <ToggleSwitch
             checked={documentModel.cache?.enabled ?? false}
             onChange={(checked) => updateDocumentModel({ cache: { ...documentModel.cache, enabled: checked } })}
@@ -123,20 +125,20 @@ export function EmbeddingStep({ config, onChange }: WizardStepProps) {
         </div>
         {documentModel.cache?.enabled ? (
           <div>
-            <FieldLabel label="Cache backend" help="memory ou disk." />
+            <FieldLabel label={t('wizard.embedding.cacheBackendLabel')} help={t('wizard.embedding.cacheBackendHelp')} />
             <Select
               value={documentModel.cache?.backend || 'memory'}
               onChange={(event) => updateDocumentModel({ cache: { ...documentModel.cache, backend: event.target.value } })}
             >
-              <option value="memory">Memory</option>
-              <option value="disk">Disk</option>
+              <option value="memory">{t('common.cache.memory')}</option>
+              <option value="disk">{t('common.cache.disk')}</option>
             </Select>
           </div>
         ) : null}
       </CollapsibleSection>
 
       <div>
-        <FieldLabel label="Same as document model" help="Utiliser le meme modele pour les requetes." />
+        <FieldLabel label={t('wizard.embedding.sameLabel')} help={t('wizard.embedding.sameHelp')} />
         <ToggleSwitch
           checked={sameAsDocument}
           onChange={(checked) => {
@@ -155,7 +157,7 @@ export function EmbeddingStep({ config, onChange }: WizardStepProps) {
       {!sameAsDocument ? (
         <div className="space-y-4">
           <div>
-            <FieldLabel label="Query provider" help="Provider pour le modele de requete." />
+            <FieldLabel label={t('wizard.embedding.queryProviderLabel')} help={t('wizard.embedding.queryProviderHelp')} />
             <Select
               value={queryModel.provider || 'openai'}
               onChange={(event) => updateQueryModel({ provider: event.target.value })}
@@ -167,7 +169,7 @@ export function EmbeddingStep({ config, onChange }: WizardStepProps) {
             </Select>
           </div>
           <div>
-            <FieldLabel label="Query model" help="Modele d'embedding pour les requetes." />
+            <FieldLabel label={t('wizard.embedding.queryModelLabel')} help={t('wizard.embedding.queryModelHelp')} />
             <ModelSelect
               provider={queryModel.provider || 'openai'}
               models={EMBEDDING_MODELS}
@@ -177,7 +179,7 @@ export function EmbeddingStep({ config, onChange }: WizardStepProps) {
           </div>
           {queryModel.provider !== 'ollama' ? (
             <div>
-              <FieldLabel label="Query API key" help="Cle d'API pour les requetes." />
+              <FieldLabel label={t('wizard.embedding.queryApiKeyLabel')} help={t('wizard.embedding.queryApiKeyHelp')} />
               <Input
                 type="password"
                 placeholder="sk-..."

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { CollapsibleSection } from '@/components/ui/collapsible-section';
 import { FieldLabel } from '@/components/ui/field-label';
@@ -15,6 +16,7 @@ interface SectionProps {
 }
 
 export function IngestionConfigSection({ config, onChange }: SectionProps) {
+  const { t } = useTranslation();
   const ingestion = config?.ingestion || {};
   const sources = ingestion.sources || [{}];
   const source = sources[0] || {};
@@ -84,8 +86,8 @@ export function IngestionConfigSection({ config, onChange }: SectionProps) {
     <div className="space-y-6">
       <div>
         <FieldLabel
-          label="Source path"
-          help="Repertoire contenant les documents qui constitueront votre base de connaissances. Chemin relatif depuis la racine du projet."
+          label={t('config.ingestion.sourcePathLabel')}
+          help={t('config.ingestion.sourcePathHelp')}
         />
         <div className="flex gap-2">
           <Input
@@ -94,7 +96,7 @@ export function IngestionConfigSection({ config, onChange }: SectionProps) {
             className="flex-1"
           />
           <Button type="button" variant="outline" onClick={handleBrowse}>
-            Browse
+            {t('common.actions.browse')}
           </Button>
           <input
             ref={fileInputRef}
@@ -107,8 +109,8 @@ export function IngestionConfigSection({ config, onChange }: SectionProps) {
       </div>
       <div>
         <FieldLabel
-          label="Patterns"
-          help="Types de fichiers a indexer. Selectionnez les formats de vos documents."
+          label={t('config.ingestion.patternsLabel')}
+          help={t('config.ingestion.patternsHelp')}
         />
         <MultiSelect
           options={patternOptions}
@@ -119,23 +121,23 @@ export function IngestionConfigSection({ config, onChange }: SectionProps) {
       </div>
       <div>
         <FieldLabel
-          label="Recursive"
-          help="Si active, parcourt aussi les sous-dossiers du repertoire source."
+          label={t('config.ingestion.recursiveLabel')}
+          help={t('config.ingestion.recursiveHelp')}
         />
         <ToggleSwitch checked={source.recursive ?? true} onChange={(checked) => updateSource({ recursive: checked })} />
       </div>
 
-      <CollapsibleSection title="Parsing">
+      <CollapsibleSection title={t('config.ingestion.parsingTitle')}>
         <div>
           <FieldLabel
-            label="Parsing engine"
-            help="Moteur d'extraction de texte. auto detecte automatiquement le meilleur moteur selon le type de fichier. unstructured et docling supportent plus de formats. pypdf est leger et rapide pour les PDF simples."
+            label={t('config.ingestion.parsingEngineLabel')}
+            help={t('config.ingestion.parsingEngineHelp')}
           />
           <Select
             value={parsing.engine || 'auto'}
             onChange={(event) => updateIngestion({ ...ingestion, parsing: { ...parsing, engine: event.target.value } })}
           >
-            <option value="auto">Auto</option>
+            <option value="auto">{t('common.options.auto')}</option>
             <option value="unstructured">Unstructured</option>
             <option value="docling">Docling</option>
             <option value="pypdf">PyPDF</option>
@@ -143,8 +145,8 @@ export function IngestionConfigSection({ config, onChange }: SectionProps) {
         </div>
         <div>
           <FieldLabel
-            label="OCR enabled"
-            help="Active la reconnaissance optique de caracteres pour les PDF scannes et les images. Necessite un moteur OCR installe."
+            label={t('config.ingestion.ocrEnabledLabel')}
+            help={t('config.ingestion.ocrEnabledHelp')}
           />
           <ToggleSwitch
             checked={ocr.enabled ?? false}
@@ -157,8 +159,8 @@ export function IngestionConfigSection({ config, onChange }: SectionProps) {
           <>
             <div>
               <FieldLabel
-                label="OCR engine"
-                help="tesseract : moteur OCR open-source classique, rapide. easyocr : base sur le deep learning, meilleur sur les langues non-latines."
+                label={t('config.ingestion.ocrEngineLabel')}
+                help={t('config.ingestion.ocrEngineHelp')}
               />
               <Select
                 value={ocr.engine || 'tesseract'}
@@ -172,8 +174,8 @@ export function IngestionConfigSection({ config, onChange }: SectionProps) {
             </div>
             <div>
               <FieldLabel
-                label="OCR languages"
-                help="Langues des documents pour l'OCR. Ajouter les codes de langue pertinents."
+                label={t('config.ingestion.ocrLanguagesLabel')}
+                help={t('config.ingestion.ocrLanguagesHelp')}
               />
               <MultiSelect
                 options={ocrLanguageOptions}
@@ -188,11 +190,11 @@ export function IngestionConfigSection({ config, onChange }: SectionProps) {
         ) : null}
       </CollapsibleSection>
 
-      <CollapsibleSection title="Chunking">
+      <CollapsibleSection title={t('config.ingestion.chunkingTitle')}>
         <div>
           <FieldLabel
-            label="Strategy"
-            help="fixed : decoupe en morceaux de taille fixe (simple et rapide). semantic : decoupe en suivant la coherence semantique du texte."
+            label={t('config.ingestion.strategyLabel')}
+            help={t('config.ingestion.strategyHelp')}
           />
           <Select
             value={chunking.strategy || 'fixed'}
@@ -200,16 +202,16 @@ export function IngestionConfigSection({ config, onChange }: SectionProps) {
               updateIngestion({ ...ingestion, chunking: { ...chunking, strategy: event.target.value } })
             }
           >
-            <option value="fixed">Fixed</option>
-            <option value="semantic">Semantic</option>
+            <option value="fixed">{t('common.chunking.fixed')}</option>
+            <option value="semantic">{t('common.chunking.semantic')}</option>
           </Select>
         </div>
         {chunking.strategy === 'semantic' ? (
           <>
             <div>
               <FieldLabel
-                label="Similarity threshold"
-                help="Seuil de similarite pour determiner ou couper. Plus haut = morceaux plus granulaires. Plus bas = morceaux plus larges."
+                label={t('config.ingestion.similarityLabel')}
+                help={t('config.ingestion.similarityHelp')}
               />
               <SliderInput
                 value={semantic.similarity_threshold ?? 0.85}
@@ -226,8 +228,8 @@ export function IngestionConfigSection({ config, onChange }: SectionProps) {
             </div>
             <div>
               <FieldLabel
-                label="Min chunk size"
-                help="Taille minimale d'un chunk semantique. Les morceaux trop petits sont fusionnes."
+                label={t('config.ingestion.minChunkLabel')}
+                help={t('config.ingestion.minChunkHelp')}
               />
               <NumberInput
                 value={semantic.min_chunk_size ?? 100}
@@ -244,8 +246,8 @@ export function IngestionConfigSection({ config, onChange }: SectionProps) {
             </div>
             <div>
               <FieldLabel
-                label="Max chunk size"
-                help="Taille maximale d'un chunk semantique. Au-dela, le texte est coupe."
+                label={t('config.ingestion.maxChunkLabel')}
+                help={t('config.ingestion.maxChunkHelp')}
               />
               <NumberInput
                 value={semantic.max_chunk_size ?? 1000}
@@ -265,8 +267,8 @@ export function IngestionConfigSection({ config, onChange }: SectionProps) {
           <>
             <div>
               <FieldLabel
-                label="Chunk size"
-                help="Nombre de caracteres par morceau. Plus petit = plus precis. Plus grand = plus de contexte par resultat."
+                label={t('config.ingestion.chunkSizeLabel')}
+                help={t('config.ingestion.chunkSizeHelp')}
               />
               <NumberInput
                 value={fixed.chunk_size ?? 512}
@@ -283,8 +285,8 @@ export function IngestionConfigSection({ config, onChange }: SectionProps) {
             </div>
             <div>
               <FieldLabel
-                label="Chunk overlap"
-                help="Nombre de caracteres de chevauchement entre les morceaux consecutifs. Evite de couper une phrase."
+                label={t('config.ingestion.chunkOverlapLabel')}
+                help={t('config.ingestion.chunkOverlapHelp')}
               />
               <NumberInput
                 value={fixed.chunk_overlap ?? 50}
@@ -303,11 +305,11 @@ export function IngestionConfigSection({ config, onChange }: SectionProps) {
         )}
       </CollapsibleSection>
 
-      <CollapsibleSection title="Metadata">
+      <CollapsibleSection title={t('config.ingestion.metadataTitle')}>
         <div>
           <FieldLabel
-            label="Extract fields"
-            help="Metadonnees extraites automatiquement de chaque document et stockees avec les chunks. Utiles pour le filtrage a la recherche."
+            label={t('config.ingestion.metadataLabel')}
+            help={t('config.ingestion.metadataHelp')}
           />
           <MultiSelect
             options={metadataOptions}

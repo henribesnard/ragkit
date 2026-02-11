@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { WizardContainer } from '@/components/wizard/WizardContainer';
 import { ProjectStep } from '@/components/wizard/steps/ProjectStep';
 import { SourcesStep } from '@/components/wizard/steps/SourcesStep';
@@ -145,21 +146,25 @@ const mergeLLMConfig = (base: any, overrides: any = {}) => {
   };
 };
 
-const STEPS = [
-  { id: 'project', title: 'Project Info', description: 'Name and purpose' },
-  { id: 'sources', title: 'Document Sources', description: 'Where documents live' },
-  { id: 'embedding', title: 'Embeddings', description: 'Vectorize content' },
-  { id: 'llm', title: 'LLM', description: 'Answer generation' },
-  { id: 'retrieval', title: 'Retrieval', description: 'Search strategy' },
-  { id: 'review', title: 'Review', description: 'Confirm and launch' },
-];
-
 export function Setup() {
+  const { t } = useTranslation();
   const [currentStep, setCurrentStep] = useState(0);
   const [config, setConfig] = useState<Record<string, any>>({});
   const [error, setError] = useState<string | null>(null);
   const [isRestarting, setIsRestarting] = useState(false);
   const navigate = useNavigate();
+
+  const steps = useMemo(
+    () => [
+      { id: 'project', title: t('wizard.steps.project.title'), description: t('wizard.steps.project.description') },
+      { id: 'sources', title: t('wizard.steps.sources.title'), description: t('wizard.steps.sources.description') },
+      { id: 'embedding', title: t('wizard.steps.embedding.title'), description: t('wizard.steps.embedding.description') },
+      { id: 'llm', title: t('wizard.steps.llm.title'), description: t('wizard.steps.llm.description') },
+      { id: 'retrieval', title: t('wizard.steps.retrieval.title'), description: t('wizard.steps.retrieval.description') },
+      { id: 'review', title: t('wizard.steps.review.title'), description: t('wizard.steps.review.description') },
+    ],
+    [t]
+  );
 
   const waitForServer = async () => {
     const deadline = Date.now() + 60_000;
@@ -221,7 +226,7 @@ export function Setup() {
         setIsRestarting(false);
         const details = err?.response?.data?.detail?.errors;
         const detailMessage = Array.isArray(details) ? details.join(' | ') : null;
-        setError(detailMessage || err?.message || 'Failed to apply configuration.');
+        setError(detailMessage || err?.message || t('wizard.errors.applyFailed'));
         return;
       }
     }
@@ -231,14 +236,14 @@ export function Setup() {
     if (ready) {
       navigate('/');
     } else {
-      setError('Server did not restart in time. Please refresh.');
+      setError(t('wizard.errors.restartTimeout'));
     }
   };
 
   return (
     <div className="space-y-4">
       <WizardContainer
-        steps={STEPS}
+        steps={steps}
         currentStep={currentStep}
         onStepChange={setCurrentStep}
         onComplete={handleComplete}
@@ -251,8 +256,8 @@ export function Setup() {
       {isRestarting && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
           <div className="rounded-3xl bg-white p-8 text-center shadow-xl">
-            <p className="text-lg font-semibold">Restarting server...</p>
-            <p className="mt-2 text-sm text-slate-600">Applying configuration changes.</p>
+            <p className="text-lg font-semibold">{t('wizard.restarting.title')}</p>
+            <p className="mt-2 text-sm text-slate-600">{t('wizard.restarting.subtitle')}</p>
           </div>
         </div>
       )}

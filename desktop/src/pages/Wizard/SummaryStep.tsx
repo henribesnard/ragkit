@@ -1,4 +1,5 @@
-ï»¿import type { ReactNode } from "react";
+import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { CheckCircle } from "lucide-react";
 import { Button, Card, CardContent, CardFooter, CardHeader, CardTitle } from "../../components/ui";
 import type { FolderSelection } from "./FolderStep";
@@ -17,6 +18,7 @@ interface SummaryStepProps {
 }
 
 export function SummaryStep({ wizardData, onConfirm, onBack, isSubmitting }: SummaryStepProps) {
+  const { t } = useTranslation();
   const profile = wizardData.profile?.analysis;
   const models = wizardData.models;
   const folder = wizardData.folder;
@@ -25,13 +27,13 @@ export function SummaryStep({ wizardData, onConfirm, onBack, isSubmitting }: Sum
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Summary</CardTitle>
+          <CardTitle>{t("wizard.summary.title")}</CardTitle>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Review the configuration before finishing the setup.
+            {t("wizard.summary.subtitle")}
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
-          <SummarySection title="Profile">
+          <SummarySection title={t("wizard.summary.sections.profile")}>
             {profile ? (
               <div className="space-y-2">
                 <p className="font-medium text-gray-900 dark:text-white">{profile.profile_name}</p>
@@ -49,47 +51,56 @@ export function SummaryStep({ wizardData, onConfirm, onBack, isSubmitting }: Sum
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-gray-500 dark:text-gray-400">No profile detected.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {t("wizard.summary.noProfile")}
+              </p>
             )}
           </SummarySection>
 
-          <SummarySection title="Models">
+          <SummarySection title={t("wizard.summary.sections.models")}>
             {models ? (
               <div className="grid gap-3 sm:grid-cols-2">
                 <SummaryItem
-                  label="Embedding"
-                  value={`${models.embeddingProvider} Â· ${models.embeddingModel}`}
+                  label={t("wizard.summary.labels.embedding")}
+                  value={`${models.embeddingProvider} · ${models.embeddingModel}`}
                 />
                 <SummaryItem
-                  label="LLM"
-                  value={`${models.llmProvider} Â· ${models.llmModel}`}
+                  label={t("wizard.summary.labels.llm")}
+                  value={`${models.llmProvider} · ${models.llmModel}`}
                 />
               </div>
             ) : (
-              <p className="text-sm text-gray-500 dark:text-gray-400">No model selection.</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {t("wizard.summary.noModels")}
+              </p>
             )}
           </SummarySection>
 
-          <SummarySection title="Documents">
-            <SummaryItem label="Folder" value={folder?.path ? folder.path : "Not selected"} />
+          <SummarySection title={t("wizard.summary.sections.documents")}>
+            <SummaryItem
+              label={t("wizard.summary.labels.folder")}
+              value={folder?.path ? folder.path : t("wizard.summary.notSelected")}
+            />
             {folder?.path ? (
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                {folder.recursive ? "Including subfolders" : "Top-level only"}
+                {folder.recursive
+                  ? t("wizard.summary.includeSubfolders")
+                  : t("wizard.summary.topLevelOnly")}
               </p>
             ) : (
               <p className="text-sm text-gray-500 dark:text-gray-400">
-                You can add documents later from the knowledge base screen.
+                {t("wizard.summary.documentsLater")}
               </p>
             )}
           </SummarySection>
         </CardContent>
         <CardFooter className="justify-between">
           <Button variant="ghost" onClick={onBack}>
-            Back
+            {t("common.actions.back")}
           </Button>
           <Button onClick={onConfirm} isLoading={isSubmitting}>
             <CheckCircle className="w-4 h-4 mr-2" />
-            Finish setup
+            {t("wizard.summary.finish")}
           </Button>
         </CardFooter>
       </Card>
