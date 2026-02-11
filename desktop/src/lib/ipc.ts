@@ -91,6 +91,10 @@ interface Settings {
   retrieval_max_chunks: number;
   llm_provider: string;
   llm_model: string;
+  llm_temperature: number;
+  llm_max_tokens: number;
+  llm_top_p: number;
+  llm_system_prompt: string;
   theme: "light" | "dark" | "system";
 }
 
@@ -204,8 +208,8 @@ export const ipc = {
     return invoke<AddFolderResponse>("add_folder", { params });
   },
 
-  async validateFolder(folderPath: string): Promise<FolderValidationResult> {
-    return invoke<FolderValidationResult>("validate_folder", { folder_path: folderPath });
+  async validateFolder(path: string): Promise<FolderValidationResult> {
+    return invoke<FolderValidationResult>("validate_folder", { path });
   },
 
   // Conversations
@@ -254,6 +258,18 @@ export const ipc = {
 
   async deleteApiKey(provider: string): Promise<boolean> {
     return invoke<boolean>("delete_api_key", { provider });
+  },
+
+  async testApiKey(provider: string, apiKey: string): Promise<{ ok: boolean; error?: string }> {
+    return invoke("test_api_key", { provider, apiKey });
+  },
+
+  async getLogs(limit: number = 100): Promise<any[]> {
+    return invoke("get_logs", { limit });
+  },
+
+  async clearLogs(): Promise<void> {
+    await invoke("clear_logs");
   },
 
   // File dialogs (via Tauri)

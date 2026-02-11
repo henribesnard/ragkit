@@ -21,6 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from ragkit.desktop.api import router as api_router
 from ragkit.desktop.state import AppState
+from ragkit.desktop.logging_utils import setup_log_capture
 
 # Configure logging
 logging.basicConfig(
@@ -28,6 +29,9 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
+
+# Start capturing logs
+setup_log_capture()
 
 # Global state
 app_state: AppState | None = None

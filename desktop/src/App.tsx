@@ -16,6 +16,7 @@ const KnowledgeBases = lazy(() =>
 const Settings = lazy(() =>
   import("./pages/Settings").then((m) => ({ default: m.Settings }))
 );
+const Logs = lazy(() => import("./pages/Logs"));
 const Onboarding = lazy(() =>
   import("./pages/Onboarding").then((m) => ({ default: m.Onboarding }))
 );
@@ -99,6 +100,7 @@ function App() {
                   <Route path="/chat/:conversationId" element={<Chat />} />
                   <Route path="/knowledge-bases" element={<KnowledgeBases />} />
                   <Route path="/settings" element={<Settings />} />
+                  <Route path="/logs" element={<Logs />} />
                 </Routes>
               </Suspense>
             </Layout>

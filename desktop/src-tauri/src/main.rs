@@ -105,6 +105,9 @@ fn main() {
             commands::set_api_key,
             commands::has_api_key,
             commands::delete_api_key,
+            commands::test_api_key,
+            commands::get_logs,
+            commands::clear_logs,
             commands::analyze_wizard_profile,
             commands::detect_environment,
             // Ollama commands

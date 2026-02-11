@@ -12,6 +12,8 @@ import {
   ShieldCheck,
   SlidersHorizontal,
   Search,
+  Wifi,
+  Trash2,
 } from "lucide-react";
 import { ipc, Settings as SettingsType } from "../lib/ipc";
 import { OllamaStatusCard } from "../components/OllamaStatus";
@@ -23,8 +25,6 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-  Modal,
-  ModalFooter,
   Input,
   Textarea,
   useToast,
@@ -147,11 +147,11 @@ export function Settings() {
   const confirm = useConfirm();
   const [settings, setSettings] = useState<SettingsType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [apiKeys, setApiKeys] = useState<Record<string, boolean>>({});
-  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
-  const [currentProvider, setCurrentProvider] = useState<string | null>(null);
-  const [apiKeyInput, setApiKeyInput] = useState("");
+  const [isSaving, setIsSaving] = useState<string | null>(null);
+  const [isTesting, setIsTesting] = useState<string | null>(null);
+  const [hasKeys, setHasKeys] = useState<Record<string, boolean>>({});
+  const [tempKeys, setTempKeys] = useState<Record<string, string>>({});
+  const [activeTab, setActiveTab] = useState<SettingsTab>("general");
   const [embeddingUseCustomModel, setEmbeddingUseCustomModel] = useState(false);
   const [embeddingCustomModel, setEmbeddingCustomModel] = useState("");
   const [embeddingListModel, setEmbeddingListModel] = useState("");
@@ -170,7 +170,6 @@ export function Settings() {
     }
     return "beginner";
   });
-  const [activeTab, setActiveTab] = useState<SettingsTab>("general");
   const [jsonDraft, setJsonDraft] = useState("");
   const [jsonError, setJsonError] = useState("");
 
@@ -247,7 +246,7 @@ export function Settings() {
       for (const provider of API_KEY_PROVIDERS) {
         keys[provider.id] = await ipc.hasApiKey(provider.id);
       }
-      setApiKeys(keys);
+      setHasKeys(keys);
     } catch (error) {
       console.error("Failed to load settings:", error);
       toast.error(t("settings.toasts.loadFailed"));
@@ -260,34 +259,28 @@ export function Settings() {
     if (!settings) return;
 
     try {
-      setIsSaving(true);
+      setIsSaving("global");
       await ipc.updateSettings(settings);
       toast.success(t("settings.toasts.saveSuccessTitle"), t("settings.toasts.saveSuccessMessage"));
     } catch (error) {
       console.error("Failed to save settings:", error);
       toast.error(t("settings.toasts.saveFailed"));
     } finally {
-      setIsSaving(false);
+      setIsSaving(null);
     }
   };
 
-  const openApiKeyModal = (provider: string) => {
-    setCurrentProvider(provider);
-    setApiKeyInput("");
-    setShowApiKeyModal(true);
-  };
-
-  const handleSetApiKey = async () => {
-    if (!currentProvider || !apiKeyInput.trim()) return;
+  const handleSaveKey = async (provider: string) => {
+    const key = tempKeys[provider];
+    if (!key) return;
 
     try {
-      await ipc.setApiKey(currentProvider, apiKeyInput.trim());
-      setApiKeys((prev) => ({ ...prev, [currentProvider]: true }));
-      setShowApiKeyModal(false);
-      setApiKeyInput("");
+      await ipc.setApiKey(provider, key.trim());
+      setHasKeys((prev) => ({ ...prev, [provider]: true }));
+      setTempKeys((prev) => ({ ...prev, [provider]: "" }));
       toast.success(
         t("settings.toasts.apiKeySavedTitle"),
-        t("settings.toasts.apiKeySavedMessage", { provider: currentProvider })
+        t("settings.toasts.apiKeySavedMessage", { provider })
       );
     } catch (error) {
       console.error("Failed to set API key:", error);
@@ -295,7 +288,7 @@ export function Settings() {
     }
   };
 
-  const handleDeleteApiKey = async (provider: string) => {
+  const handleDeleteKey = async (provider: string) => {
     const confirmed = await confirm({
       title: t("settings.apiKeys.deleteTitle"),
       message: t("settings.apiKeys.deleteMessage", { provider }),
@@ -308,7 +301,7 @@ export function Settings() {
 
     try {
       await ipc.deleteApiKey(provider);
-      setApiKeys((prev) => ({ ...prev, [provider]: false }));
+      setHasKeys((prev) => ({ ...prev, [provider]: false }));
       toast.info(
         t("settings.toasts.apiKeyDeletedTitle"),
         t("settings.toasts.apiKeyDeletedMessage", { provider })
@@ -415,7 +408,7 @@ export function Settings() {
               onChange={(e) => setExpertiseLevel(e.target.value as ExpertiseLevel)}
             />
           </div>
-          <Button onClick={handleSave} isLoading={isSaving}>
+          <Button onClick={handleSave} isLoading={isSaving === "global"}>
             <Save className="w-4 h-4 mr-2" />
             {t("common.actions.save")}
           </Button>
@@ -624,7 +617,91 @@ export function Settings() {
               </CardContent>
             </Card>
 
-            {/* Ollama Status - Show when Ollama is selected */}
+            {/* LLM Generation Settings */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
+                    <SlidersHorizontal className="w-5 h-5 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div>
+                    <CardTitle>{t("settings.llm.title")} — {t("settings.labels.temperature")}</CardTitle>
+                    <CardDescription>{t("settings.hints.temperature")}</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Input
+                    type="number"
+                    label={t("settings.labels.temperature")}
+                    min={0}
+                    max={2}
+                    step={0.05}
+                    value={settings.llm_temperature}
+                    onChange={(e) => {
+                      const next = Number(e.target.value);
+                      setSettings({
+                        ...settings,
+                        llm_temperature: Number.isNaN(next)
+                          ? settings.llm_temperature
+                          : next,
+                      });
+                    }}
+                    hint={t("settings.hints.temperature")}
+                  />
+                  <Input
+                    type="number"
+                    label={t("settings.labels.maxTokens")}
+                    min={50}
+                    max={4096}
+                    step={50}
+                    value={settings.llm_max_tokens}
+                    onChange={(e) => {
+                      const next = Number(e.target.value);
+                      setSettings({
+                        ...settings,
+                        llm_max_tokens: Number.isNaN(next)
+                          ? settings.llm_max_tokens
+                          : next,
+                      });
+                    }}
+                    hint={t("settings.hints.maxTokens")}
+                  />
+                  <Input
+                    type="number"
+                    label={t("settings.labels.topP")}
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    value={settings.llm_top_p}
+                    onChange={(e) => {
+                      const next = Number(e.target.value);
+                      setSettings({
+                        ...settings,
+                        llm_top_p: Number.isNaN(next)
+                          ? settings.llm_top_p
+                          : next,
+                      });
+                    }}
+                    hint={t("settings.hints.topP")}
+                  />
+                </div>
+                <div className="mt-4">
+                  <Textarea
+                    label={t("settings.labels.systemPrompt")}
+                    value={settings.llm_system_prompt}
+                    onChange={(e) =>
+                      setSettings({
+                        ...settings,
+                        llm_system_prompt: e.target.value,
+                      })
+                    }
+                    placeholder={t("settings.hints.systemPrompt")}
+                  />
+                </div>
+              </CardContent>
+            </Card>
             {(settings.llm_provider === "ollama" || settings.embedding_provider === "ollama") && (
               <OllamaStatusCard />
             )}
@@ -649,7 +726,7 @@ export function Settings() {
                       key={provider.id}
                       className={cn(
                         "flex items-center justify-between p-3 rounded-lg border transition-colors",
-                        apiKeys[provider.id]
+                        hasKeys[provider.id]
                           ? "border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/10"
                           : "border-gray-200 dark:border-gray-700"
                       )}
@@ -658,12 +735,12 @@ export function Settings() {
                         <div
                           className={cn(
                             "w-8 h-8 rounded-full flex items-center justify-center",
-                            apiKeys[provider.id]
+                            hasKeys[provider.id]
                               ? "bg-green-100 dark:bg-green-900/30"
                               : "bg-gray-100 dark:bg-gray-800"
                           )}
                         >
-                          {apiKeys[provider.id] ? (
+                          {hasKeys[provider.id] ? (
                             <Check className="w-4 h-4 text-green-600 dark:text-green-400" />
                           ) : (
                             <X className="w-4 h-4 text-gray-400" />
@@ -679,23 +756,62 @@ export function Settings() {
                         </div>
                       </div>
                       <div className="flex gap-2">
+                        <Input
+                          type="password"
+                          value={tempKeys[provider.id] ?? ""}
+                          onChange={(e) =>
+                            setTempKeys({ ...tempKeys, [provider.id]: e.target.value })
+                          }
+                          placeholder={
+                            hasKeys[provider.id] ? "••••••••••••••••" : t("settings.hints.apiKey")
+                          }
+                          className="font-mono flex-1"
+                        />
                         <Button
                           variant="secondary"
-                          size="sm"
-                          onClick={() => openApiKeyModal(provider.id)}
+                          onClick={async () => {
+                            const key = tempKeys[provider.id];
+                            if (!key && !hasKeys[provider.id]) return;
+
+                            if (!key) {
+                              return;
+                            }
+
+                            setIsTesting(provider.id);
+                            try {
+                              const result = await ipc.testApiKey(provider.id, key);
+                              if (result.ok) {
+                                toast.success(t("settings.apiKeys.testSuccess"));
+                              } else {
+                                toast.error(t("settings.apiKeys.testFailed"), result.error);
+                              }
+                            } catch (err) {
+                              toast.error(t("settings.apiKeys.testFailed"), String(err));
+                            } finally {
+                              setIsTesting(null);
+                            }
+                          }}
+                          disabled={!tempKeys[provider.id] || isTesting === provider.id}
+                          isLoading={isTesting === provider.id}
+                          title={t("settings.apiKeys.testConnection")}
                         >
-                          {apiKeys[provider.id]
-                            ? t("common.actions.update")
-                            : t("common.actions.add")}
+                          {isTesting !== provider.id && <Wifi className="w-4 h-4" />}
                         </Button>
-                        {apiKeys[provider.id] && (
+                        <Button
+                          onClick={() => handleSaveKey(provider.id)}
+                          disabled={!tempKeys[provider.id] || isSaving === provider.id}
+                          isLoading={isSaving === provider.id}
+                        >
+                          {t("settings.actions.save")}
+                        </Button>
+                        {hasKeys[provider.id] && (
                           <Button
                             variant="ghost"
-                            size="sm"
-                            onClick={() => handleDeleteApiKey(provider.id)}
+                            size="icon"
+                            onClick={() => handleDeleteKey(provider.id)}
                             className="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
                           >
-                            {t("common.actions.delete")}
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         )}
                       </div>
@@ -957,38 +1073,6 @@ export function Settings() {
           </Card>
         )}
       </div>
-
-      {/* API Key Modal */}
-      <Modal
-        isOpen={showApiKeyModal}
-        onClose={() => setShowApiKeyModal(false)}
-        title={
-          apiKeys[currentProvider || ""]
-            ? t("settings.apiKeys.modalTitleUpdate")
-            : t("settings.apiKeys.modalTitleAdd")
-        }
-        description={t("settings.apiKeys.modalDescription", {
-          provider: currentProvider || "",
-        })}
-        size="sm"
-      >
-        <Input
-          type="password"
-          label={t("settings.labels.apiKey")}
-          value={apiKeyInput}
-          onChange={(e) => setApiKeyInput(e.target.value)}
-          placeholder="sk-..."
-          autoFocus
-        />
-        <ModalFooter>
-          <Button variant="secondary" onClick={() => setShowApiKeyModal(false)}>
-            {t("common.actions.cancel")}
-          </Button>
-          <Button onClick={handleSetApiKey} disabled={!apiKeyInput.trim()}>
-            {t("settings.apiKeys.saveKey")}
-          </Button>
-        </ModalFooter>
-      </Modal>
     </div>
   );
 }

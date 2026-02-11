@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import {
   MessageSquare,
   Database,
+  List,
   Settings,
   Sun,
   Moon,
@@ -25,6 +26,7 @@ export function Layout({ children, darkMode, onToggleDarkMode }: LayoutProps) {
     { to: "/chat", icon: MessageSquare, label: t("navigation.chat") },
     { to: "/knowledge-bases", icon: Database, label: t("navigation.knowledgeBases") },
     { to: "/settings", icon: Settings, label: t("navigation.settings") },
+    { to: "/logs", icon: List, label: t("navigation.logs") },
   ];
 
   return (

@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect, useMemo, useCallback, memo } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
-import { Send, FileText, ChevronDown, ChevronUp, MessageSquare, Database } from "lucide-react";
+import { Send, FileText, ChevronDown, ChevronUp, MessageSquare, Database, Copy, Check } from "lucide-react";
 import { ipc, Message, Source, KnowledgeBase } from "../lib/ipc";
-import { Button, Input, Select, Card, type SelectOption } from "../components/ui";
+import { Button, Select, Card, Textarea, type SelectOption } from "../components/ui";
 import { cn } from "../lib/utils";
 import { parseError } from "../lib/errors";
 
@@ -19,7 +19,7 @@ export function Chat() {
     conversationId || null
   );
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Load knowledge bases on mount
   useEffect(() => {
@@ -99,9 +99,8 @@ export function Chat() {
         id: `error-${Date.now()}`,
         conversation_id: currentConvId || "",
         role: "assistant",
-        content: `**${errorInfo.title}**\n\n${errorInfo.message}${
-          errorInfo.suggestion ? `\n\n💡 ${errorInfo.suggestion}` : ""
-        }`,
+        content: `**${errorInfo.title}**\n\n${errorInfo.message}${errorInfo.suggestion ? `\n\n💡 ${errorInfo.suggestion}` : ""
+          }`,
         created_at: new Date().toISOString(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -168,16 +167,24 @@ export function Chat() {
       >
         <div className="flex items-center gap-3">
           <div className="flex-1">
-            <Input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={
-                selectedKb ? t("chat.askPlaceholder") : t("chat.selectFirst")
-              }
-              disabled={!selectedKb || isLoading}
-            />
+            <div className="flex-1">
+              <Textarea
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={
+                  selectedKb ? t("chat.askPlaceholder") : t("chat.selectFirst")
+                }
+                disabled={!selectedKb || isLoading}
+                className="min-h-[44px] max-h-[200px] resize-none py-3"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
+              />
+            </div>
           </div>
           <Button
             type="submit"
@@ -245,24 +252,48 @@ const TypingIndicator = memo(function TypingIndicator() {
 const MessageBubble = memo(function MessageBubble({ message }: { message: Message }) {
   const { t } = useTranslation();
   const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const isUser = message.role === "user";
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
 
   return (
     <div
       className={cn(
-        "flex animate-in fade-in-0 slide-in-from-bottom-2 duration-300",
+        "flex animate-in fade-in-0 slide-in-from-bottom-2 duration-300 group",
         isUser ? "justify-end" : "justify-start"
       )}
     >
       <div
         className={cn(
-          "max-w-[80%] rounded-2xl px-4 py-3",
+          "max-w-[80%] rounded-2xl px-4 py-3 relative",
           isUser
             ? "bg-primary-600 text-white"
             : "bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
         )}
       >
-        <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+        {!isUser && (
+          <button
+            onClick={handleCopy}
+            className="absolute top-2 right-2 p-1.5 rounded-lg text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-200 dark:hover:bg-gray-600"
+            title={t("chat.copy")}
+          >
+            {copied ? (
+              <Check className="w-3.5 h-3.5 text-green-500" />
+            ) : (
+              <Copy className="w-3.5 h-3.5" />
+            )}
+          </button>
+        )}
+        <div className="whitespace-pre-wrap leading-relaxed pr-6">{message.content}</div>
 
         {/* Sources */}
         {message.sources && message.sources.length > 0 && (
@@ -359,8 +390,8 @@ const SourceCard = memo(function SourceCard({
               source.score >= 0.8
                 ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                 : source.score >= 0.5
-                ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
-                : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
+                  ? "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
+                  : "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400"
             )}
           >
             {t("chat.match", { score: Math.round(source.score * 100) })}

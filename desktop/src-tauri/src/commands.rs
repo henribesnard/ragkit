@@ -238,12 +238,12 @@ pub async fn add_folder(params: AddFolderParams) -> Result<AddFolderResponse, St
 
 /// Validate a knowledge base folder
 #[tauri::command]
-pub async fn validate_folder(folder_path: String) -> Result<FolderValidationResult, String> {
-    tracing::info!("validate_folder called with path: {}", folder_path);
+pub async fn validate_folder(path: String) -> Result<FolderValidationResult, String> {
+    tracing::info!("validate_folder called with path: {}", path);
     backend_request(
         Method::POST,
         "/api/wizard/validate-folder",
-        Some(json!({ "folder_path": folder_path })),
+        Some(json!({ "folder_path": path })),
     )
     .await
     .map_err(|e| {
@@ -427,6 +427,58 @@ pub struct InstallInstructions {
     pub platform: String,
     pub instructions: String,
     pub all_platforms: std::collections::HashMap<String, String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct TestApiKeyResponse {
+    ok: bool,
+    error: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LogEntry {
+    pub timestamp: String,
+    pub level: String,
+    pub message: String,
+    pub module: String,
+    pub line: Option<i32>,
+    pub exception: Option<String>,
+}
+
+#[tauri::command]
+pub async fn test_api_key(provider: String, api_key: String) -> Result<TestApiKeyResponse, String> {
+    backend_request(
+        Method::POST,
+        "/api/keys/test",
+        Some(serde_json::json!({
+            "provider": provider,
+            "api_key": api_key,
+        })),
+    )
+    .await
+}
+
+#[tauri::command]
+pub async fn get_logs(limit: usize) -> Result<Vec<LogEntry>, String> {
+    backend_request(
+        Method::GET,
+        &format!("/api/logs?limit={}", limit),
+        None::<()>,
+    )
+    .await
+    .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn clear_logs() -> Result<bool, String> {
+    backend_request(
+        Method::DELETE,
+        "/api/logs",
+        None::<()>,
+    )
+    .await
+    .map(|_: serde_json::Value| true)
+    .map_err(|e| e.to_string())
 }
 
 /// Get Ollama status

@@ -20,6 +20,7 @@ from ragkit.desktop.wizard_api import router as wizard_router
 from ragkit.ingestion.chunkers import create_chunker
 from ragkit.ingestion.parsers import create_parser
 from ragkit.ingestion.sources.base import RawDocument
+from ragkit.desktop.logging_utils import LOG_BUFFER
 
 logger = logging.getLogger(__name__)
 
@@ -75,10 +76,19 @@ class SettingsModel(BaseModel):
     retrieval_max_chunks: int = 4
     llm_provider: str
     llm_model: str
+    llm_temperature: float = 0.7
+    llm_max_tokens: int = 1000
+    llm_top_p: float = 0.95
+    llm_system_prompt: str = ""
     theme: str
 
 
 class SetApiKeyRequest(BaseModel):
+    provider: str
+    api_key: str
+
+
+class TestApiKeyRequest(BaseModel):
     provider: str
     api_key: str
 
@@ -573,6 +583,48 @@ async def delete_api_key(request: Request, provider: str) -> bool:
     return deleted
 
 
+@router.post("/keys/test")
+async def test_api_key(request: Request, body: TestApiKeyRequest) -> dict[str, Any]:
+    """Test an API key by making a minimal call."""
+    try:
+        import litellm
+    except ImportError:
+        return {"ok": False, "error": "litellm not installed"}
+
+    # Map providers to lightweight models for testing
+    test_models = {
+        "openai": "gpt-3.5-turbo",
+        "anthropic": "claude-3-haiku-20240307",
+        "deepseek": "deepseek/deepseek-chat",
+        "groq": "groq/llama3-8b-8192",
+        "mistral": "mistral/mistral-tiny",
+        "gemini": "gemini/gemini-pro",
+        "cohere": "command-r",
+    }
+
+    model = test_models.get(body.provider)
+    if not model:
+        # Fallback: try using the provider name as prefix
+        if body.provider in ["ollama"]:
+             # Ollama testing needs a running instance, skip api key test
+             return {"ok": True, "message": "Local provider, skipped key test"}
+        return {"ok": False, "error": f"Unsupported provider for testing: {body.provider}"}
+
+    try:
+        # Make a minimal generation request
+        # We use max_tokens=1 to minimize cost/latency
+        await litellm.acompletion(
+            model=model,
+            messages=[{"role": "user", "content": "Hi"}],
+            api_key=body.api_key,
+            max_tokens=1,
+        )
+        return {"ok": True}
+    except Exception as exc:
+        logger.warning(f"API key test failed for {body.provider}: {exc}")
+        return {"ok": False, "error": str(exc)}
+
+
 # ============================================================================
 # Ollama Routes
 # ============================================================================
@@ -706,3 +758,18 @@ async def get_install_instructions() -> dict[str, Any]:
         "instructions": instructions.get(platform, instructions.get("linux", "")),
         "all_platforms": instructions,
     }
+
+
+@router.get("/logs")
+async def get_logs(limit: int = 100) -> list[dict[str, Any]]:
+    """Get recent logs."""
+    buffer = list(LOG_BUFFER)
+    # Return last N logs
+    return buffer[-limit:]
+
+
+@router.delete("/logs")
+async def clear_logs() -> dict[str, bool]:
+    """Clear logs."""
+    LOG_BUFFER.clear()
+    return {"ok": True}

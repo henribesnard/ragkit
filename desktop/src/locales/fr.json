@@ -310,7 +310,11 @@
       "maxChunks": "Chunks max",
       "enableReranking": "Activer le reranking",
       "rerankProvider": "Fournisseur de rerank",
-      "apiKey": "Clé API"
+      "apiKey": "Clé API",
+      "temperature": "Température",
+      "maxTokens": "Tokens max",
+      "topP": "Top P",
+      "systemPrompt": "Prompt système"
     },
     "actions": {
       "usePreset": "Utiliser la liste",
@@ -345,7 +349,11 @@
       "chunkSize": "Des chunks plus grands apportent du contexte mais réduisent le rappel",
       "chunkOverlap": "Le chevauchement préserve le contexte entre chunks",
       "topK": "Nombre de candidats récupérés par requête",
-      "maxChunks": "Nombre maximal de chunks envoyés au LLM"
+      "maxChunks": "Nombre maximal de chunks envoyés au LLM",
+      "temperature": "Plus bas = plus déterministe, plus haut = plus créatif (0.0–2.0)",
+      "maxTokens": "Longueur maximale de la réponse générée",
+      "topP": "Échantillonnage nucleus : limite la sélection aux tokens les plus probables (0.0–1.0)",
+      "systemPrompt": "Instructions personnalisées ajoutées à chaque requête"
     },
     "apiKeys": {
       "title": "Clés API",
@@ -372,11 +380,14 @@
       "saveSuccessMessage": "Vos modifications ont été appliquées.",
       "saveFailed": "Impossible d'enregistrer les paramètres",
       "apiKeySavedTitle": "Clé API enregistrée",
-      "apiKeySavedMessage": "La clé API {{provider}} a été stockée en toute sécurité.",
-      "apiKeySaveFailed": "Impossible d'enregistrer la clé API",
+      "apiKeySavedMessage": "La clé API {{provider}} a été enregistrée.",
+      "apiKeySaveFailed": "Échec de l'enregistrement de la clé API",
       "apiKeyDeletedTitle": "Clé API supprimée",
       "apiKeyDeletedMessage": "La clé API {{provider}} a été supprimée.",
-      "apiKeyDeleteFailed": "Impossible de supprimer la clé API"
+      "apiKeyDeleteFailed": "Échec de la suppression de la clé API",
+      "testConnection": "Tester",
+      "testSuccess": "Connexion réussie !",
+      "testFailed": "Échec de la connexion"
     },
     "json": {
       "title": "JSON avancé",
@@ -405,7 +416,8 @@
     },
     "sources": "{{count}} source",
     "sources_other": "{{count}} sources",
-    "match": "{{score}}% de correspondance"
+    "match": "{{score}}% de correspondance",
+    "copy": "Copier le message"
   },
   "ollama": {
     "title": "Ollama",

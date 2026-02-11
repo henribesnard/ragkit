@@ -254,6 +254,22 @@
     "addDocuments": "Add Documents",
     "addFolder": "Add Folder"
   },
+  "logs": {
+    "title": "System Logs",
+    "subtitle": "View and manage application logs",
+    "autoRefreshOn": "Auto-refresh: ON",
+    "autoRefreshOff": "Auto-refresh: OFF",
+    "clear": "Clear Logs",
+    "cleared": "Logs cleared",
+    "clearedDescription": "All system logs have been cleared.",
+    "searchPlaceholder": "Search logs...",
+    "filterLevel": "Filter Level",
+    "levels": {
+      "all": "All Levels"
+    },
+    "entries": "formatted entries",
+    "noLogs": "No logs available"
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Configure providers and models",
@@ -310,7 +326,11 @@
       "maxChunks": "Max chunks",
       "enableReranking": "Enable reranking",
       "rerankProvider": "Rerank provider",
-      "apiKey": "API Key"
+      "apiKey": "API Key",
+      "temperature": "Temperature",
+      "maxTokens": "Max tokens",
+      "topP": "Top P",
+      "systemPrompt": "System prompt"
     },
     "actions": {
       "usePreset": "Use preset list",
@@ -345,7 +365,11 @@
       "chunkSize": "Larger chunks capture more context but reduce recall",
       "chunkOverlap": "Overlap helps preserve context between chunks",
       "topK": "Number of candidates fetched per query",
-      "maxChunks": "Maximum chunks sent to the LLM"
+      "maxChunks": "Maximum chunks sent to the LLM",
+      "temperature": "Lower = more deterministic, higher = more creative (0.0–2.0)",
+      "maxTokens": "Maximum length of the generated response",
+      "topP": "Nucleus sampling: limits token selection to the top probability mass (0.0–1.0)",
+      "systemPrompt": "Custom instructions prepended to every query"
     },
     "apiKeys": {
       "title": "API Keys",
@@ -376,7 +400,10 @@
       "apiKeySaveFailed": "Failed to save API key",
       "apiKeyDeletedTitle": "API key deleted",
       "apiKeyDeletedMessage": "{{provider}} API key has been removed.",
-      "apiKeyDeleteFailed": "Failed to delete API key"
+      "apiKeyDeleteFailed": "Failed to delete API key",
+      "testConnection": "Test connection",
+      "testSuccess": "Connection successful!",
+      "testFailed": "Connection failed"
     },
     "json": {
       "title": "Advanced JSON",
@@ -405,7 +432,8 @@
     },
     "sources": "{{count}} source",
     "sources_other": "{{count}} sources",
-    "match": "{{score}}% match"
+    "match": "{{score}}% match",
+    "copy": "Copy message"
   },
   "ollama": {
     "title": "Ollama",

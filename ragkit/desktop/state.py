@@ -158,6 +158,10 @@ class AppState:
             ),
             "llm_provider": str(self.db.get_setting("llm_provider", "ollama")),
             "llm_model": str(self.db.get_setting("llm_model", "llama3.2:3b")),
+            "llm_temperature": float(self.db.get_setting("llm_temperature", 0.7)),
+            "llm_max_tokens": int(self.db.get_setting("llm_max_tokens", 1000)),
+            "llm_top_p": float(self.db.get_setting("llm_top_p", 0.95)),
+            "llm_system_prompt": str(self.db.get_setting("llm_system_prompt", "")),
             "theme": str(self.db.get_setting("theme", "system")),
         }
 
@@ -221,11 +225,15 @@ class AppState:
         if cached:
             return cached
 
+        temperature = float(self._settings.get("llm_temperature", 0.7))
+        max_tokens = int(self._settings.get("llm_max_tokens", 1000))
+        top_p = float(self._settings.get("llm_top_p", 0.95))
+
         primary = LLMModelConfig(
             provider=provider,
             model=model,
             api_key=api_key or None,
-            params=LLMParams(temperature=0.7, max_tokens=800, top_p=0.95),
+            params=LLMParams(temperature=temperature, max_tokens=max_tokens, top_p=top_p),
             timeout=60,
             max_retries=2,
         )
@@ -233,7 +241,11 @@ class AppState:
             provider=provider,
             model=model,
             api_key=api_key or None,
-            params=LLMParams(temperature=0.3, max_tokens=300, top_p=0.9),
+            params=LLMParams(
+                temperature=max(0.0, temperature - 0.4),
+                max_tokens=min(300, max_tokens),
+                top_p=max(0.5, top_p - 0.05),
+            ),
         )
         config = LLMConfig(primary=primary, fast=fast)
         router = LLMRouter(config)
