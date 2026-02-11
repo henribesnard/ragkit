@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Database, Shield, Sparkles, Zap } from "lucide-react";
+import { LanguageSelector } from "../../components/LanguageSelector";
 import { Button, Card, CardContent, CardFooter, CardHeader, CardTitle } from "../../components/ui";
 
 interface WelcomeStepProps {
@@ -11,6 +12,9 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      <div className="flex justify-end mb-4">
+        <LanguageSelector variant="compact" />
+      </div>
       <Card>
         <CardHeader>
           <div className="flex items-center gap-3">

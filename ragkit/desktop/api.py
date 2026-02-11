@@ -609,7 +609,7 @@ async def list_ollama_models(request: Request) -> list[dict[str, Any]]:
 
 
 @router.get("/ollama/recommended")
-async def get_recommended_models(request: Request) -> list[dict[str, Any]]:
+async def get_recommended_models(request: Request) -> dict[str, dict[str, Any]]:
     """Get list of recommended models."""
     state = get_state(request)
     return state.ollama_manager.get_recommended_models()

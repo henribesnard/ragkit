@@ -5,6 +5,7 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-dialog";
 
 // Response types
 interface HealthCheckResponse {
@@ -257,19 +258,23 @@ export const ipc = {
 
   // File dialogs (via Tauri)
   async selectFiles(filters?: { name: string; extensions: string[] }[]): Promise<string[] | null> {
-    const { open } = await import("@tauri-apps/plugin-dialog");
     const result = await open({
       multiple: true,
       filters: filters || [
         { name: "Documents", extensions: ["pdf", "txt", "md", "docx"] },
       ],
     });
-    return result as string[] | null;
+    if (!result) return null;
+    return Array.isArray(result) ? result : [result as string];
   },
 
   async selectFolder(): Promise<string | null> {
-    const { open } = await import("@tauri-apps/plugin-dialog");
-    return open({ directory: true }) as Promise<string | null>;
+    const result = await open({
+      directory: true,
+      multiple: false,
+      title: "Sélectionnez votre dossier de base de connaissances",
+    });
+    return typeof result === "string" ? result : null;
   },
 
   // Ollama
