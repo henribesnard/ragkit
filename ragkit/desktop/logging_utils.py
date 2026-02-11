@@ -19,7 +19,7 @@ class ListHandler(logging.Handler):
         try:
             # Format exception if present
             if record.exc_info and not record.exc_text:
-                record.exc_text = self.formatException(record.exc_info)
+                record.exc_text = logging.Formatter().formatException(record.exc_info)
 
             entry = {
                 "timestamp": datetime.fromtimestamp(record.created).isoformat(),
