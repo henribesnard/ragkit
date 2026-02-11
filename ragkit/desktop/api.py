@@ -606,8 +606,8 @@ async def test_api_key(request: Request, body: TestApiKeyRequest) -> dict[str, A
     if not model:
         # Fallback: try using the provider name as prefix
         if body.provider in ["ollama"]:
-             # Ollama testing needs a running instance, skip api key test
-             return {"ok": True, "message": "Local provider, skipped key test"}
+            # Ollama testing needs a running instance, skip api key test
+            return {"ok": True, "message": "Local provider, skipped key test"}
         return {"ok": False, "error": f"Unsupported provider for testing: {body.provider}"}
 
     try:
