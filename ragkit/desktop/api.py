@@ -16,11 +16,11 @@ from pydantic import BaseModel
 
 from ragkit.config.defaults import default_ingestion_config
 from ragkit.config.schema import ChunkingConfig, FixedChunkingConfig
+from ragkit.desktop.logging_utils import LOG_BUFFER
 from ragkit.desktop.wizard_api import router as wizard_router
 from ragkit.ingestion.chunkers import create_chunker
 from ragkit.ingestion.parsers import create_parser
 from ragkit.ingestion.sources.base import RawDocument
-from ragkit.desktop.logging_utils import LOG_BUFFER
 
 logger = logging.getLogger(__name__)
 

@@ -20,8 +20,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from ragkit.desktop.api import router as api_router
-from ragkit.desktop.state import AppState
 from ragkit.desktop.logging_utils import setup_log_capture
+from ragkit.desktop.state import AppState
 
 # Configure logging
 logging.basicConfig(
