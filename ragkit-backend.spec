@@ -57,6 +57,7 @@ hiddenimports = [
     'tokenizers',
     'huggingface_hub',
     'chromadb',
+    'chromadb.telemetry.product.posthog',
     'qdrant_client',
     'unstructured',
     'rank_bm25',
