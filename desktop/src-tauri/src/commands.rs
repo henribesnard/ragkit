@@ -456,6 +456,7 @@ pub async fn test_api_key(provider: String, api_key: String) -> Result<TestApiKe
         })),
     )
     .await
+    .map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -463,7 +464,7 @@ pub async fn get_logs(limit: usize) -> Result<Vec<LogEntry>, String> {
     backend_request(
         Method::GET,
         &format!("/api/logs?limit={}", limit),
-        None::<()>,
+        None,
     )
     .await
     .map_err(|e| e.to_string())
@@ -474,7 +475,7 @@ pub async fn clear_logs() -> Result<bool, String> {
     backend_request(
         Method::DELETE,
         "/api/logs",
-        None::<()>,
+        None,
     )
     .await
     .map(|_: serde_json::Value| true)
