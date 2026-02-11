@@ -13,7 +13,7 @@ export function WelcomeStep({ onNext }: WelcomeStepProps) {
   return (
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex justify-end mb-4">
-        <LanguageSelector variant="compact" />
+        <LanguageSelector variant="full" />
       </div>
       <Card>
         <CardHeader>

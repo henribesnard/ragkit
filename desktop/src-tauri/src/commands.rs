@@ -239,13 +239,17 @@ pub async fn add_folder(params: AddFolderParams) -> Result<AddFolderResponse, St
 /// Validate a knowledge base folder
 #[tauri::command]
 pub async fn validate_folder(folder_path: String) -> Result<FolderValidationResult, String> {
+    tracing::info!("validate_folder called with path: {}", folder_path);
     backend_request(
         Method::POST,
         "/api/wizard/validate-folder",
         Some(json!({ "folder_path": folder_path })),
     )
     .await
-    .map_err(|e| e.to_string())
+    .map_err(|e| {
+        tracing::error!("validate_folder failed: {}", e);
+        e.to_string()
+    })
 }
 
 /// List conversations

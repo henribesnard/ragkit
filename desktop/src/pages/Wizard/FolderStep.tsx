@@ -65,7 +65,8 @@ export function FolderStep({ onNext, onBack, initialFolder }: FolderStepProps) {
     } catch (err) {
       console.error("Folder validation failed:", err);
       setValidation(null);
-      setError(t("wizard.folder.validation.generic"));
+      const detail = err instanceof Error ? err.message : String(err);
+      setError(`${t("wizard.folder.validation.generic")} (${detail})`);
       return false;
     } finally {
       setIsValidating(false);
@@ -93,8 +94,8 @@ export function FolderStep({ onNext, onBack, initialFolder }: FolderStepProps) {
 
   const extensionSummary = validation?.stats?.extension_counts
     ? Object.entries(validation.stats.extension_counts)
-        .map(([ext, count]) => `${ext.toUpperCase()} (${count})`)
-        .join(", ")
+      .map(([ext, count]) => `${ext.toUpperCase()} (${count})`)
+      .join(", ")
     : validation?.stats?.extensions?.map((ext) => ext.toUpperCase()).join(", ");
 
   return (

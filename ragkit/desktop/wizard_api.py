@@ -139,4 +139,11 @@ async def detect_environment() -> dict:
 @router.post("/validate-folder")
 async def validate_folder(request: FolderValidationRequest) -> dict[str, Any]:
     """Validate a folder for knowledge base creation."""
-    return validate_knowledge_base_folder(request.folder_path)
+    logger.info("Validating folder: %s", request.folder_path)
+    result = validate_knowledge_base_folder(request.folder_path)
+    logger.info(
+        "Folder validation result: valid=%s, error_code=%s",
+        result.get("valid"),
+        result.get("error_code"),
+    )
+    return result
