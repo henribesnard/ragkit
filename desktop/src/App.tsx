@@ -20,6 +20,9 @@ const Logs = lazy(() => import("./pages/Logs"));
 const Onboarding = lazy(() =>
   import("./pages/Onboarding").then((m) => ({ default: m.Onboarding }))
 );
+const IngestionSettings = lazy(() =>
+  import("./pages/IngestionSettings").then((m) => ({ default: m.default }))
+);
 
 // Page loading fallback
 function PageLoader() {
@@ -100,6 +103,7 @@ function App() {
                   <Route path="/chat/:conversationId" element={<Chat />} />
                   <Route path="/knowledge-bases" element={<KnowledgeBases />} />
                   <Route path="/settings" element={<Settings />} />
+                  <Route path="/ingestion" element={<IngestionSettings />} />
                   <Route path="/logs" element={<Logs />} />
                 </Routes>
               </Suspense>

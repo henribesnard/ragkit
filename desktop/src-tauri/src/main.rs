@@ -119,6 +119,7 @@ fn main() {
             commands::delete_ollama_model,
             commands::start_ollama_service,
             commands::get_install_instructions,
+            commands::preview_ingestion,
         ])
         .run(tauri::generate_context!());
 

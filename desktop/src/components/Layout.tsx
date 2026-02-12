@@ -25,6 +25,7 @@ export function Layout({ children, darkMode, onToggleDarkMode }: LayoutProps) {
   const navItems = [
     { to: "/chat", icon: MessageSquare, label: t("navigation.chat") },
     { to: "/knowledge-bases", icon: Database, label: t("navigation.knowledgeBases") },
+    { to: "/ingestion", icon: List, label: "Ingestion" },
     { to: "/settings", icon: Settings, label: t("navigation.settings") },
     { to: "/logs", icon: List, label: t("navigation.logs") },
   ];

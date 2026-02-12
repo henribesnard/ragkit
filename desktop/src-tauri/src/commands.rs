@@ -135,6 +135,35 @@ pub struct WizardProfileResponse {
 }
 
 // ============================================================================
+// Ingestion Commands
+// ============================================================================
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PreviewIngestionParams {
+    pub file_path: String,
+    pub config: serde_json::Value,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PreviewIngestionResponse {
+    pub raw_content: String,
+    pub cleaned_content: String,
+    pub metadata: serde_json::Value,
+    pub preview_success: bool,
+}
+
+#[tauri::command]
+pub async fn preview_ingestion(file_path: String, config: serde_json::Value) -> Result<PreviewIngestionResponse, String> {
+    backend_request(
+        Method::POST,
+        "/api/ingestion/preview",
+        Some(json!({ "file_path": file_path, "config": config })),
+    )
+    .await
+    .map_err(|e| e.to_string())
+}
+
+// ============================================================================
 // Request Types
 // ============================================================================
 
