@@ -56,8 +56,8 @@ jobs:
       - name: Build backend executable (PyInstaller)
         run: |
           pyinstaller --name ragkit-backend --onefile --clean ragkit/desktop/main.py
-          mkdir -p desktop/src-tauri/binaries
-          copy dist\ragkit-backend.exe desktop\src-tauri\binaries\ragkit-backend-x86_64-pc-windows-msvc.exe
+          New-Item -ItemType Directory -Force -Path desktop/src-tauri/binaries
+          Copy-Item -Force dist/ragkit-backend.exe desktop/src-tauri/binaries/ragkit-backend-x86_64-pc-windows-msvc.exe
 
       - name: Build Tauri app
         uses: tauri-apps/tauri-action@v0
