@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, model_validator
+
+if TYPE_CHECKING:
+    from ragkit.ingestion.metadata import DocumentMetadata
 
 
 class Document(BaseModel):
     id: str
     content: str
     metadata: dict[str, Any] = Field(default_factory=dict)
+    structured_metadata: Any | None = None  # DocumentMetadata when available
     embedding: list[float] | None = None
 
 

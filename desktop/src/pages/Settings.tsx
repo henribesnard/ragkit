@@ -14,6 +14,7 @@ import {
   Search,
   Wifi,
   Trash2,
+  FileInput,
 } from "lucide-react";
 import { ipc, Settings as SettingsType } from "../lib/ipc";
 import { OllamaStatusCard } from "../components/OllamaStatus";
@@ -1044,6 +1045,202 @@ export function Settings() {
                       disabled={!settings.retrieval_rerank_enabled}
                     />
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Ingestion & Preprocessing */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
+                    <FileInput className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                  </div>
+                  <div>
+                    <CardTitle>Ingestion & Preprocessing</CardTitle>
+                    <CardDescription>Configure document parsing, text preprocessing, and deduplication</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {/* Document Parsing */}
+                <p className="text-xs font-semibold uppercase text-gray-400 mb-2">Document Parsing</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Select
+                    label="Parsing Engine"
+                    options={[
+                      { value: "pdfplumber", label: "pdfplumber (Default)" },
+                      { value: "pypdf", label: "PyPDF" },
+                      { value: "pdfminer", label: "PDFMiner" },
+                      { value: "unstructured", label: "Unstructured" },
+                    ]}
+                    value={settings.ingestion_parsing_engine ?? "pdfplumber"}
+                    onChange={(e) =>
+                      setSettings({ ...settings, ingestion_parsing_engine: e.target.value })
+                    }
+                  />
+                  <Select
+                    label="OCR Language"
+                    options={[
+                      { value: "fra+eng", label: "French + English" },
+                      { value: "eng", label: "English" },
+                      { value: "fra", label: "French" },
+                      { value: "deu+eng", label: "German + English" },
+                    ]}
+                    value={settings.ingestion_ocr_language ?? "fra+eng"}
+                    onChange={(e) =>
+                      setSettings({ ...settings, ingestion_ocr_language: e.target.value })
+                    }
+                    disabled={!settings.ingestion_ocr_enabled}
+                  />
+                </div>
+                <div className="mt-3">
+                  <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      checked={settings.ingestion_ocr_enabled ?? false}
+                      onChange={(e) =>
+                        setSettings({ ...settings, ingestion_ocr_enabled: e.target.checked })
+                      }
+                    />
+                    Enable OCR
+                  </label>
+                </div>
+
+                {/* Text Preprocessing */}
+                <p className="text-xs font-semibold uppercase text-gray-400 mt-6 mb-2">Text Preprocessing</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Select
+                    label="Unicode Normalization"
+                    options={[
+                      { value: "NFC", label: "NFC (Default)" },
+                      { value: "NFKC", label: "NFKC" },
+                      { value: "NFD", label: "NFD" },
+                      { value: "NFKD", label: "NFKD" },
+                      { value: "none", label: "None" },
+                    ]}
+                    value={settings.ingestion_preprocessing_normalize_unicode ?? "NFC"}
+                    onChange={(e) =>
+                      setSettings({ ...settings, ingestion_preprocessing_normalize_unicode: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="mt-3 flex flex-col gap-2">
+                  <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      checked={settings.ingestion_preprocessing_remove_urls ?? false}
+                      onChange={(e) =>
+                        setSettings({ ...settings, ingestion_preprocessing_remove_urls: e.target.checked })
+                      }
+                    />
+                    Remove URLs
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      checked={settings.ingestion_preprocessing_remove_emails ?? false}
+                      onChange={(e) =>
+                        setSettings({ ...settings, ingestion_preprocessing_remove_emails: e.target.checked })
+                      }
+                    />
+                    Remove Emails
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      checked={settings.ingestion_preprocessing_normalize_whitespace ?? true}
+                      onChange={(e) =>
+                        setSettings({ ...settings, ingestion_preprocessing_normalize_whitespace: e.target.checked })
+                      }
+                    />
+                    Normalize Whitespace
+                  </label>
+                  <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      checked={settings.ingestion_language_detection ?? false}
+                      onChange={(e) =>
+                        setSettings({ ...settings, ingestion_language_detection: e.target.checked })
+                      }
+                    />
+                    Language Detection
+                  </label>
+                </div>
+
+                {/* Deduplication */}
+                <p className="text-xs font-semibold uppercase text-gray-400 mt-6 mb-2">Deduplication</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Select
+                    label="Strategy"
+                    options={[
+                      { value: "none", label: "None" },
+                      { value: "exact", label: "Exact (SHA-256)" },
+                      { value: "fuzzy", label: "Fuzzy (Similarity)" },
+                    ]}
+                    value={settings.ingestion_deduplication_strategy ?? "none"}
+                    onChange={(e) =>
+                      setSettings({ ...settings, ingestion_deduplication_strategy: e.target.value })
+                    }
+                  />
+                  <Input
+                    type="number"
+                    label="Threshold"
+                    min={0.5}
+                    max={1}
+                    step={0.01}
+                    value={settings.ingestion_deduplication_threshold ?? 0.95}
+                    disabled={(settings.ingestion_deduplication_strategy ?? "none") !== "fuzzy"}
+                    onChange={(e) => {
+                      const next = Number(e.target.value);
+                      setSettings({
+                        ...settings,
+                        ingestion_deduplication_threshold: Number.isNaN(next)
+                          ? settings.ingestion_deduplication_threshold ?? 0.95
+                          : next,
+                      });
+                    }}
+                    hint="Similarity threshold for fuzzy deduplication (0.5–1.0)"
+                  />
+                </div>
+
+                {/* Default Metadata */}
+                <p className="text-xs font-semibold uppercase text-gray-400 mt-6 mb-2">Default Metadata</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Input
+                    label="Tenant"
+                    value={settings.ingestion_default_tenant ?? "default"}
+                    onChange={(e) =>
+                      setSettings({ ...settings, ingestion_default_tenant: e.target.value })
+                    }
+                    hint="Organization or tenant name"
+                  />
+                  <Input
+                    label="Domain"
+                    value={settings.ingestion_default_domain ?? "general"}
+                    onChange={(e) =>
+                      setSettings({ ...settings, ingestion_default_domain: e.target.value })
+                    }
+                    hint="Knowledge domain"
+                  />
+                  <Select
+                    label="Confidentiality"
+                    options={[
+                      { value: "public", label: "Public" },
+                      { value: "internal", label: "Internal" },
+                      { value: "confidential", label: "Confidential" },
+                      { value: "secret", label: "Secret" },
+                    ]}
+                    value={settings.ingestion_default_confidentiality ?? "internal"}
+                    onChange={(e) =>
+                      setSettings({ ...settings, ingestion_default_confidentiality: e.target.value })
+                    }
+                  />
                 </div>
               </CardContent>
             </Card>

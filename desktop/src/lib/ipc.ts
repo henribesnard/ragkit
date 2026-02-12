@@ -96,6 +96,20 @@ interface Settings {
   llm_top_p: number;
   llm_system_prompt: string;
   theme: "light" | "dark" | "system";
+  // Ingestion & Preprocessing
+  ingestion_parsing_engine?: string;
+  ingestion_ocr_enabled?: boolean;
+  ingestion_ocr_language?: string;
+  ingestion_preprocessing_normalize_unicode?: string;
+  ingestion_preprocessing_remove_urls?: boolean;
+  ingestion_preprocessing_remove_emails?: boolean;
+  ingestion_preprocessing_normalize_whitespace?: boolean;
+  ingestion_deduplication_strategy?: string;
+  ingestion_deduplication_threshold?: number;
+  ingestion_language_detection?: boolean;
+  ingestion_default_tenant?: string;
+  ingestion_default_domain?: string;
+  ingestion_default_confidentiality?: string;
 }
 
 interface WizardAnswers {

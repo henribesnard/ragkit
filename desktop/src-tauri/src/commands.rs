@@ -110,6 +110,20 @@ pub struct Settings {
     pub llm_provider: String,
     pub llm_model: String,
     pub theme: String,
+    // Ingestion & Preprocessing
+    pub ingestion_parsing_engine: Option<String>,
+    pub ingestion_ocr_enabled: Option<bool>,
+    pub ingestion_ocr_language: Option<String>,
+    pub ingestion_preprocessing_normalize_unicode: Option<String>,
+    pub ingestion_preprocessing_remove_urls: Option<bool>,
+    pub ingestion_preprocessing_remove_emails: Option<bool>,
+    pub ingestion_preprocessing_normalize_whitespace: Option<bool>,
+    pub ingestion_deduplication_strategy: Option<String>,
+    pub ingestion_deduplication_threshold: Option<f64>,
+    pub ingestion_language_detection: Option<bool>,
+    pub ingestion_default_tenant: Option<String>,
+    pub ingestion_default_domain: Option<String>,
+    pub ingestion_default_confidentiality: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

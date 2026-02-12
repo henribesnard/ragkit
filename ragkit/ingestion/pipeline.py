@@ -11,10 +11,14 @@ import structlog
 from pydantic import BaseModel
 
 from ragkit.config.schema import IngestionConfig
+from ragkit.config.schema_v2 import TextPreprocessingConfig
 from ragkit.exceptions import IngestionError
 from ragkit.ingestion.chunkers import create_chunker
+from ragkit.ingestion.deduplication import DocumentDeduplicator
+from ragkit.ingestion.metadata_extractor import MetadataExtractor
 from ragkit.ingestion.parsers import create_parser
 from ragkit.ingestion.parsers.base import ParsedDocument
+from ragkit.ingestion.preprocessing import TextPreprocessor
 from ragkit.ingestion.sources import create_source_loader
 from ragkit.ingestion.sources.base import RawDocument
 from ragkit.models import Chunk
@@ -34,6 +38,7 @@ class VectorStoreProtocol(Protocol):
 class IngestionStats(BaseModel):
     documents_loaded: int = 0
     documents_parsed: int = 0
+    documents_deduplicated: int = 0
     chunks_created: int = 0
     chunks_embedded: int = 0
     chunks_stored: int = 0
@@ -43,7 +48,7 @@ class IngestionStats(BaseModel):
 
 
 class IngestionPipeline:
-    """Orchestrate ingestion: load -> parse -> chunk -> embed -> store."""
+    """Orchestrate ingestion: load -> parse -> dedup -> preprocess -> metadata -> chunk -> embed -> store."""
 
     def __init__(
         self,
@@ -54,6 +59,11 @@ class IngestionPipeline:
         max_retries: int = 2,
         retry_delay: float = 0.5,
         metrics_collector: Any | None = None,
+        *,
+        preprocessing_config: TextPreprocessingConfig | None = None,
+        deduplication_strategy: str = "none",
+        deduplication_threshold: float = 0.95,
+        metadata_defaults: dict | None = None,
     ) -> None:
         self.config = config
         self.embedder = embedder
@@ -65,6 +75,21 @@ class IngestionPipeline:
 
         self.parser = create_parser(config.parsing)
         self.chunker = create_chunker(config.chunking, embedder=embedder)
+
+        # ── New v2 components ─────────────────────────────────────────
+        self._preprocessor: TextPreprocessor | None = None
+        if preprocessing_config is not None:
+            self._preprocessor = TextPreprocessor(preprocessing_config)
+
+        self._deduplicator: DocumentDeduplicator | None = None
+        if deduplication_strategy != "none":
+            self._deduplicator = DocumentDeduplicator(
+                strategy=deduplication_strategy,
+                threshold=deduplication_threshold,
+            )
+
+        self._metadata_extractor = MetadataExtractor()
+        self._metadata_defaults = metadata_defaults or {}
 
         if self.vector_store is not None and self.embedder is None:
             raise IngestionError("Embedder is required when a vector store is configured.")
@@ -100,8 +125,43 @@ class IngestionPipeline:
                         )
                         stats.documents_parsed += 1
 
+                        # ── Deduplication ──────────────────────────────
+                        if self._deduplicator is not None:
+                            if self._deduplicator.is_duplicate(parsed.content):
+                                stats.documents_deduplicated += 1
+                                self.logger.info(
+                                    "document_deduplicated",
+                                    source=raw_doc.source_path,
+                                )
+                                continue
+                            self._deduplicator.register(parsed.content)
+
+                        # ── Text preprocessing ────────────────────────
+                        if self._preprocessor is not None:
+                            parsed.content = self._preprocessor.process(parsed.content)
+
+                        # ── Metadata extraction ───────────────────────
+                        doc_metadata = self._metadata_extractor.extract(
+                            raw_doc,
+                            parsed,
+                            defaults=self._metadata_defaults,
+                        )
+                        # Merge structured metadata into parsed.metadata
+                        flat_meta = doc_metadata.to_flat_dict()
+                        parsed.metadata.update(flat_meta)
+
                         chunks = await self.chunker.chunk_async(parsed)
                         stats.chunks_created += len(chunks)
+
+                        # Propagate document metadata to chunks
+                        for chunk in chunks:
+                            chunk.metadata.setdefault("document_id", doc_metadata.document_id)
+                            chunk.metadata.setdefault("source", doc_metadata.source)
+                            chunk.metadata.setdefault("source_type", doc_metadata.source_type)
+                            if doc_metadata.language:
+                                chunk.metadata.setdefault("language", doc_metadata.language)
+                            if doc_metadata.title:
+                                chunk.metadata.setdefault("title", doc_metadata.title)
 
                         if self.embedder:
                             embedder = self.embedder
