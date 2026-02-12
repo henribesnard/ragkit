@@ -5,6 +5,8 @@ import os
 import sys
 from pathlib import Path
 
+from PyInstaller.utils.hooks import collect_submodules, collect_data_files
+
 block_cipher = None
 
 # Project root
@@ -14,7 +16,7 @@ project_root = os.path.dirname(os.path.abspath(SPEC))
 datas = [
     # YAML templates needed by ragkit
     (os.path.join(project_root, 'ragkit', 'templates'), os.path.join('ragkit', 'templates')),
-]
+] + collect_data_files('chromadb')
 
 # Hidden imports that PyInstaller cannot detect automatically
 hiddenimports = [
@@ -57,7 +59,6 @@ hiddenimports = [
     'tokenizers',
     'huggingface_hub',
     'chromadb',
-    'chromadb.telemetry.product.posthog',
     'qdrant_client',
     'unstructured',
     'rank_bm25',
@@ -86,7 +87,7 @@ hiddenimports = [
     'dotenv',
     'numpy',
     'sqlite3',
-]
+] + collect_submodules('chromadb')
 
 a = Analysis(
     [os.path.join(project_root, 'ragkit', 'desktop', 'main.py')],
@@ -94,9 +95,9 @@ a = Analysis(
     binaries=[],
     datas=datas,
     hiddenimports=hiddenimports,
-    hookspath=[],
+    hookspath=[os.path.join(project_root, 'pyinstaller_hooks')],
     hooksconfig={},
-    runtime_hooks=[],
+    runtime_hooks=[os.path.join(project_root, 'pyinstaller_hooks', 'runtime_hook_chromadb.py')],
     excludes=[
         # Exclude heavy modules not needed at runtime
         'gradio',
