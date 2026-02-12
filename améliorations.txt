@@ -1,0 +1,248 @@
+Il y des améliorations à prévoir pour satisfaire les exigences attendues de ragkit par exemple ,
+il faut prévoir une structure de métadonnées par défaut mais bien large pour permettre d'abord une base propre pour la suite. 
+L'application prévoit une structure  de métadonnées par défaut par document (détectable automatiquement par l'application et modifiable ensuite par l'utilisateur ) 
+Exemple de structure des métadonnées à compléter : Tenant>Domaine> sous domaines> Titre> auteur>source>date>tags etc... 
+Donc pour améliorer l'application on prévoit    
+le plan d'amélioration  par grand domaine de paramétrages 
+Comme ca on améliore chaque domaine et valide le domaine avant de passer au domaine suivant. Domaines dans l'ordre. 
+1- INGESTION & PREPROCESSING : 
+Document Parsing
+Text Preprocessing
+2- CHUNKING : 
+Stratégie de Découpage
+Paramètres de Taille
+Séparateurs et Délimiteurs
+Chunking Avancé
+Metadata Enrichment
+3- EMBEDDING
+Choix du Modèle
+Dimensions
+Normalisation
+Batching
+Gestion des Tokens
+4- BASE DE DONNÉES VECTORIELLE
+Choix de la DB
+Métrique de Distance
+Type d'Index
+Paramètres HNSW 
+Paramètres IVF 
+Quantization
+Sharding & Réplication
+Filtrage
+5- RECHERCHE SÉMANTIQUE
+Query Processing
+Retrieval Parameters
+Diversification
+Filtres Metadata
+6- RECHERCHE LEXICALE
+Tokenization
+Stemming & Lemmatization
+Paramètres BM25
+N-grams
+7- RECHERCHE HYBRIDE (Fusion)
+Pondération
+Méthode de Fusion
+Normalisation des Scores
+Stratégies Avancées
+8- RERANKING
+Modèle de Reranking
+Paramètres de Reranking
+Output
+Stratégies Multi-étapes
+9- LLM / GÉNÉRATION
+Choix du Modèle
+Paramètres de Génération
+Prompt Engineering
+Context Management
+Citation & Attribution
+Fallback & Guardrails
+10- CACHE & PERFORMANCE
+cache de Requêtes
+Cache d'Embeddings
+Batching & Async
+Warmup
+11- MONITORING & EVALUATION
+Métriques de Retrieval
+Métriques de Génération
+Performance
+Logging & Observability
+12- SÉCURITÉ & COMPLIANCE
+Authentification & Autorisation
+Privacy
+Content Moderation
+13- MISE À JOUR & MAINTENANCE
+Indexation Incrémentale
+versioning
+Refresh
+
+Chaque domaine doit être une Etape d'amélriation , et une Etape doit contenir plusieurs phases et à la fin on peut installer l'application la tester et valider.
+Pour l'interface UI chaque domaine de paramètrage doit apparaitre explicitement dans les paramètres avec des valeurs de paramètres par défaut ou non 
+Si tu valide cette nouvelle façon incrémentale d'améliorer  RAGkit, crée un dossier improve_ragkit/ dans lequel tu écris un  roadmap complet + le plan d'implémentaion d'amélioration pour chaque étape. 
+Un doc par étape 
+L'idée c'est de suivre le roadmap étape par étape et de valider l'application par domaine de paramètrage. Exemple quand on finit d'implémenter l'amélioration de l'étape 1, on construit 
+l'application en local dans C:\Users\henri\Projets\ragkit\.build j'installe et teste et valide avant de passer à l'étape suivante 
+
+
+Principe d'amélioration  : "Étrangler et enrichir" (Strangler Fig Pattern) par rapport aux paramètres de chaque étape dans parametres_rag_exhaustif.md
+On garde le code existant comme base fonctionnelle, et pour chaque étape du roadmap on fait :
+
+Auditer — Lister ce qui existe déjà dans le code actuel pour ce domaine (ex : les parsers existent, le LexicalRetriever existe)
+Compléter — Ajouter ce qui manque par rapport au plan (ex : la structure de métadonnées enrichie, les paramètres BM25 non branchés)
+Brancher — Connecter les morceaux qui existent mais ne sont pas reliés (ex : l'index lexical jamais alimenté)
+Tester & valider — Écrire les tests de validation de l'étape, s'assurer que tout passe
+
+Pour les métadonnées enrichies je propose : DocumentMetadata
+Hiérarchie organisationnelle
+
+tenant — Organisation / client
+domain — Domaine métier
+subdomain — Sous-domaine
+
+Identification document
+
+document_id — ID unique généré
+title — Extrait du H1 ou nom de fichier
+author — Extrait des métadonnées PDF/DOCX
+source — Nom du fichier
+source_path — Chemin relatif
+source_type — pdf, docx, md, txt, html, csv
+source_url — URL d'origine si applicable
+mime_type — MIME type détecté
+
+Temporalité
+
+created_at — Date de création du document
+modified_at — Dernière modification
+ingested_at — Timestamp d'ingestion
+version — Version du document
+
+Contenu (auto-détecté)
+
+language — Langue ISO 639-1
+page_count
+word_count
+char_count
+has_tables
+has_images
+has_code
+encoding
+
+Classification (modifiable par l'utilisateur)
+
+tags — Liste libre
+category — Catégorie prédéfinie
+confidentiality — public / internal / confidential / secret
+status — draft / review / published / archived
+
+Parsing (système)
+
+parser_engine — Moteur utilisé
+ocr_applied — OCR déclenché ou non
+parsing_quality — Score 0-1
+parsing_warnings — Avertissements
+
+Extensible
+
+custom — Dictionnaire libre clé/valeur
+
+
+ChunkMetadata (hérité + enrichi)
+Hérité du document : document_id, tenant, domain, title, source, language, tags
+Spécifique au chunk
+
+chunk_id
+chunk_index — Position dans le document
+total_chunks
+chunk_strategy — fixed / semantic / recursive
+chunk_size_tokens
+chunk_size_chars
+
+Contexte structurel
+
+page_number
+section_title — Titre de section parent
+heading_path — Fil d'Ariane des headings
+paragraph_index
+
+Relations
+
+previous_chunk_id
+next_chunk_id
+parent_chunk_id — Pour le parent-child chunking
+
+Actuellement j'ai noté les améliorations suivantes à apporter :
+Améliorations à apporter à la version actuelle
+INGESTION & PREPROCESSING
+
+Ajouter la structure de métadonnées enrichie (tenant/domain/subdomain/tags/etc.)
+Auto-détection des métadonnées document (title, author, language, page_count)
+Exposer OCR dans l'UI (actuellement backend only)
+Ajouter le preprocessing texte (normalisation unicode, suppression URLs, whitespace)
+Ajouter la déduplication à l'ingestion (exact + fuzzy)
+Exposer la détection de langue dans l'UI
+
+CHUNKING
+
+Ajouter les stratégies manquantes (sentence_based, paragraph_based, recursive)
+Ajouter min_chunk_size / max_chunk_size
+Corriger le chunking sémantique (méthode sync inexistante)
+Ajouter le parent-child chunking
+Enrichir les ChunkMetadata (page_number, section_title, heading_path, relations prev/next)
+Inclure le titre du document dans chaque chunk
+
+EMBEDDING
+
+Ajouter multilingual-e5-large dans les modèles ONNX supportés
+Auto-téléchargement du modèle embedding au premier lancement
+Exposer embedding_batch_size et normalize_embeddings dans l'UI
+
+BASE VECTORIELLE
+
+Exposer distance_metric dans l'UI
+Exposer les paramètres HNSW (ef_construction, ef_search, M) dans l'UI
+
+RECHERCHE SÉMANTIQUE
+
+Exposer MMR (enabled, lambda, diversity_threshold) dans l'UI
+Ajouter query_expansion (synonymes, reformulation)
+
+RECHERCHE LEXICALE
+
+Brancher l'index lexical dans le pipeline d'ingestion (bug critique)
+Persister l'index BM25 sur disque (perdu à chaque redémarrage)
+Inclure les métadonnées dans l'index BM25 (title, source en plus du content)
+Exposer bm25_delta, tokenizer_type, lemmatization dans l'UI
+Ajouter le support n-grams
+Ajouter custom_stopwords
+
+RECHERCHE HYBRIDE
+
+Exposer normalization_method (min-max, z-score) dans l'UI
+Ajouter dynamic_alpha (ajustement auto selon le type de requête)
+
+RERANKING
+
+Ajouter un reranker local (cross-encoder) en plus de Cohere
+Ajouter le reranking multi-étapes
+
+LLM / GÉNÉRATION
+
+Exposer frequency_penalty et presence_penalty dans l'UI
+Ajouter citation_format configurable (inline, footnote, [1])
+Ajouter confidence_threshold (répondre "je ne sais pas" si score trop bas)
+
+CACHE & PERFORMANCE
+
+Ajouter un cache de requêtes (exact + sémantique)
+Ajouter le warmup au démarrage
+
+MONITORING
+
+Ajouter les métriques retrieval (precision@k, recall@k, MRR)
+Ajouter le feedback utilisateur (👍👎)
+
+TRANSVERSE
+
+Corriger les vector stores sync dans du code async (ChromaDB, Qdrant)
+Corriger l'import cassé dans desktop/kb_manager.py
+Implémenter le pipeline RAG dans le desktop (actuellement placeholder)
