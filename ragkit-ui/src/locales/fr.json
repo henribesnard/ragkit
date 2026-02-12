@@ -1,0 +1,734 @@
+{
+  "common": {
+    "actions": {
+      "add": "Ajouter",
+      "applyProfile": "Appliquer le profil",
+      "back": "Retour",
+      "browse": "Parcourir",
+      "close": "Fermer",
+      "formatJson": "Formater le JSON",
+      "help": "Aide",
+      "launch": "Lancer",
+      "next": "Suivant",
+      "previous": "Précédent",
+      "saveChanges": "Enregistrer les changements",
+      "saving": "Enregistrement...",
+      "validate": "Valider"
+    },
+    "cache": {
+      "disk": "Disque",
+      "memory": "Mémoire"
+    },
+    "chunking": {
+      "fixed": "Fixe",
+      "semantic": "Sémantique"
+    },
+    "environments": {
+      "development": "Développement",
+      "staging": "Préproduction",
+      "production": "Production"
+    },
+    "labels": {
+      "active": "Actif",
+      "custom": "Personnalisé",
+      "language": "Langue",
+      "max": "max",
+      "min": "min",
+      "selected": "Sélectionné"
+    },
+    "languages": {
+      "de": "Allemand",
+      "en": "Anglais",
+      "es": "Espagnol",
+      "fr": "Français",
+      "it": "Italien",
+      "pt": "Portugais"
+    },
+    "loading": "Chargement...",
+    "options": {
+      "auto": "Auto",
+      "cloud": "Cloud",
+      "daily": "Quotidien",
+      "default": "Par défaut",
+      "local": "Local",
+      "none": "Aucun",
+      "persistent": "Persistant",
+      "sizeBased": "Basé sur la taille",
+      "text": "Texte",
+      "weekly": "Hebdomadaire"
+    },
+    "placeholders": {
+      "addCustomValue": "Ajouter une valeur personnalisée",
+      "customModel": "custom-model-name"
+    },
+    "retrieval": {
+      "hybrid": "Hybride",
+      "hybridRerank": "Hybride + Rerank",
+      "lexical": "Lexical",
+      "semantic": "Sémantique"
+    },
+    "status": {
+      "degraded": "dégradé",
+      "healthy": "sain",
+      "unhealthy": "défaillant",
+      "unknown": "inconnu"
+    },
+    "units": {
+      "days": "jours"
+    },
+    "values": {
+      "no": "Non",
+      "unknown": "inconnu",
+      "yes": "Oui"
+    }
+  },
+  "nav": {
+    "chatbot": "Chatbot",
+    "configuration": "Configuration",
+    "dashboard": "Tableau de bord",
+    "ingestion": "Ingestion",
+    "logs": "Journaux",
+    "setup": "Assistant de configuration"
+  },
+  "sidebar": {
+    "controlRoom": "Salle de contrôle",
+    "setupMode": "Mode configuration"
+  },
+  "header": {
+    "live": "en direct",
+    "newRun": "Nouvelle exécution",
+    "overview": "Vue d'ensemble",
+    "subtitle": "Battement du coeur du système RAG",
+    "toggleSidebar": "Afficher/masquer la barre latérale"
+  },
+  "dashboard": {
+    "liveEvent": "Événement en direct",
+    "stats": {
+      "documents": "Documents",
+      "pending": "{{count}} en attente",
+      "queries": "Requêtes (24h)",
+      "chunksIndexed": "Chunks indexés",
+      "vectorCoverage": "Couverture du stockage vectoriel",
+      "successRate": "Taux de réussite {{rate}}",
+      "avgLatency": "Latence moyenne",
+      "acrossAllQueries": "Sur l'ensemble des requêtes"
+    },
+    "metrics": {
+      "successRate": "Taux de réussite",
+      "successRateHelp": "Requêtes répondues sans erreur",
+      "latencyP95": "Latence p95",
+      "latencyP95Help": "Temps de réponse niveau service",
+      "latencyTrend": "Tendance de latence",
+      "latencyTrendHelp": "Latence médiane sur les dernières 24h",
+      "queryVolume": "Volume de requêtes",
+      "queryVolumeHelp": "Débit sur les dernières 24h",
+      "cost": "Coût (est.)",
+      "costHelp": "Activer le suivi des coûts pour la visibilité",
+      "noData": "Pas encore de données"
+    },
+    "queryChart": {
+      "title": "Requêtes dans le temps",
+      "subtitle": "Tendance du volume sur la fenêtre sélectionnée."
+    },
+    "recent": {
+      "title": "Requêtes récentes",
+      "subtitle": "Dernières questions utilisateurs avec latence.",
+      "loading": "Chargement des requêtes...",
+      "empty": "Aucune requête enregistrée pour le moment."
+    },
+    "health": {
+      "title": "Santé du système",
+      "subtitle": "Instantané de l'état des services clés.",
+      "loading": "Vérification de la santé...",
+      "empty": "Aucune donnée de santé disponible."
+    },
+    "ingestion": {
+      "title": "Ingestion",
+      "subtitle": "Suivre la progression de l'indexation.",
+      "loading": "Chargement du statut d'ingestion...",
+      "pending": "Documents en attente",
+      "running": "En cours",
+      "runningLabel": "Ingestion en cours",
+      "runLabel": "Lancer l'ingestion",
+      "totalChunks": "Total des chunks"
+    }
+  },
+  "ingestion": {
+    "control": {
+      "title": "Contrôle d'ingestion",
+      "subtitle": "Surveiller et déclencher les exécutions d'ingestion."
+    },
+    "actions": {
+      "fullReindex": "Réindexation complète",
+      "runIncremental": "Lancer l'incrémental",
+      "running": "En cours..."
+    },
+    "status": {
+      "pendingDocs": "Docs en attente",
+      "running": "En cours",
+      "totalChunks": "Total des chunks",
+      "totalDocs": "Total des docs"
+    },
+    "history": {
+      "title": "Historique des exécutions",
+      "subtitle": "Exécutions d'ingestion précédentes.",
+      "empty": "Aucune exécution d'ingestion enregistrée pour le moment.",
+      "stats": "{{docs}} docs / {{chunks}} chunks",
+      "status": {
+        "completed": "Terminé",
+        "failed": "Échoué",
+        "running": "En cours"
+      }
+    }
+  },
+  "logs": {
+    "title": "Journaux de requêtes",
+    "subtitle": "Revoir les requêtes récentes, intentions et latence.",
+    "loading": "Chargement des journaux...",
+    "empty": "Aucune requête enregistrée pour le moment.",
+    "intent": "Intention",
+    "page": "Page {{page}}",
+    "status": {
+      "ok": "OK",
+      "error": "Erreur"
+    }
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "subtitle": "Retournez au tableau de bord pour continuer."
+  },
+  "chat": {
+    "empty": "Commencez une conversation pour tester votre RAG.",
+    "placeholder": "Posez votre question",
+    "send": "Envoyer",
+    "sourceLabel": "Source {{index}}",
+    "feedback": {
+      "helpful": "Utile",
+      "needsWork": "À améliorer"
+    },
+    "errors": {
+      "streamingDisabled": "Le streaming est désactivé dans la configuration. Activez-le dans Paramètres > API.",
+      "unreachable": "Impossible de joindre l'API. Veuillez vérifier les logs du serveur."
+    },
+    "citation": {
+      "title": "Citation",
+      "score": "Score : {{score}}",
+      "empty": "Aucun extrait disponible pour cette citation pour le moment."
+    },
+    "debug": {
+      "title": "Débogage",
+      "chunks": "Chunks",
+      "intent": "Intention",
+      "language": "Langue",
+      "latency": "Latence",
+      "needsRetrieval": "Nécessite une récupération",
+      "streaming": "Streaming"
+    }
+  },
+  "config": {
+    "title": "Configuration",
+    "subtitle": "Gérer les paramètres de votre projet.",
+    "loading": "Chargement de la configuration...",
+    "actions": {
+      "export": "Exporter YAML"
+    },
+    "validation": {
+      "valid": "La configuration est valide.",
+      "invalid": "La configuration contient des erreurs.",
+      "unable": "Impossible de valider la configuration.",
+      "formatError": "Impossible de formater le JSON : corrigez d'abord les erreurs."
+    },
+    "advanced": {
+      "title": "Configuration complète",
+      "subtitle": "Utilisez la vue formulaire pour des modifications rapides."
+    },
+    "tabs": {
+      "general": "Général",
+      "ingestion": "Ingestion",
+      "embedding": "Embedding",
+      "retrieval": "Retrieval",
+      "llm": "LLM",
+      "vectorStore": "Stockage vectoriel",
+      "conversation": "Conversation",
+      "agents": "Agents",
+      "observability": "Observabilité"
+    },
+    "embedding": {
+      "documentTitle": "Modèle d'embedding des documents",
+      "queryTitle": "Modèle d'embedding des requêtes",
+      "providerHelp": "Service qui génère les embeddings. OpenAI et Cohere nécessitent une clé API. Ollama tourne en local sans clé. LiteLLM est un proxy générique.",
+      "modelHelp": "Modèle d'embedding à utiliser. Chaque modèle produit des vecteurs de dimensions différentes.",
+      "apiKeyHelp": "Clé API pour le fournisseur d'embedding. Non nécessaire pour les fournisseurs locaux (Ollama).",
+      "queryApiKeyHelp": "Clé API pour le fournisseur d'embedding des requêtes.",
+      "sameHelp": "Si activé, le même modèle est utilisé pour les requêtes et les documents.",
+      "cacheHelp": "Activer la mise en cache des embeddings calculés.",
+      "cacheBackendHelp": "memory : cache en RAM. disk : cache sur disque.",
+      "batchHelp": "Nombre de textes par requête. Plus élevé = plus rapide pour l'ingestion.",
+      "dimensionsHelp": "Dimensions des vecteurs. Laisser vide pour utiliser la valeur par défaut."
+    },
+    "ingestion": {
+      "sourcePathLabel": "Chemin source",
+      "sourcePathHelp": "Dossier contenant les documents qui composeront votre base de connaissances. Chemin relatif depuis la racine du projet.",
+      "patternsLabel": "Motifs",
+      "patternsHelp": "Types de fichiers à indexer. Sélectionnez vos formats de documents.",
+      "recursiveLabel": "Récursif",
+      "recursiveHelp": "Si activé, analyse aussi les sous-dossiers.",
+      "parsingTitle": "Parsing",
+      "parsingEngineLabel": "Moteur de parsing",
+      "parsingEngineHelp": "Moteur d'extraction de texte. auto choisit le meilleur moteur par type de fichier. unstructured et docling supportent plus de formats. pypdf est léger et rapide pour les PDF simples.",
+      "ocrEnabledLabel": "OCR activé",
+      "ocrEnabledHelp": "Activer l'OCR pour les PDF scannés et images. Nécessite un moteur OCR.",
+      "ocrEngineLabel": "Moteur OCR",
+      "ocrEngineHelp": "tesseract : OCR open-source classique, rapide. easyocr : basé sur le deep learning, meilleur pour les langues non latines.",
+      "ocrLanguagesLabel": "Langues OCR",
+      "ocrLanguagesHelp": "Langues utilisées pour l'OCR. Ajoutez les codes de langue pertinents.",
+      "chunkingTitle": "Chunking",
+      "strategyLabel": "Stratégie",
+      "strategyHelp": "fixed : chunks de taille fixe (simple et rapide). semantic : découpe par cohérence sémantique.",
+      "chunkSizeLabel": "Taille des chunks",
+      "chunkSizeHelp": "Nombre de caractères par chunk. Plus petit = plus précis. Plus grand = plus de contexte.",
+      "chunkOverlapLabel": "Chevauchement des chunks",
+      "chunkOverlapHelp": "Chevauchement entre chunks consécutifs. Évite de couper les phrases.",
+      "similarityLabel": "Seuil de similarité",
+      "similarityHelp": "Seuil pour décider où couper. Plus élevé = chunks plus fins. Plus bas = chunks plus grands.",
+      "minChunkLabel": "Taille min du chunk",
+      "minChunkHelp": "Taille minimale pour un chunk sémantique. Les petits chunks sont fusionnés.",
+      "maxChunkLabel": "Taille max du chunk",
+      "maxChunkHelp": "Taille maximale pour un chunk sémantique. Au-delà, le texte est coupé.",
+      "metadataTitle": "Métadonnées",
+      "metadataLabel": "Champs extraits",
+      "metadataHelp": "Métadonnées extraites de chaque document et stockées avec les chunks. Utile pour le filtrage."
+    },
+    "llm": {
+      "primaryTitle": "LLM principal",
+      "secondaryTitle": "LLM secondaire",
+      "fastTitle": "LLM rapide",
+      "parametersTitle": "Paramètres du modèle",
+      "providerHelp": "Service qui génère les réponses. OpenAI, Anthropic, DeepSeek, Groq et Mistral nécessitent une clé API. Ollama tourne en local.",
+      "modelHelp": "Modèle LLM utilisé pour générer les réponses.",
+      "apiKeyHelp": "Clé API pour le fournisseur LLM.",
+      "temperatureHelp": "Contrôle la créativité. 0 = déterministe, 1+ = créatif.",
+      "maxTokensHelp": "Nombre maximal de tokens pour la réponse.",
+      "topPHelp": "Échantillonnage nucleus. 1.0 = sans limite.",
+      "timeoutHelp": "Temps d'attente maximal avant timeout (secondes).",
+      "secondaryHelp": "Activer un LLM secondaire pour des tâches spécifiques.",
+      "fastHelp": "Activer un LLM rapide pour les tâches légères."
+    },
+    "observability": {
+      "loggingTitle": "Journalisation",
+      "levelLabel": "Niveau",
+      "levelHelp": "Niveau de journalisation.",
+      "formatLabel": "Format",
+      "formatHelp": "Format des logs.",
+      "fileTitle": "Sortie fichier",
+      "fileEnabledHelp": "Écrire les logs dans un fichier.",
+      "filePathHelp": "Chemin du fichier de logs.",
+      "rotationLabel": "Rotation",
+      "rotationHelp": "Rotation des logs (quotidienne, hebdomadaire, basée sur la taille).",
+      "retentionLabel": "Rétention",
+      "retentionHelp": "Nombre de jours de conservation des logs.",
+      "metricsTitle": "Métriques",
+      "metricsEnabledHelp": "Activer la collecte de métriques.",
+      "trackLabel": "Suivre",
+      "trackHelp": "Métriques à collecter."
+    },
+    "retrieval": {
+      "architectureHelp": "Stratégie de recherche. sémantique : similarité vectorielle. lexical : recherche par mots-clés. hybride : combine les deux. hybrid_rerank : hybride + reranking.",
+      "semanticTitle": "Recherche sémantique",
+      "semanticEnabledHelp": "Activer la recherche sémantique.",
+      "semanticWeightHelp": "Poids de la recherche sémantique dans le score hybride.",
+      "semanticTopKHelp": "Nombre de résultats sémantiques à retourner.",
+      "semanticSimilarityHelp": "Score de similarité minimum pour les résultats sémantiques.",
+      "lexicalTitle": "Recherche lexicale",
+      "lexicalEnabledHelp": "Activer la recherche lexicale.",
+      "lexicalWeightHelp": "Poids de la recherche lexicale dans le score hybride.",
+      "lexicalTopKHelp": "Nombre de résultats lexicaux à retourner.",
+      "algorithmHelp": "Algorithme de recherche lexicale (BM25).",
+      "bm25Title": "Paramètres BM25",
+      "k1Help": "Contrôle la saturation de la fréquence des termes.",
+      "bHelp": "Contrôle la normalisation de la longueur des documents.",
+      "preprocessingTitle": "Prétraitement",
+      "lowercaseLabel": "Minuscules",
+      "lowercaseHelp": "Mettre le texte en minuscules avant recherche.",
+      "stopwordsLabel": "Supprimer les stopwords",
+      "stopwordsHelp": "Supprime les stopwords qui apportent peu de sens.",
+      "stopwordsLangLabel": "Langue des stopwords",
+      "stopwordsLangHelp": "Langue pour les stopwords.",
+      "stemmingLabel": "Stemming",
+      "stemmingHelp": "Réduire les mots à leur racine.",
+      "rerankTitle": "Reranking",
+      "rerankEnabledHelp": "Activer le reranking pour affiner les résultats.",
+      "rerankProviderHelp": "Fournisseur de reranking qui réévalue la pertinence.",
+      "rerankModelHelp": "Modèle de reranking (ex. rerank-english-v3.0).",
+      "rerankApiKeyHelp": "Clé API pour le fournisseur de reranking.",
+      "rerankThresholdLabel": "Seuil de pertinence",
+      "rerankThresholdHelp": "Score minimum du reranker pour conserver un résultat.",
+      "rerankTopNHelp": "Résultats conservés après reranking.",
+      "candidatesLabel": "Candidats",
+      "candidatesHelp": "Nombre de résultats envoyés au reranker.",
+      "fusionTitle": "Fusion",
+      "fusionMethodLabel": "Méthode",
+      "fusionMethodHelp": "weighted_sum ou reciprocal_rank_fusion.",
+      "fusionWeighted": "Somme pondérée",
+      "fusionRRF": "Fusion de rang réciproque",
+      "normalizeLabel": "Normaliser les scores",
+      "normalizeHelp": "Normaliser les scores avant la fusion.",
+      "rrfLabel": "RRF K",
+      "rrfHelp": "Paramètre de fusion RRF.",
+      "dedupHelp": "Supprimer les chunks trop similaires du contexte final.",
+      "dedupThresholdLabel": "Seuil de déduplication",
+      "dedupThresholdHelp": "Seuil de similarité pour considérer un doublon.",
+      "contextChunksHelp": "Nombre maximal de chunks de contexte envoyés au LLM.",
+      "contextTokensHelp": "Limite de tokens pour le contexte dans le prompt."
+    },
+    "vectorStore": {
+      "providerHelp": "Base de données vectorielle. qdrant : performante, supporte le cloud. chroma : simple, bonne pour le développement.",
+      "collectionLabel": "Nom de collection",
+      "collectionHelp": "Nom de la collection dans la base vectorielle.",
+      "distanceLabel": "Métrique de distance",
+      "distanceHelp": "Métrique de distance vectorielle.",
+      "modeLabel": "Mode",
+      "urlLabel": "URL",
+      "qdrantUrlHelp": "URL du cluster Qdrant Cloud.",
+      "qdrantApiKeyHelp": "Clé API Qdrant Cloud.",
+      "qdrantPathHelp": "Chemin du stockage Qdrant local.",
+      "qdrantModeHelp": "memory : rapide, perdu au redémarrage. local : persistant sur disque. cloud : hébergé sur Qdrant Cloud.",
+      "chromaCollectionHelp": "Nom de collection dans Chroma.",
+      "chromaPathHelp": "Chemin du stockage Chroma persistant.",
+      "chromaModeHelp": "memory : rapide, perdu au redémarrage. persistent : persistant sur disque.",
+      "batchLabel": "Taille de lot d'ajout",
+      "batchHelp": "Taille de lot pour les insertions (laisser vide = pas de lot).",
+      "chromaBatchHelp": "Taille de lot pour les insertions."
+    },
+    "conversation": {
+      "memoryTitle": "Mémoire",
+      "memoryEnabledHelp": "Activer la mémoire de conversation.",
+      "memoryTypeLabel": "Type",
+      "memoryTypeHelp": "buffer_window : garder les N derniers messages. summary : résumé. none : pas de mémoire.",
+      "bufferWindow": "Fenêtre tampon",
+      "windowLabel": "Taille de fenêtre",
+      "windowHelp": "Nombre de messages précédents conservés en mémoire.",
+      "includeLabel": "Inclure dans le prompt",
+      "includeHelp": "Inclure l'historique dans le prompt.",
+      "persistenceTitle": "Persistance",
+      "persistenceEnabledHelp": "Conserver les conversations entre redémarrages.",
+      "backendLabel": "Backend",
+      "backendHelp": "Backend de persistance.",
+      "summary": "Résumé"
+    },
+    "agents": {
+      "modeLabel": "Mode",
+      "modeHelp": "default : utilise le pipeline standard requête -> retrieval -> réponse. custom : permet des agents personnalisés.",
+      "behaviorTitle": "Comportement",
+      "alwaysRetrieveLabel": "Toujours récupérer",
+      "alwaysRetrieveHelp": "Toujours exécuter la recherche, même pour les salutations et hors périmètre.",
+      "detectIntentsLabel": "Détecter les intentions",
+      "detectIntentsHelp": "Types d'intention à détecter.",
+      "queryAnalyzerTitle": "Analyseur de requêtes",
+      "llmReferenceLabel": "Référence LLM",
+      "llmReferenceHelp": "Quel LLM utiliser pour analyser les requêtes.",
+      "queryRewritingLabel": "Réécriture de requête",
+      "queryRewritingHelp": "Réécrire la requête pour améliorer la recherche.",
+      "numRewritesLabel": "Nombre de réécritures",
+      "numRewritesHelp": "Nombre de réécritures de requête.",
+      "responseGeneratorTitle": "Générateur de réponses",
+      "responseLlmHelp": "Quel LLM utiliser pour générer les réponses.",
+      "responsePromptHelp": "Instructions pour générer les réponses. Utilisez {context} comme placeholder.",
+      "citeSourcesLabel": "Citer les sources",
+      "citeSourcesHelp": "Inclure des références de sources dans la réponse.",
+      "citationFormatLabel": "Format de citation",
+      "citationFormatHelp": "Format des citations dans la réponse.",
+      "sourcePathLabel": "Mode de chemin de source",
+      "sourcePathHelp": "Contrôle comment les chemins sources sont affichés (basename masque les chemins complets).",
+      "basename": "Nom de fichier",
+      "fullPath": "Chemin complet",
+      "admitLabel": "Admettre l'incertitude",
+      "admitHelp": "Si le LLM ne peut pas répondre, il admet l'incertitude au lieu d'halluciner.",
+      "uncertaintyLabel": "Phrase d'incertitude",
+      "uncertaintyHelp": "Phrase utilisée lorsque le LLM ne peut pas répondre.",
+      "maxResponseLabel": "Longueur max de réponse",
+      "maxResponseHelp": "Limiter la longueur de la réponse en caractères.",
+      "outputSchemaLabel": "Schéma de sortie",
+      "outputSchemaHelp": "Schéma JSON que l'agent doit respecter.",
+      "matchQuery": "Faire correspondre la requête",
+      "matchDocuments": "Faire correspondre les documents",
+      "systemPromptLabel": "Prompt système",
+      "systemPromptHelp": "Instructions pour que le LLM analyse les requêtes. Le LLM doit retourner du JSON.",
+      "outOfScopeLabel": "Prompt hors périmètre",
+      "outOfScopeHelp": "Prompt utilisé lorsque la question est hors périmètre.",
+      "noRetrievalLabel": "Prompt sans récupération",
+      "noRetrievalHelp": "Prompt utilisé quand aucune récupération n'est nécessaire.",
+      "globalTitle": "Paramètres globaux",
+      "globalTimeoutHelp": "Temps max pour le traitement complet des requêtes.",
+      "globalRetriesHelp": "Nombre de tentatives lorsqu'un agent échoue.",
+      "retryDelayLabel": "Délai de réessai",
+      "retryDelayHelp": "Délai entre les tentatives (secondes).",
+      "verboseLabel": "Verbeux",
+      "verboseHelp": "Activer des logs d'agent détaillés.",
+      "responseLanguageLabel": "Langue de la réponse",
+      "responseLanguageHelp": "Langue de la réponse.",
+      "primary": "Principal",
+      "secondary": "Secondaire",
+      "fast": "Rapide",
+      "intents": {
+        "question": "question",
+        "greeting": "salutation",
+        "chitchat": "bavardage",
+        "outOfScope": "hors_périmètre",
+        "clarification": "clarification"
+      }
+    }
+  },
+  "settings": {
+    "expertJson": {
+      "title": "JSON expert",
+      "subtitle": "Contrôle complet de la configuration avec validation en temps réel."
+    },
+    "expertise": {
+      "label": "Expertise",
+      "subtitle": "Choisissez votre cockpit",
+      "simple": {
+        "title": "Simple",
+        "description": "Profils préconfigurés pour démarrer rapidement."
+      },
+      "intermediate": {
+        "title": "Intermédiaire",
+        "description": "Ajustez les réglages clés sans vous noyer dans les détails."
+      },
+      "expert": {
+        "title": "Expert",
+        "description": "Contrôle complet en JSON et configuration avancée."
+      }
+    },
+    "profiles": {
+      "title": "Profils recommandés",
+      "subtitle": "Choisissez un point de départ. Vous pouvez affiner les réglages plus tard en mode intermédiaire ou expert."
+    },
+    "intermediate": {
+      "architectureLabel": "Architecture",
+      "architectureHelp": "Mode de recherche principal.",
+      "balanceLabel": "Équilibre sémantique/lexical",
+      "balanceHelp": "0 = lexical, 1 = sémantique.",
+      "chunkOverlapLabel": "Chevauchement des chunks",
+      "chunkOverlapHelp": "Chevauchement entre les chunks.",
+      "chunkSizeLabel": "Taille des chunks",
+      "chunkSizeHelp": "Taille des chunks en caractères.",
+      "chunkingSubtitle": "Contrôler la granularité du contexte",
+      "chunkingTitle": "Chunking",
+      "citationsLabel": "Exiger des citations",
+      "citationsHelp": "Forcer l'inclusion des sources.",
+      "generationSubtitle": "Ton et longueur de sortie",
+      "generationTitle": "Génération",
+      "maxTokensLabel": "Max tokens",
+      "maxTokensHelp": "Limite de tokens de réponse.",
+      "retrievalSubtitle": "Mélanger la recherche sémantique et lexicale",
+      "retrievalTitle": "Retrieval",
+      "strategyLabel": "Stratégie",
+      "strategyHelp": "Choisissez entre un chunking fixe ou sémantique.",
+      "temperatureLabel": "Température",
+      "temperatureHelp": "Créativité du modèle.",
+      "topKLabel": "Top K",
+      "topKHelp": "Nombre de résultats par requête."
+    }
+  },
+  "wizard": {
+    "steps": {
+      "project": {
+        "title": "Infos projet",
+        "description": "Nom et objectif"
+      },
+      "sources": {
+        "title": "Sources de documents",
+        "description": "Où se trouvent les documents"
+      },
+      "embedding": {
+        "title": "Embeddings",
+        "description": "Vectoriser le contenu"
+      },
+      "llm": {
+        "title": "LLM",
+        "description": "Génération des réponses"
+      },
+      "retrieval": {
+        "title": "Retrieval",
+        "description": "Stratégie de recherche"
+      },
+      "review": {
+        "title": "Revue",
+        "description": "Confirmer et lancer"
+      }
+    },
+    "project": {
+      "applyProfile": "Appliquer le profil",
+      "descriptionHelp": "Description libre du projet. Aide à documenter l'objectif du système RAG.",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Expliquez ce que ce système RAG alimente",
+      "environmentHelp": "development : logs verbeux, rechargement rapide. staging : tests pré-production. production : optimisé pour la performance.",
+      "environmentLabel": "Environnement",
+      "nameHelp": "Nom unique pour votre projet RAG. Utilisé dans les logs et l'UI.",
+      "nameLabel": "Nom du projet",
+      "namePlaceholder": "Base de connaissances Acme",
+      "profileHelp": "Choisissez un profil pour appliquer des réglages recommandés. Vous pouvez ajuster plus tard.",
+      "profileLabel": "Profil suggéré"
+    },
+    "sources": {
+      "sourceTypeLabel": "Type de source",
+      "sourceTypeHelp": "Type de source pour l'ingestion.",
+      "sourceTypeLocal": "Système de fichiers local",
+      "pathLabel": "Chemin",
+      "pathHelp": "Dossier contenant vos documents.",
+      "pathPlaceholder": "./data/documents",
+      "patternsLabel": "Motifs",
+      "patternsHelp": "Formats de fichiers à indexer.",
+      "recursiveLabel": "Récursif",
+      "recursiveHelp": "Analyser aussi les sous-dossiers.",
+      "chunkingTitle": "Chunking",
+      "strategyLabel": "Stratégie",
+      "strategyHelp": "fixed : taille fixe. semantic : cohérence sémantique.",
+      "similarityLabel": "Seuil de similarité",
+      "similarityHelp": "Seuil pour découper en chunks.",
+      "minChunkLabel": "Taille min du chunk",
+      "minChunkHelp": "Taille minimale du chunk.",
+      "maxChunkLabel": "Taille max du chunk",
+      "maxChunkHelp": "Taille maximale du chunk.",
+      "chunkSizeLabel": "Taille des chunks",
+      "chunkSizeHelp": "Nombre de caractères par chunk.",
+      "chunkOverlapLabel": "Chevauchement des chunks",
+      "chunkOverlapHelp": "Chevauchement entre chunks."
+    },
+    "embedding": {
+      "providerLabel": "Fournisseur",
+      "providerHelp": "Fournisseur d'embedding.",
+      "modelLabel": "Modèle",
+      "modelHelp": "Modèle d'embedding.",
+      "apiKeyLabel": "Clé API",
+      "apiKeyHelp": "Clé API pour le fournisseur.",
+      "parametersTitle": "Paramètres",
+      "batchLabel": "Taille de lot",
+      "batchHelp": "Nombre de textes par requête.",
+      "cacheLabel": "Cache activé",
+      "cacheHelp": "Activer le cache d'embedding.",
+      "cacheBackendLabel": "Backend de cache",
+      "cacheBackendHelp": "memory ou disk.",
+      "dimensionsLabel": "Dimensions",
+      "dimensionsHelp": "Laisser vide pour utiliser les dimensions par défaut.",
+      "sameLabel": "Identique au modèle document",
+      "sameHelp": "Utiliser le même modèle pour les requêtes.",
+      "queryProviderLabel": "Fournisseur requête",
+      "queryProviderHelp": "Fournisseur pour le modèle de requête.",
+      "queryModelLabel": "Modèle de requête",
+      "queryModelHelp": "Modèle d'embedding pour les requêtes.",
+      "queryApiKeyLabel": "Clé API requête",
+      "queryApiKeyHelp": "Clé API pour les requêtes."
+    },
+    "llm": {
+      "providerLabel": "Fournisseur",
+      "providerHelp": "Fournisseur LLM.",
+      "modelLabel": "Modèle",
+      "modelHelp": "Modèle LLM à utiliser.",
+      "apiKeyLabel": "Clé API",
+      "apiKeyHelp": "Clé API pour le fournisseur.",
+      "parametersTitle": "Paramètres",
+      "temperatureLabel": "Température",
+      "temperatureHelp": "Contrôle la créativité.",
+      "maxTokensLabel": "Max tokens",
+      "maxTokensHelp": "Limite de tokens pour la réponse.",
+      "topPLabel": "Top P",
+      "topPHelp": "Échantillonnage nucleus.",
+      "timeoutLabel": "Timeout",
+      "timeoutHelp": "Temps d'attente maximal avant timeout (secondes).",
+      "maxRetriesLabel": "Max tentatives",
+      "maxRetriesHelp": "Nombre de tentatives en cas d'erreur."
+    },
+    "retrieval": {
+      "architectureLabel": "Architecture",
+      "architectureHelp": "Choix de la stratégie de recherche.",
+      "semanticTitle": "Sémantique",
+      "semanticWeightHelp": "Poids de la recherche sémantique.",
+      "lexicalTitle": "Lexical",
+      "lexicalWeightHelp": "Poids de la recherche lexicale.",
+      "algorithmLabel": "Algorithme",
+      "algorithmHelp": "Algorithme lexical.",
+      "bm25Title": "Paramètres BM25",
+      "k1Label": "k1",
+      "k1Help": "Saturation de la fréquence des termes.",
+      "bLabel": "b",
+      "bHelp": "Normalisation de la longueur des documents.",
+      "contextTitle": "Contexte",
+      "maxChunksLabel": "Max chunks",
+      "maxChunksHelp": "Nombre maximal de chunks envoyés au LLM.",
+      "maxTokensLabel": "Max tokens",
+      "maxTokensHelp": "Limite de tokens pour le contexte.",
+      "similarityLabel": "Seuil de similarité",
+      "similarityHelp": "Score minimum de similarité.",
+      "weightLabel": "Poids",
+      "rerankTitle": "Reranking",
+      "enabledLabel": "Activé",
+      "enabledHelp": "Activer le reranking.",
+      "topNLabel": "Top N",
+      "topNHelp": "Résultats conservés après reranking.",
+      "dedupLabel": "Déduplication",
+      "dedupHelp": "Supprimer les chunks trop similaires.",
+      "topKLabel": "Top K",
+      "topKHelp": "Nombre de résultats à retourner."
+    },
+    "review": {
+      "title": "Revoir la configuration",
+      "projectTitle": "Projet",
+      "ingestionTitle": "Ingestion",
+      "embeddingTitle": "Embedding",
+      "llmTitle": "LLM",
+      "retrievalTitle": "Retrieval",
+      "embeddingSummary": "Fournisseur : {{provider}} · Modèle : {{model}}",
+      "llmSummary": "Principal : {{provider}} · {{model}}",
+      "retrievalSummary": "Architecture : {{architecture}} · Top K : {{topK}}",
+      "chunkingLabel": "Chunking : {{summary}}",
+      "chunking": {
+        "fixed": "fixe, {{size}} caractères, {{overlap}} chevauchement",
+        "semantic": "sémantique, min {{min}}, max {{max}}"
+      },
+      "sourceLabel": "Source : {{path}} ({{patterns}})",
+      "unnamed": "Sans nom"
+    },
+    "errors": {
+      "applyFailed": "Échec de l'application de la configuration.",
+      "restartTimeout": "Le serveur n'a pas redémarré à temps. Veuillez rafraîchir."
+    },
+    "restarting": {
+      "title": "Redémarrage du serveur...",
+      "subtitle": "Application des changements de configuration."
+    }
+  },
+  "profiles": {
+    "technical": {
+      "name": "Docs techniques",
+      "tag": "API / DevOps / SDK",
+      "description": "Documentation structurée avec terminologie précise et citations."
+    },
+    "faq": {
+      "name": "FAQ & Support",
+      "tag": "Support / Base de connaissances",
+      "description": "Réponses rapides aux questions répétitives avec réponses concises."
+    },
+    "scientific": {
+      "name": "Recherche scientifique",
+      "tag": "Articles / Données",
+      "description": "Fenêtres de contexte plus longues et génération conservatrice."
+    },
+    "legal": {
+      "name": "Juridique & Réglementaire",
+      "tag": "Conformité / Politique",
+      "description": "Retrieval hybride avec exigences strictes de citation."
+    },
+    "reports": {
+      "name": "Rapports & Analyses",
+      "tag": "BI / Analytics",
+      "description": "Chunks plus grands et retrieval plus large pour la synthèse."
+    },
+    "general": {
+      "name": "Connaissance générale",
+      "tag": "Contenu mixte",
+      "description": "Paramètres équilibrés pour une documentation diverse."
+    }
+  }
+}

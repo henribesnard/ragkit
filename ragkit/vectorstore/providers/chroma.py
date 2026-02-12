@@ -1,0 +1,180 @@
+"""Chroma vector store implementation."""
+
+from __future__ import annotations
+
+import asyncio
+from typing import Any, cast
+
+from ragkit.config.schema import ChromaConfig
+from ragkit.exceptions import RetrievalError
+from ragkit.models import Chunk
+from ragkit.vectorstore.base import BaseVectorStore, SearchResult, VectorStoreStats
+
+
+class ChromaVectorStore(BaseVectorStore):
+    def __init__(self, config: ChromaConfig):
+        try:
+            import chromadb
+        except Exception as exc:  # noqa: BLE001
+            raise RetrievalError("chromadb is required") from exc
+
+        self.config = config
+        if config.mode == "persistent":
+            if not config.path:
+                raise RetrievalError("Chroma persistent mode requires a path.")
+            self.client: Any = chromadb.PersistentClient(path=config.path)
+        else:
+            self.client = chromadb.Client()
+        self.collection_name = config.collection_name
+        self.collection: Any = self.client.get_or_create_collection(self.collection_name)
+        self.add_batch_size = config.add_batch_size
+
+    async def _run_sync(self, func: Any, *args: Any, **kwargs: Any) -> Any:
+        return await asyncio.to_thread(func, *args, **kwargs)
+
+    async def add(self, chunks: list[Chunk]) -> None:
+        if not chunks:
+            return
+        if any(chunk.embedding is None for chunk in chunks):
+            raise RetrievalError("All chunks must have embeddings before adding")
+
+        batch_size = self.add_batch_size or len(chunks)
+        for i in range(0, len(chunks), batch_size):
+            batch = chunks[i : i + batch_size]
+            embeddings: list[list[float]] = []
+            for chunk in batch:
+                if chunk.embedding is None:
+                    raise RetrievalError("All chunks must have embeddings before adding")
+                embeddings.append(chunk.embedding)
+
+            await self._run_sync(
+                self.collection.add,
+                ids=[chunk.id for chunk in batch],
+                documents=[chunk.content for chunk in batch],
+                metadatas=[_metadata_payload(chunk) for chunk in batch],
+                embeddings=cast(Any, embeddings),
+            )
+
+    async def search(
+        self,
+        query_embedding: list[float],
+        top_k: int,
+        filters: dict | None = None,
+    ) -> list[SearchResult]:
+        results = await self._run_sync(
+            self.collection.query,
+            query_embeddings=cast(Any, [query_embedding]),
+            n_results=top_k,
+            where=filters,
+        )
+        return _to_search_results(results)
+
+    async def delete(self, ids: list[str]) -> None:
+        if not ids:
+            return
+        await self._run_sync(self.collection.delete, ids=ids)
+
+    async def clear(self) -> None:
+        await self._run_sync(self.client.delete_collection, self.collection_name)
+        self.collection = await self._run_sync(
+            self.client.get_or_create_collection, self.collection_name
+        )
+
+    async def count(self) -> int:
+        return int(await self._run_sync(self.collection.count))
+
+    async def stats(self) -> VectorStoreStats:
+        count = await self.count()
+        details = {
+            "mode": self.config.mode,
+        }
+        return VectorStoreStats(
+            provider="chroma",
+            collection_name=self.collection_name,
+            vector_count=count,
+            details=details,
+        )
+
+    async def list_documents(self) -> list[str]:
+        total = await self.count()
+        document_ids: set[str] = set()
+        offset = 0
+        batch_size = 1000
+        while offset < total:
+            result = await self._run_sync(
+                self.collection.get,
+                limit=batch_size,
+                offset=offset,
+                include=["metadatas"],
+            )
+            metadatas = result.get("metadatas", []) if isinstance(result, dict) else []
+            if not metadatas:
+                break
+            for metadata in metadatas:
+                if metadata and "document_id" in metadata:
+                    document_ids.add(str(metadata["document_id"]))
+            offset += len(metadatas)
+        return sorted(document_ids)
+
+    async def list_chunks(self) -> list[Chunk]:
+        total = await self.count()
+        chunks: list[Chunk] = []
+        offset = 0
+        batch_size = 1000
+        while offset < total:
+            result = await self._run_sync(
+                self.collection.get,
+                limit=batch_size,
+                offset=offset,
+                include=["documents", "metadatas", "ids"],
+            )
+            if not isinstance(result, dict):
+                break
+            ids = result.get("ids", []) or []
+            documents = result.get("documents", []) or []
+            metadatas = result.get("metadatas", []) or []
+            if not ids:
+                break
+            for chunk_id, content, metadata in zip(ids, documents, metadatas, strict=False):
+                metadata = metadata or {}
+                doc_id = metadata.get("document_id", "")
+                cleaned_meta = {k: v for k, v in metadata.items() if k != "document_id"}
+                chunks.append(
+                    Chunk(
+                        id=str(chunk_id),
+                        document_id=str(doc_id),
+                        content=str(content) if content is not None else "",
+                        metadata=cleaned_meta,
+                        embedding=None,
+                    )
+                )
+            offset += len(ids)
+        return chunks
+
+
+def _metadata_payload(chunk: Chunk) -> dict[str, Any]:
+    payload = dict(chunk.metadata)
+    payload["document_id"] = chunk.document_id
+    return payload
+
+
+def _to_search_results(results: Any) -> list[SearchResult]:
+    ids = results.get("ids", [[]])[0]
+    documents = results.get("documents", [[]])[0]
+    metadatas = results.get("metadatas", [[]])[0]
+    distances = results.get("distances", [[]])[0]
+
+    matches: list[SearchResult] = []
+    for idx, chunk_id in enumerate(ids):
+        metadata = metadatas[idx] or {}
+        chunk = Chunk(
+            id=str(chunk_id),
+            document_id=str(metadata.get("document_id", "")),
+            content=str(documents[idx]) if documents else "",
+            metadata={k: v for k, v in metadata.items() if k != "document_id"},
+            embedding=None,
+        )
+        distance = distances[idx] if distances else 0.0
+        score = 1.0 - float(distance) if distance is not None else 0.0
+        matches.append(SearchResult(chunk=chunk, score=score))
+    return matches

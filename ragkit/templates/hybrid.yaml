@@ -1,0 +1,254 @@
+version: "1.0"
+
+project:
+  name: "ragkit-project"
+  description: "RAG project with hybrid search"
+  environment: "development"
+
+ingestion:
+  sources:
+    - type: "local"
+      path: "./data/documents"
+      patterns: ["*.pdf", "*.md", "*.txt", "*.doc"]
+      recursive: true
+  parsing:
+    engine: "auto"
+    ocr:
+      enabled: false
+      engine: "tesseract"
+      languages: ["eng"]
+  chunking:
+    strategy: "fixed"
+    fixed:
+      chunk_size: 512
+      chunk_overlap: 50
+    semantic:
+      similarity_threshold: 0.85
+      min_chunk_size: 100
+      max_chunk_size: 1000
+      embedding_model: "document_model"
+  metadata:
+    extract: ["title", "source_path", "file_type"]
+    custom: {}
+
+embedding:
+  document_model:
+    provider: "openai"
+    model: "text-embedding-3-small"
+    api_key_env: "OPENAI_API_KEY"
+    params:
+      batch_size: 100
+      dimensions: null
+    cache:
+      enabled: true
+      backend: "memory"
+  query_model:
+    provider: "openai"
+    model: "text-embedding-3-small"
+    api_key_env: "OPENAI_API_KEY"
+    params:
+      batch_size: 100
+      dimensions: null
+    cache:
+      enabled: true
+      backend: "memory"
+
+vector_store:
+  provider: "qdrant"
+  qdrant:
+    mode: "memory"
+    path: "./data/qdrant"
+    collection_name: "ragkit_documents"
+    distance_metric: "cosine"
+    add_batch_size: null
+  chroma:
+    mode: "memory"
+    path: "./data/chroma"
+    collection_name: "ragkit_documents"
+    add_batch_size: 100
+
+retrieval:
+  architecture: "hybrid"
+  semantic:
+    enabled: true
+    weight: 0.5
+    top_k: 20
+    similarity_threshold: 0.0
+  lexical:
+    enabled: true
+    weight: 0.5
+    top_k: 20
+    algorithm: "bm25"
+    params:
+      k1: 1.5
+      b: 0.75
+    preprocessing:
+      lowercase: true
+      remove_stopwords: true
+      stopwords_lang: "english"
+      stemming: false
+  rerank:
+    enabled: false
+    provider: "none"
+    model: null
+    top_n: 5
+    candidates: 40
+    relevance_threshold: 0.0
+  fusion:
+    method: "reciprocal_rank_fusion"
+    normalize_scores: true
+    rrf_k: 60
+  context:
+    max_chunks: 5
+    max_tokens: 3000
+    deduplication:
+      enabled: true
+      similarity_threshold: 0.95
+
+llm:
+  primary:
+    provider: "openai"
+    model: "gpt-4o-mini"
+    api_key_env: "OPENAI_API_KEY"
+    params:
+      temperature: 0.7
+      max_tokens: 1500
+      top_p: 0.95
+    timeout: 60
+    max_retries: 3
+  secondary: null
+  fast:
+    provider: "openai"
+    model: "gpt-4o-mini"
+    api_key_env: "OPENAI_API_KEY"
+    params:
+      temperature: 0.3
+      max_tokens: 500
+      top_p: 0.9
+
+agents:
+  mode: "default"
+  query_analyzer:
+    llm: "fast"
+    behavior:
+      always_retrieve: false
+      detect_intents: ["question", "greeting", "chitchat", "out_of_scope", "clarification"]
+      query_rewriting:
+        enabled: true
+        num_rewrites: 1
+    system_prompt: |
+      You analyze user queries for a RAG (Retrieval-Augmented Generation) system.
+      Classify the query intent as one of the allowed values.
+
+      Intent definitions:
+      - question: a question that can be answered using the document knowledge base
+      - greeting: a greeting or hello message
+      - chitchat: casual conversation unrelated to the knowledge base
+      - out_of_scope: a question that clearly cannot be answered from the document knowledge base (e.g. recipes, sports scores, general knowledge unrelated to the documents)
+      - clarification: user asks for clarification about a previous answer
+
+      Set needs_retrieval=true only for 'question' and 'clarification'.
+      Set needs_retrieval=false for 'greeting', 'chitchat', and 'out_of_scope'.
+
+      Return JSON with intent, needs_retrieval, rewritten_query, reasoning.
+    output_schema:
+      type: "object"
+      required: ["intent", "needs_retrieval"]
+      properties:
+        intent:
+          type: "string"
+          enum: ["question", "greeting", "chitchat", "out_of_scope", "clarification"]
+        needs_retrieval:
+          type: "boolean"
+        rewritten_query:
+          type: ["string", "null"]
+        reasoning:
+          type: "string"
+  response_generator:
+    llm: "primary"
+    behavior:
+      cite_sources: true
+      citation_format: "[Source: {source_name}]"
+      admit_uncertainty: true
+      uncertainty_phrase: "I could not find relevant information in the documents."
+      max_response_length: null
+      response_language: "auto"
+      source_path_mode: "basename"
+    system_prompt: |
+      You answer using only the provided context.
+      Cite sources using [Source: name].
+      Context:
+      {context}
+    no_retrieval_prompt: |
+      You are a friendly assistant. Answer briefly.
+    out_of_scope_prompt: |
+      Politely explain the question is outside the supported scope.
+  global:
+    timeout: 30
+    max_retries: 2
+    retry_delay: 1
+    verbose: false
+
+conversation:
+  memory:
+    enabled: true
+    type: "buffer_window"
+    window_size: 10
+    include_in_prompt: true
+  persistence:
+    enabled: false
+    backend: "memory"
+
+chatbot:
+  enabled: true
+  type: "gradio"
+  server:
+    host: "0.0.0.0"
+    port: 8080
+    share: false
+  ui:
+    title: "RAGKIT Assistant"
+    description: "Ask questions about your documentation"
+    theme: "soft"
+    placeholder: "Ask a question..."
+    examples:
+      - "How does hybrid search work?"
+  features:
+    show_sources: true
+    show_latency: true
+    streaming: false
+    allow_feedback: false
+    allow_export: false
+
+api:
+  enabled: true
+  server:
+    host: "0.0.0.0"
+    port: 8000
+  cors:
+    enabled: true
+    origins: ["*"]
+  docs:
+    enabled: true
+    path: "/docs"
+  streaming:
+    enabled: false
+    type: "sse"
+  health:
+    active_checks: false
+    timeout_seconds: 5
+    cache_ttl_seconds: 60
+  startup_sync_ingestion_status: false
+
+observability:
+  logging:
+    level: "INFO"
+    format: "text"
+    file:
+      enabled: false
+      path: "./logs/ragkit.log"
+      rotation: "daily"
+      retention_days: 7
+  metrics:
+    enabled: true
+    track: ["query_count", "query_latency_ms", "component_latency_ms"]
