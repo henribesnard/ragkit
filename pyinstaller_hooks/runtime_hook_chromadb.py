@@ -11,7 +11,6 @@ This runtime hook patches chromadb.config.get_class to gracefully handle
 ModuleNotFoundError for optional/non-existent modules.
 """
 
-import importlib
 import sys
 import types
 

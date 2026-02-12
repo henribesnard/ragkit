@@ -48,7 +48,8 @@ class IngestionStats(BaseModel):
 
 
 class IngestionPipeline:
-    """Orchestrate ingestion: load -> parse -> dedup -> preprocess -> metadata -> chunk -> embed -> store."""
+    """Orchestrate ingestion: load -> parse -> dedup -> preprocess ->
+    metadata -> chunk -> embed -> store."""
 
     def __init__(
         self,

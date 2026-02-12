@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from ragkit.ingestion.metadata import DocumentMetadata
 from ragkit.ingestion.metadata_extractor import MetadataExtractor
 from ragkit.ingestion.parsers.base import DocumentSection, ParsedDocument

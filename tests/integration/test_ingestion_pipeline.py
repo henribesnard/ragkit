@@ -17,10 +17,9 @@ from ragkit.config.schema import (
 )
 from ragkit.config.schema_v2 import TextPreprocessingConfig
 from ragkit.ingestion.parsers.base import ParsedDocument
-from ragkit.ingestion.pipeline import IngestionPipeline, IngestionStats
+from ragkit.ingestion.pipeline import IngestionPipeline
 from ragkit.ingestion.sources.base import RawDocument
 from ragkit.models import Chunk
-
 
 # ── Helpers ──────────────────────────────────────────────────────────────
 

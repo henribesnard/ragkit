@@ -2,13 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import Any
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, model_validator
-
-if TYPE_CHECKING:
-    from ragkit.ingestion.metadata import DocumentMetadata
 
 
 class Document(BaseModel):
