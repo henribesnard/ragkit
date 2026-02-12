@@ -17,9 +17,6 @@ const Settings = lazy(() =>
   import("./pages/Settings").then((m) => ({ default: m.Settings }))
 );
 const Logs = lazy(() => import("./pages/Logs"));
-const Onboarding = lazy(() =>
-  import("./pages/Onboarding").then((m) => ({ default: m.Onboarding }))
-);
 const IngestionSettings = lazy(() =>
   import("./pages/IngestionSettings").then((m) => ({ default: m.default }))
 );
@@ -48,17 +45,10 @@ function App() {
     }
     return false;
   });
-  // Force onboarding to be complete for this version
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(true);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
   }, [darkMode]);
-
-  const handleOnboardingComplete = () => {
-    localStorage.setItem("ragkit_onboarding_complete", "true");
-    setHasCompletedOnboarding(true);
-  };
 
   // Show loading while backend is starting
   if (status === "connecting") {
