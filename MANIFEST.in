@@ -1,3 +1,0 @@
-recursive-include ragkit/ui/dist *
-recursive-include ragkit/templates *.yaml
-recursive-include templates *.yaml
