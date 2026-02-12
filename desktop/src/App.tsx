@@ -48,9 +48,8 @@ function App() {
     }
     return false;
   });
-  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(() => {
-    return localStorage.getItem("ragkit_onboarding_complete") === "true";
-  });
+  // Force onboarding to be complete for this version
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(true);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", darkMode);
@@ -77,19 +76,6 @@ function App() {
     );
   }
 
-  // Show onboarding for first-time users
-  if (!hasCompletedOnboarding) {
-    return (
-      <ErrorBoundary>
-        <ToastProvider position="bottom-right">
-          <Suspense fallback={<LoadingScreen message={t("common.status.loading")} />}>
-            <Onboarding onComplete={handleOnboardingComplete} />
-          </Suspense>
-        </ToastProvider>
-      </ErrorBoundary>
-    );
-  }
-
   return (
     <ErrorBoundary>
       <ToastProvider position="bottom-right">
@@ -98,7 +84,7 @@ function App() {
             <Layout darkMode={darkMode} onToggleDarkMode={() => setDarkMode(!darkMode)}>
               <Suspense fallback={<PageLoader />}>
                 <Routes>
-                  <Route path="/" element={<Navigate to="/chat" replace />} />
+                  <Route path="/" element={<Navigate to="/ingestion" replace />} />
                   <Route path="/chat" element={<Chat />} />
                   <Route path="/chat/:conversationId" element={<Chat />} />
                   <Route path="/knowledge-bases" element={<KnowledgeBases />} />
