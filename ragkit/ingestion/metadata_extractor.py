@@ -85,9 +85,7 @@ class MetadataExtractor:
 
     # ── Private helpers ───────────────────────────────────────────────
 
-    def _detect_title(
-        self, parsed_doc: ParsedDocument, raw_doc: RawDocument
-    ) -> str | None:
+    def _detect_title(self, parsed_doc: ParsedDocument, raw_doc: RawDocument) -> str | None:
         """Extract the title from the first H1 section or fall back to filename."""
         # Try structured sections (H1)
         if parsed_doc.structure:
