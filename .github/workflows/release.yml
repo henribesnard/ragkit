@@ -26,27 +26,32 @@ jobs:
         with:
           workspaces: './desktop/src-tauri -> target'
 
-      - name: Sync node version and setup cache
+      - name: Sync node version
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
-          cache: 'npm'
-          cache-dependency-path: './desktop/package-lock.json'
+          # Cache removed to avoid errors if lockfile is missing or inconsistent
 
       - name: Install frontend dependencies
         working-directory: ./desktop
-        run: npm ci
+        run: npm install
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install backend dependencies
+      - name: Debug Requirements
         run: |
-          pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pyinstaller
+          dir
+          type requirements.txt
+
+      - name: Install backend dependencies
+        # Explicitly install requirements files and pyinstaller
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --no-cache-dir -r requirements.txt
+          python -m pip install --no-cache-dir pyinstaller
 
       - name: Build backend executable (PyInstaller)
         run: |
