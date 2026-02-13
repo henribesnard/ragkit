@@ -1,107 +1,127 @@
-# Étape 1 : INGESTION & PREPROCESSING (Vertical Slice)
+# ÉTAPE 1 : INGESTION & PRÉPROCESSING
 
-## 🎯 Objectif de l'Incrément
-Permettre à l'utilisateur d'importer un document, de configurer finement comment il est lu (Parsing) et nettoyé (Preprocessing), et de **visualiser immédiatement le résultat**.
+## Objectif
+Permettre à l'utilisateur de charger sa base de connaissances locale, d'analyser son contenu, de filtrer les documents pertinents et de valider les métadonnées avant l'indexation.
 
-**Livrable** : Un `.exe` fonctionnel où l'utilisateur peut :
-1.  Aller dans les "Settings > Ingestion".
-2.  Modifier les paramètres (OCR, Lowercase, etc.).
-3.  Uploader un fichier test ("Playground").
-4.  Voir le texte extrait brut VS le texte nettoyé.
+## Workflow Utilisateur
 
----
+### 1. Sélection du Répertoire Source
+- **Action Utilisateur** : L'utilisateur lance l'application (ou va dans "Ingestion").
+- **Interface** : Demande de sélectionner le dossier racine de la base de connaissances.
+- **Option** : "Inclure les sous-dossiers" (Checkbox : Oui/Non).
 
-## 1. ⚙️ Paramètres à Exposer (Dashboard)
+### 2. Analyse et Validation
+- **Action Système** : Scanne le répertoire (et sous-répertoires si demandé).
+- **Interface** : Affiche un rapport d'analyse :
+    - Nombre total de fichiers détectés.
+    - Répartition par type (ex: 15 PDF, 4 DOCX, 10 TXT).
+    - Avertissements éventuels (fichiers corrompus, extensions non supportées).
 
-Ces paramètres proviennent de `parametres_rag_exhaustif.md` (sections 1.1 et 1.2).
+### 3. Filtrage par Type
+- **Interface** : Affiche des cases à cocher pour les types de documents détectés.
+- **Logique** : Seuls les types *présents* dans le répertoire sont affichés.
+- **Action Utilisateur** : Coche/décoche les extensions à inclure (ex: garder PDF et DOCX, ignorer TXT).
 
-### 1.1 Document Parsing
-| Paramètre | Type UI | Description |
-|-----------|---------|-------------|
-| `ocr_enabled` | Toggle | Activer l'OCR pour les PDFs images |
-| `ocr_language` | Dropdown | Langue (fra, eng, multi) |
-| `table_extraction` | Dropdown | Stratégie (text, markdown, csv) |
-| `header_detection` | Toggle | Détecter les titres (Markdown structure) |
+### 4. Extraction et Revue des Métadonnées
+- **Action Système** : 
+    - Extrait les métadonnées techniques automatiquement.
+    - Pré-remplit les métadonnées fonctionnelles (Titre, Auteur, Date...).
+- **Interface** : Tableau ou liste des documents sélectionnés.
+- **Visibilité** :
+    - **Affiché/Modifiable** : Métadonnées fonctionnelles (Titre, Auteur, Tags, Confidentialité...).
+    - **Masqué (Système)** : Métadonnées techniques (Encoding, Hash, File path...).
+- **Action Utilisateur** : Corrige ou valide les métadonnées proposées.
 
-### 1.2 Text Preprocessing
-| Paramètre | Type UI | Description |
-|-----------|---------|-------------|
-| `lowercase` | Toggle | Tout mettre en minuscule |
-| `remove_punctuation`| Toggle | Supprimer .,;:!? |
-| `remove_urls` | Toggle | Supprimer http://... |
-| `normalize_unicode` | Dropdown | NFC, NFD... |
-| `deduplication` | Toggle | Ignorer les documents identiques |
-
----
-
-## 2. 🖥️ Interface Utilisateur (Mockup)
-
-### Page : `Settings > Ingestion`
-Deux colonnes :
-1.  **Configuration** (Gauche) : Liste des contrôles ci-dessus.
-2.  **Live Preview** (Droite) :
-    - Zone "Drop file to test"
-    - Onglets résultats :
-        - `Metadata` (JSON view)
-        - `Raw Text` (Texte brut extrait)
-        - `Cleaned Text` (Texte après preprocessing)
+### 5. Configuration Finale de l'Ingestion
+- **Interface** : Affiche les paramètres globaux de l'étape 1 (ex: Stratégie de chunking, OCR activé/désactivé).
+- **Valeurs par défaut** : Pré-remplies par le système (basées sur des best practices ou l'analyse précédente).
+- **Action Utilisateur** : Ajuste si besoin et lance l'ingestion finale.
 
 ---
 
-## 3. 🏗️ Architecture Backend (Python)
+## Modèle de Données (Metadata Schema)
 
-### 3.1 Modèles de Données (`ragkit/models.py`)
-Mise à jour pour inclure les métadonnées riches.
+### DocumentMetadata
 
-```python
-class DocumentMetadata(BaseModel):
-    title: str
-    page_count: int
-    language: str
-    # ... (voir schema complet plus bas)
-```
+#### Hiérarchie organisationnelle
+| Champ | Description | Visibilité |
+|---|---|---|
+| `tenant` | Organisation / client | Système / Config |
+| `domain` | Domaine métier | Utilisateur |
+| `subdomain` | Sous-domaine | Utilisateur |
 
-### 3.2 Pipeline (`ragkit/ingestion/`)
-- `parser_factory.py` : Sélectionne le bon parser (PDF, Docx...).
-- `preprocessing.py` : Applique les filtres (Regex, Normalization) selon la config.
-- `metadata_extractor.py` : Auto-détecte langue, auteur, titre.
+#### Identification document
+| Champ | Description | Visibilité |
+|---|---|---|
+| `document_id` | ID unique généré | Système |
+| `title` | Extrait du H1 ou nom de fichier | **Utilisateur (Modifiable)** |
+| `author` | Extrait des métadonnées PDF/DOCX | **Utilisateur (Modifiable)** |
+| `source` | Nom du fichier | Utilisateur (Lecture) |
+| `source_path` | Chemin relatif | Système |
+| `source_type` | pdf, docx, md, txt, html, csv | Utilisateur (Lecture) |
+| `source_url` | URL d'origine si applicable | Utilisateur |
+| `mime_type` | MIME type détecté | Système |
 
-### 3.3 API / Commandes Tauri (`desktop/src-tauri/src/commands.rs`)
-Nouvelles commandes pour le frontend :
-- `get_ingestion_config()`
-- `save_ingestion_config(config)`
-- `preview_ingestion(file_path, config)` -> Retourne `{raw, cleaned, metadata}`
+#### Temporalité
+| Champ | Description | Visibilité |
+|---|---|---|
+| `created_at` | Date de création du document | Utilisateur |
+| `modified_at` | Dernière modification | Utilisateur |
+| `ingested_at` | Timestamp d'ingestion | Système |
+| `version` | Version du document | Système / Utilisateur |
 
----
+#### Contenu (auto-détecté)
+| Champ | Description | Visibilité |
+|---|---|---|
+| `language` | Langue ISO 639-1 | Utilisateur (Modifiable) |
+| `page_count` | Nombre de pages | Utilisateur |
+| `word_count` | Nombre de mots | Système |
+| `char_count` | Nombre de caractères | Système |
+| `has_tables` | Booléen | Système |
+| `has_images` | Booléen | Système |
+| `has_code` | Booléen | Système |
+| `encoding` | Encodage détecté | Système |
 
-## 4. 📝 Plan d'Implémentation
+#### Classification
+| Champ | Description | Visibilité |
+|---|---|---|
+| `tags` | Liste libre | **Utilisateur (Modifiable)** |
+| `category` | Catégorie prédéfinie | **Utilisateur (Modifiable)** |
+| `confidentiality` | public / internal / confidential / secret | **Utilisateur (Modifiable)** |
+| `status` | draft / review / published / archived | **Utilisateur (Modifiable)** |
 
-### Phase 4.1 : Backend Core (Jours 1-2)
-- [ ] Créer `ragkit/ingestion/parsers/` (PDF, Docx, MD, Txt).
-- [ ] Implémenter `ragkit/ingestion/preprocessing.py`.
-- [ ] Implémenter `ragkit/ingestion/metadata.py`.
-- [ ] Tests unitaires : `pytest tests/unit/test_ingestion.py`.
+#### Parsing (système)
+| Champ | Description | Visibilité |
+|---|---|---|
+| `parser_engine` | Moteur utilisé | Système |
+| `ocr_applied` | OCR déclenché ou non | Système |
+| `parsing_quality` | Score 0-1 | Système |
+| `parsing_warnings` | Avertissements | Système |
 
-### Phase 4.2 : Backend API & Glue (Jour 3)
-- [ ] Créer les schemas Pydantic pour la Config Ingestion.
-- [ ] Exposer les commandes Tauri `preview_ingestion`.
+#### Extensible
+| Champ | Description | Visibilité |
+|---|---|---|
+| `custom` | Dictionnaire libre clé/valeur | Utilisateur |
 
-### Phase 4.3 : Frontend UI (Jours 4-5)
-- [ ] Créer `src/components/settings/IngestionSettings.tsx`.
-- [ ] Créer `src/components/preview/IngestionPreview.tsx` (Split view).
-- [ ] Intégrer dans la page Settings principale.
+### ChunkMetadata (Hérité + Enrichi)
 
-### Phase 4.4 : Validation & Build (Jour 6)
-- [ ] Vérifier que changer "Lowercase" met bien à jour la preview en temps réel.
-- [ ] Builder l'exe : `npm run tauri build`.
-- [ ] Tester l'exe sur un Windows propre.
+**Hérité du document** : `document_id`, `tenant`, `domain`, `title`, `source`, `language`, `tags`
 
----
+#### Spécifique au chunk
+- `chunk_id`
+- `chunk_index` (Position dans le document)
+- `total_chunks`
+- `chunk_strategy` (fixed / semantic / recursive)
+- `chunk_size_tokens`
+- `chunk_size_chars`
 
-## 5. ✅ Critères de Validation (Definition of Done)
+#### Contexte structurel
+- `page_number`
+- `section_title` (Titre de section parent)
+- `heading_path` (Fil d'Ariane des headings)
+- `paragraph_index`
 
-- [ ] L'application se lance (.exe).
-- [ ] Je peux charger un PDF.
-- [ ] Si j'active "Remove URLs", les liens disparaissent de la vue "Cleaned Text".
-- [ ] Si j'active "OCR", un PDF scanné retourne du texte (au lieu de vide).
-- [ ] Les métadonnées (nb pages, titre) sont correctes.
+#### Relations
+- `previous_chunk_id`
+- `next_chunk_id`
+- `parent_chunk_id` (Pour le parent-child chunking)

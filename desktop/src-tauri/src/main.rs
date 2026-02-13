@@ -120,6 +120,7 @@ fn main() {
             commands::start_ollama_service,
             commands::get_install_instructions,
             commands::preview_ingestion,
+            commands::scan_directory,
         ])
         .run(tauri::generate_context!());
 

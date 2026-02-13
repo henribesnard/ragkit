@@ -163,6 +163,31 @@ pub async fn preview_ingestion(file_path: String, config: serde_json::Value) -> 
     .map_err(|e| e.to_string())
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ScanDirectoryParams {
+    pub path: String,
+    pub recursive: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ScanDirectoryResponse {
+    pub total_files: usize,
+    pub total_size: u64,
+    pub stats_by_type: serde_json::Value,
+    pub files: Vec<serde_json::Value>,
+}
+
+#[tauri::command]
+pub async fn scan_directory(path: String, recursive: bool) -> Result<ScanDirectoryResponse, String> {
+    backend_request(
+        Method::POST,
+        "/api/ingestion/scan",
+        Some(json!({ "path": path, "recursive": recursive })),
+    )
+    .await
+    .map_err(|e| e.to_string())
+}
+
 // ============================================================================
 // Request Types
 // ============================================================================

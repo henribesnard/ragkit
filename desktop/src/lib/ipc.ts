@@ -144,6 +144,13 @@ interface EnvironmentDetection {
   };
 }
 
+interface ScanDirectoryResponse {
+  total_files: number;
+  total_size: number;
+  stats_by_type: Record<string, { count: number; size: number }>;
+  files: any[];
+}
+
 // Ollama types
 interface OllamaStatus {
   installed: boolean;
@@ -348,6 +355,15 @@ export const ipc = {
   async detectEnvironment(): Promise<EnvironmentDetection> {
     return invoke<EnvironmentDetection>("detect_environment");
   },
+
+  // Ingestion
+  async scanDirectory(path: string, recursive: boolean): Promise<ScanDirectoryResponse> {
+    return invoke<ScanDirectoryResponse>("scan_directory", { path, recursive });
+  },
+
+  async previewIngestion(filePath: string, config: any): Promise<any> {
+    return invoke("preview_ingestion", { filePath, config });
+  },
 };
 
 // Export types
@@ -369,4 +385,5 @@ export type {
   WizardAnswers,
   WizardProfileResponse,
   EnvironmentDetection,
+  ScanDirectoryResponse,
 };

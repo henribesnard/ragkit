@@ -17,8 +17,8 @@ const Settings = lazy(() =>
   import("./pages/Settings").then((m) => ({ default: m.Settings }))
 );
 const Logs = lazy(() => import("./pages/Logs"));
-const IngestionSettings = lazy(() =>
-  import("./pages/IngestionSettings").then((m) => ({ default: m.default }))
+const IngestionWizard = lazy(() =>
+  import("./pages/IngestionWizard").then((m) => ({ default: m.IngestionWizard }))
 );
 
 // Page loading fallback
@@ -75,11 +75,11 @@ function App() {
               <Suspense fallback={<PageLoader />}>
                 <Routes>
                   <Route path="/" element={<Navigate to="/ingestion" replace />} />
-                  <Route path="/chat" element={<Chat />} />
-                  <Route path="/chat/:conversationId" element={<Chat />} />
-                  <Route path="/knowledge-bases" element={<KnowledgeBases />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/ingestion" element={<IngestionSettings />} />
+                  {/* <Route path="/chat" element={<Chat />} /> */}
+                  {/* <Route path="/chat/:conversationId" element={<Chat />} /> */}
+                  {/* <Route path="/knowledge-bases" element={<KnowledgeBases />} /> */}
+                  {/* <Route path="/settings" element={<Settings />} /> */}
+                  <Route path="/ingestion" element={<IngestionWizard />} />
                   <Route path="/logs" element={<Logs />} />
                 </Routes>
               </Suspense>
