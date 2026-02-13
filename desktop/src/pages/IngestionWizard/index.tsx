@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Step1_SourceSelection } from "./Step1_SourceSelection";
 import { Step2_Analysis } from "./Step2_Analysis";
 import { Step3_MetadataReview } from "./Step3_MetadataReview";
+import { Step4_Configuration, IngestionConfig } from "./Step4_Configuration";
 import { ipc, ScanDirectoryResponse } from "../../lib/ipc";
 import { LoadingScreen } from "../../components/LoadingScreen";
 import { useTranslation } from "react-i18next";
@@ -16,7 +17,6 @@ export function IngestionWizard() {
     const [recursive, setRecursive] = useState(true);
     const [scanResult, setScanResult] = useState<ScanDirectoryResponse | null>(null);
     const [selectedFileTypes, setSelectedFileTypes] = useState<string[]>([]);
-    // TODO: store files metadata in step 3 to pass to step 4
     const [filesMetadata, setFilesMetadata] = useState<any[]>([]);
 
     const handleStep1Next = async (path: string, isRecursive: boolean) => {
@@ -54,6 +54,26 @@ export function IngestionWizard() {
 
     const handleStep3Back = () => {
         setStep(2);
+    };
+
+    const handleStartIngestion = async (config: IngestionConfig) => {
+        setIsLoading(true);
+        try {
+            // TODO: Call backend to start ingestion
+            console.log("Starting ingestion with config:", config);
+            console.log("Files:", filesMetadata);
+
+            // Simulate backend call
+            await new Promise(r => setTimeout(r, 2000));
+            alert("Ingestion started! (This is a simulation)");
+
+            // Reset or redirect
+            // setStep(1);
+        } catch (error) {
+            console.error("Ingestion failed:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     if (isLoading) {
@@ -105,32 +125,6 @@ export function IngestionWizard() {
                     onBack={handleStep3Back}
                 />
             )}
-
-            import {Step4_Configuration, IngestionConfig} from "./Step4_Configuration";
-
-// ... inside IngestionWizard ...
-
-    const handleStartIngestion = async (config: IngestionConfig) => {
-                setIsLoading(true);
-            try {
-                // TODO: Call backend to start ingestion
-                console.log("Starting ingestion with config:", config);
-            console.log("Files:", filesMetadata);
-
-            // Simulate backend call
-            await new Promise(r => setTimeout(r, 2000));
-            alert("Ingestion started! (This is a simulation)");
-
-            // Reset or redirect
-            // setStep(1);
-        } catch (error) {
-                console.error("Ingestion failed:", error);
-        } finally {
-                setIsLoading(false);
-        }
-    };
-
-            // ...
 
             {step === 4 && (
                 <Step4_Configuration
