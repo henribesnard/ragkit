@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ipc } from "../../lib/ipc"; // We will need a new endpoint to get files by type
+// import { ipc } from "../../lib/ipc"; // We will need a new endpoint to get files by type
 import { useTranslation } from "react-i18next";
 import { Loader2 } from "lucide-react";
 
@@ -23,7 +23,7 @@ interface FileMetadata {
     size: number;
 }
 
-export function Step3_MetadataReview({ selectedTypes, sourcePath, recursive, onNext, onBack }: Step3Props) {
+export function Step3_MetadataReview({ selectedTypes, sourcePath, recursive: _recursive, onNext, onBack }: Step3Props) {
     const { t } = useTranslation();
     const [isLoading, setIsLoading] = useState(true);
     const [files, setFiles] = useState<FileMetadata[]>([]);

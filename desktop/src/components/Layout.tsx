@@ -2,10 +2,10 @@ import { ReactNode, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
-  MessageSquare,
-  Database,
+  // MessageSquare,
+  // Database,
   List,
-  Settings,
+  // Settings,
   Sun,
   Moon,
   Menu,
