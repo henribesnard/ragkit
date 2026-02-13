@@ -3,6 +3,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Any
 from ragkit.ingestion.scanner import FileScanner
+from ragkit.desktop.api import preview_ingestion
 
 app = FastAPI()
 
