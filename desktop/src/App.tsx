@@ -9,13 +9,13 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import { ToastProvider, ConfirmProvider } from "./components/ui";
 
 // Lazy load pages for better initial load time
-const Chat = lazy(() => import("./pages/Chat").then((m) => ({ default: m.Chat })));
-const KnowledgeBases = lazy(() =>
-  import("./pages/KnowledgeBases").then((m) => ({ default: m.KnowledgeBases }))
-);
-const Settings = lazy(() =>
-  import("./pages/Settings").then((m) => ({ default: m.Settings }))
-);
+// const Chat = lazy(() => import("./pages/Chat").then((m) => ({ default: m.Chat })));
+// const KnowledgeBases = lazy(() =>
+//   import("./pages/KnowledgeBases").then((m) => ({ default: m.KnowledgeBases }))
+// );
+// const Settings = lazy(() =>
+//   import("./pages/Settings").then((m) => ({ default: m.Settings }))
+// );
 const Logs = lazy(() => import("./pages/Logs"));
 const IngestionWizard = lazy(() =>
   import("./pages/IngestionWizard").then((m) => ({ default: m.IngestionWizard }))
