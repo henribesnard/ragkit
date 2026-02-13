@@ -17,7 +17,7 @@ class ScanRequest(BaseModel):
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
+    return {"ok": True, "version": "3.0.4"}
 
 @app.post("/api/ingestion/preview")
 def api_preview_ingestion(request: PreviewRequest):
